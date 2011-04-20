@@ -8,7 +8,7 @@
 # 2.  Redistributions in binary form must reproduce the above copyright
 # notice, this list of conditions and the following disclaimer in the
 # documentation and/or other materials provided with the distribution.
-# 3.  Neither the name of the Portable Site Information Project nor the names
+# 3.  Neither the name of the tubing project nor the names
 # of its contributors may be used to endorse or promote products derived from
 # this software without specific prior written permission.
 #
@@ -45,7 +45,7 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: ZPL License',
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python',

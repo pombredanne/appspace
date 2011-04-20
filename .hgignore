@@ -1,0 +1,13 @@
+syntax:glob
+*.pyc
+*.egg-info
+*~
+.figleaf
+.coverage
+build/
+dist/
+
+syntax: glob
+.project
+syntax: glob
+.pydevproject

@@ -5,8 +5,7 @@ import inspect
 from tubing.util import name_resolver, checkname, reify
 from tubing.exception import NoAppError, ComponentLookupError
 from tubing.appspace import (
-    ARootAppSpace, AAppSpace, ARootApp, AApp, AppSpace, global_appspace, AEvent,
-    ARootEvent)
+    AAppSpace, ARootApp, AApp, AppSpace, global_appspace, AEvent, ARootEvent)
 
 
 class AppBase(object):
@@ -71,7 +70,6 @@ class AppFactory(AppBase):
         return self.appspace
 
     def _app(self, name, path, kw=None):
-        s = self._s
         mdotted = self._dotted
         if kw is None: kw = self._defkw
         if isinstance(name, (list, tuple)):
@@ -79,7 +77,8 @@ class AppFactory(AppBase):
             module = mdotted(path)
             include = getattr(getattr(module, self._appname), self._applist)
             registry = include.appspace()
-            if registry != global_appspace: s(registry, self._defspace, space)
+            if registry != global_appspace:
+                self._s(registry, self._defspace, space)
         elif isinstance(name, basestring):
             app = mdotted(path)
             aspace = self._q(self._defspace, kw.get('appspace', self._name))
@@ -97,23 +96,21 @@ class AppFactory(AppBase):
         return self._nresolve(dotted)
 
     def _s(self, app, appspace, name='', event=False):
-        return self._sa(app, appspace, name, event=event)
+        return self._sa(app, appspace, name, app.__doc__, event)
 
 
 class App(AppBase):
 
-    def __init__(self, registry):
-        self._appspace = registry
+    def __init__(self, appspace):
+        self._appspace = appspace
 
     def __call__(self, name, *args, **kw):
         if not isinstance(name, tuple):
-            obj = self._resolve(name)
-        else:
-            obj = self
-            for n in name:
-                obj = obj._resolve(n)
-                if isinstance(obj, App): break
-        return self._sortout(obj, *args, **kw)
+            return self._sortout(self._resolve(name), *args, **kw)
+        obj = self
+        for n in name:
+            obj = obj._resolve(n)
+            if not isinstance(obj, App): return self._sortout(obj, *args, **kw)
 
     def __contains__(self, name):
         try:

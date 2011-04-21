@@ -167,8 +167,9 @@ class QuintupleTest(unittest.TestCase):
         plug = self._make_multiple()
         self.assertEqual(plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2))
         self.assertEqual(plug(('helpers', 'util', 'misc', 'fabulous'), 2), fabs(2))
-        self.assert_(
-            plug(('helpers', 'util', 'misc',  'formit'), '2', '2') is match('2', '2')
+        self.assertEqual(
+            plug(('helpers', 'util', 'misc',  'formit'), '2', '2').string,
+            match('2', '2').string
         )
         self.assertEqual(plug(('helpers', 'util', 'misc', 'lower')), lowercase)
         self.assertEqual(plug(('helpers', 'util', 'misc', 'upper')), uppercase)
@@ -181,8 +182,9 @@ class QuintupleTest(unittest.TestCase):
         plug = self._make_multiple()
         self.assertEqual(plug.helpers.util.misc.square(2), sqrt(2))
         self.assertEqual(plug.helpers.util.misc.fabulous(2), fabs(2))
-        self.assert_(
-            plug.helpers.util.misc.formit('2', '2') is match('2', '2')
+        self.assertEqual(
+            plug.helpers.util.misc.formit('2', '2').string,
+            match('2', '2').string
         )
         self.assertEqual(plug.helpers.util.misc.lower, lowercase)
         self.assertEqual(plug.helpers.util.misc.upper, uppercase)

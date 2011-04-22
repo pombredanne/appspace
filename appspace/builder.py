@@ -1,7 +1,7 @@
 '''appspace builder'''
 
+from appspace.util import resolve, reify, lru_cache
 from appspace.error import NoAppError, AppLookupError
-from appspace.util import resolve, checkname, reify, lru_cache
 from appspace.state import (
     AAppSpace, AApp, AppSpace, global_appspace, ADefaultAppKey)
 
@@ -78,11 +78,6 @@ class AppspaceFactory(AppspaceBase):
             for arg in args: apper(*arg)
 
     @reify
-    def _checkname(self):
-        '''Make sure name is Python safe'''
-        return checkname
-
-    @reify
     def _dotted(self):
         '''Python dynamic loader'''
         return resolve
@@ -126,6 +121,10 @@ class AppspaceFactory(AppspaceBase):
                 name,
                 app.__doc__,
             )
+        else:
+            self._g(AAppSpace, self._name).setapp(
+                self._dotted(path), self._defapp, name,
+            )
 
 
 class App(AppspaceBase):
@@ -155,10 +154,7 @@ class App(AppspaceBase):
             return False
 
     def __getitem__(self, name):
-        try:
-            return self._resolve(name)
-        except NoAppError:
-            raise NoAppError('%s' % name)
+        return self._resolve(name)
 
     def __getattr__(self, name):
         try:

@@ -53,15 +53,11 @@ class AppSpace(Components):
         '''App registrar'''
         return self.registerUtility
 
-    @reify
-    def deleteapp(self):
-        '''App deleter'''
-        return self.unregisterUtility
-
 
 class ADefaultAppKey(AppSpaceKey):
 
     '''Default app key key'''
+
 
 # global appspace
 global_appspace = AppSpace('global')

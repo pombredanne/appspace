@@ -4,7 +4,7 @@ from zope.component.registry import Components
 from zope.interface import implements as appifies
 from zope.interface.interface import InterfaceClass as AppSpacer
 
-from tubing.util import reify
+from appspace.util import reify
 
 AppSpaceKey = AppSpacer('AppSpaceKey')
 

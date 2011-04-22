@@ -9,7 +9,7 @@ from functools import wraps
 from collections import OrderedDict
 
 import pkg_resources
-from tubing.exception import ConfigurationError
+from appspace.exception import ConfigurationError
 
 # Illegal characters for Python names
 _ichar = '()[]{}@,:.`=;+-*/%&|^><\'"#\\$?!~'

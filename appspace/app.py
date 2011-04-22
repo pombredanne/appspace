@@ -1,8 +1,8 @@
-'''tubing application core'''
+'''appspace application core'''
 
-from tubing.util import name_resolver, checkname, reify, lru_cache
-from tubing.exception import NoAppError, AppLookupError
-from tubing.appspace import AAppSpace, AApp, AppSpace, global_appspace
+from appspace.exception import NoAppError, AppLookupError
+from appspace.util import name_resolver, checkname, reify, lru_cache
+from appspace.appspace import AAppSpace, AApp, AppSpace, global_appspace
 
 def appconf(appspace, *args, **kw):
     return App(AppFactory(appspace, *args, **kw).appspace)
@@ -46,6 +46,22 @@ class AppFactory(AppBase):
             self._sa(self._appspace, self._defspace, name)
             apper = self._app
             for arg in args: apper(*arg)
+
+    @property
+    def _defapp(self):
+        return self._dapp
+
+    @_defapp.setter
+    def _setdefapp(self, dapp):
+        self._dapp = dapp
+
+    @property
+    def _defspace(self):
+        return self._dspace
+
+    @_defspace.setter
+    def _setdefspace(self, dspace):
+        self._dspace = dspace
 
     @reify
     def _checkname(self):
@@ -100,9 +116,8 @@ class App(AppBase):
 
     def __contains__(self, name):
         try:
-            result = self._resolve(name)
-            if result != name: return True
-            return False
+            self._resolve(name)
+            return True
         except NoAppError:
             return False
 
@@ -131,7 +146,7 @@ class App(AppBase):
             except AppLookupError:
                 raise NoAppError('%s' % name)
 
-    @lru_cache()
+    @lru_cache(50)
     def _sort(self, result, *args, **kw):
         try:
             return result(*args, **kw)

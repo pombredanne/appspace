@@ -32,14 +32,14 @@ except:
     from distutils.core import setup
 
 setup(
-    name='tubing',
+    name='appspace',
     version='0.1',
     description='''Loosely coupled Python application plumbing''',
     long_description='''Loosely coupled Python application plumbing''',
     author='L. C. Rees',
     author_email='lcrees@gmail.com',
     license='ZPL',
-    packages = ['tubing'],
+    packages = ['appspace'],
     zip_safe = False,
     keywords='application composition component injection aspect-oriented spring',
     classifiers=[

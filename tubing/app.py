@@ -77,17 +77,13 @@ class AppFactory(AppBase):
         return self.appspace
 
     def _app(self, name, path):
-        if isinstance(path, tuple):
-            app = self._dotted('.'.join([path[-1], self._appname]))
-            self._s(
-                getattr(app, self._appconf).appspace,
-                self._defspace,
-                name,
-            )
-        elif isinstance(path, basestring):
+        if isinstance(path, basestring):
             app = self._dotted(path)
             aspace = self._g(self._defspace, self._name)
             aspace.setapp(app, AApp, name)
+        elif isinstance(path, tuple):
+            app = self._dotted('.'.join([path[-1], self._appname]))
+            self._s(getattr(app, self._appconf).appspace, self._defspace, name)
 
     def _dotted(self, dotted):
         return self._nresolve(dotted)

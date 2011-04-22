@@ -1,7 +1,7 @@
 '''tubing application namespace management'''
 
-from zope.interface import implements #@UnresolvedImport
 from zope.component.registry import Components #@UnresolvedImport
+from zope.interface import implements as appifies #@UnresolvedImport
 from zope.interface.interface import InterfaceClass as AppSpacer #@UnresolvedImport
 
 from tubing.util import reify
@@ -10,10 +10,6 @@ AppSpaceKey = AppSpacer('AppSpaceKey')
 
 
 class AApp(AppSpaceKey):
-    pass
-
-
-class AEvent(AppSpaceKey):
     pass
 
 
@@ -32,21 +28,9 @@ class AAppSpace(AppSpaceKey):
         pass
 
 
-class ARootAppSpace(AppSpaceKey):
-    pass
-
-
-class ARootApp(AppSpaceKey):
-    pass
-
-
-class ARootEvent(AppSpaceKey):
-    pass
-
-
 class AppSpace(Components):
 
-    implements(AAppSpace)
+    appifies(AAppSpace)
 
     @reify
     def getapp(self):

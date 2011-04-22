@@ -1,7 +1,7 @@
 '''appspace builder'''
 
 from appspace.error import NoAppError, AppLookupError
-from appspace.util import name_resolver, checkname, reify, lru_cache
+from appspace.util import resolve, checkname, reify, lru_cache
 from appspace.state import (
     AAppSpace, AApp, AppSpace, global_appspace, ADefaultAppKey)
 
@@ -58,7 +58,7 @@ class AppspaceFactory(AppspaceBase):
         self._global = kw.get('use_global', False)
         # handle tuple hierarchy
         if isinstance(name, tuple) and name:
-            self._name = self._checkname(name[0])
+            self._name = name[0]
             nombus = name[1:]
             if nombus:
                 # create tree of branch appspaces
@@ -85,7 +85,7 @@ class AppspaceFactory(AppspaceBase):
     @reify
     def _dotted(self):
         '''Python dynamic loader'''
-        return name_resolver.resolve
+        return resolve
 
     @reify
     def _s(self):
@@ -146,8 +146,6 @@ class App(AppspaceBase):
             obj = obj._resolve(n)
             # recur through appspaces until app is found
             if not isinstance(obj, App): return self._sort(obj, *args, **kw)
-        else:
-            return None
 
     def __contains__(self, name):
         try:
@@ -184,6 +182,7 @@ class App(AppspaceBase):
     @lru_cache()
     def _resolve(self, name):
         '''Resolve name of app in in appspace
+
         @param name: app name
         '''
         try:

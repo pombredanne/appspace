@@ -91,11 +91,12 @@ class TestDouble(unittest.TestCase):
 class TestTriple(unittest.TestCase):
 
     def _make_multiple(self):
+        from math import fabs
         from appspace.builder import AppspaceFactory, App
         return App(AppspaceFactory(
             ('helpers', 'math'),
             ('sqrt', 'math.sqrt'),
-            ('fabs', 'math.fabs'),
+            ('fabs', fabs),
         ).appspace)
 
     def test_init_multiple(self):
@@ -140,11 +141,12 @@ class TestTriple(unittest.TestCase):
 class TestQuintuple(unittest.TestCase):
 
     def _make_multiple(self):
+        from math import fabs
         from appspace.builder import AppspaceFactory, App
         return App(AppspaceFactory(
             ('helpers', 'util', 'misc'),
             ('square', 'math.sqrt'),
-            ('fabulous', 'math.fabs'),
+            ('fabulous', fabs),
             ('formit', 're.match'),
             ('lower', 'string.lowercase'),
             ('upper', 'string.uppercase'),
@@ -254,11 +256,12 @@ class TestGlobal(unittest.TestCase):
         return app
 
     def setUp(self):
+        from math import fabs
         from appspace import patterns
         patterns(
             ('helpers', 'util', 'misc'),
             ('square', 'math.sqrt'),
-            ('fabulous', 'math.fabs'),
+            ('fabulous', fabs),
             ('formit', 're.match'),
             ('lower', 'string.lowercase'),
             ('upper', 'string.uppercase'),

@@ -1,7 +1,5 @@
 '''tubing application core'''
 
-from inspect import isroutine, isclass
-
 from tubing.util import name_resolver, checkname, reify
 from tubing.exception import NoAppError, AppLookupError
 from tubing.appspace import AAppSpace, AApp, AppSpace, global_appspace

@@ -6,7 +6,7 @@ from tubing.util import name_resolver, checkname, reify
 from tubing.exception import NoAppError, AppLookupError
 from tubing.appspace import AAppSpace, AApp, AppSpace, global_appspace
 
-def appconfig(appspace, *args, **kw):
+def appconf(appspace, *args, **kw):
     return App(AppFactory(appspace, *args, **kw).appspace)
 
 def include(path):
@@ -36,9 +36,9 @@ class AppBase(object):
 class AppFactory(AppBase):
 
     def __init__(self, name, *args, **kw):
-        self._appconf = kw.get('appconf', 'appconf')
-        self._appname = kw.get('appname', 'apps')
-        self._defapp = kw.get('app', AApp)
+        self._appconf = kw.get('appconf', 'apps')
+        self._appname = kw.get('apppath', 'apps')
+        self._defapp = kw.get('appmark', AApp)
         self._defspace = kw.get('appspace', AAppSpace)
         self._global = kw.get('use_global', False)
         if isinstance(name, tuple) and name:
@@ -52,8 +52,13 @@ class AppFactory(AppBase):
         elif isinstance(name, basestring):
             self._name = name
             self._s(self._appspace, self._defspace, name)
-            apper = self._app
-            for arg in args: apper(*arg)
+            apper = self._a
+            mod = self._i
+            for name, path in args:
+                if isinstance(path, basestring):
+                    apper(name, path)
+                elif isinstance(path, tuple):
+                    mod(name, path)
 
     @reify
     def _checkname(self):
@@ -76,17 +81,20 @@ class AppFactory(AppBase):
     def _appspace(self):
         return self.appspace
 
-    def _app(self, name, path):
-        if isinstance(path, basestring):
-            app = self._dotted(path)
-            aspace = self._g(self._defspace, self._name)
-            aspace.setapp(app, AApp, name)
-        elif isinstance(path, tuple):
-            app = self._dotted('.'.join([path[-1], self._appname]))
-            self._s(getattr(app, self._appconf).appspace, self._defspace, name)
+    def _a(self, name, path):
+        self._g(self._defspace, self._name).setapp(self._l(path), AApp, name)
 
-    def _dotted(self, dotted):
+    def _l(self, dotted):
         return self._nresolve(dotted)
+
+    def _i(self, name, path):
+        self._s(
+            getattr(
+                self._l('.'.join([path[-1], self._appname])), self._appconf,
+            ).appspace,
+            self._defspace,
+            name,
+        )
 
     def _s(self, app, appspace, name='', event=False):
         return self._sa(app, appspace, name, app.__doc__, event)

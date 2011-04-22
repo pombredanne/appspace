@@ -85,8 +85,12 @@ class TripleTest(unittest.TestCase):
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.math.sqrt, plug['helpers']['math']['sqrt'])
-        self.assertEqual(plug.helpers.math.fabs, plug['helpers']['math']['fabs'])
+        self.assertEqual(
+            plug.helpers.math.sqrt, plug['helpers']['math']['sqrt']
+        )
+        self.assertEqual(
+            plug.helpers.math.fabs, plug['helpers']['math']['fabs']
+        )
 
     def test_identity_namespace(self):
         from tubing.app import App
@@ -136,11 +140,26 @@ class QuintupleTest(unittest.TestCase):
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.util.misc.square, plug['helpers']['util']['misc']['square'])
-        self.assertEqual(plug.helpers.util.misc.fabulous, plug['helpers']['util']['misc']['fabulous'])
-        self.assertEqual(plug.helpers.util.misc.formit, plug['helpers']['util']['misc']['formit'])
-        self.assertEqual(plug.helpers.util.misc.lower, plug['helpers']['util']['misc']['lower'])
-        self.assertEqual(plug.helpers.util.misc.upper, plug['helpers']['util']['misc']['upper'])
+        self.assertEqual(
+            plug.helpers.util.misc.square,
+            plug['helpers']['util']['misc']['square']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.fabulous,
+            plug['helpers']['util']['misc']['fabulous']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.formit,
+            plug['helpers']['util']['misc']['formit']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.lower,
+            plug['helpers']['util']['misc']['lower']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.upper,
+            plug['helpers']['util']['misc']['upper']
+        )
 
     def test_identity_namespace(self):
         from tubing.app import App
@@ -165,8 +184,12 @@ class QuintupleTest(unittest.TestCase):
         from re import match
         from string import lowercase, uppercase
         plug = self._make_multiple()
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2))
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'fabulous'), 2), fabs(2))
+        self.assertEqual(
+            plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2)
+        )
+        self.assertEqual(
+            plug(('helpers', 'util', 'misc', 'fabulous'), 2), fabs(2)
+        )
         self.assertEqual(
             plug(('helpers', 'util', 'misc',  'formit'), '2', '2').string,
             match('2', '2').string
@@ -222,11 +245,26 @@ class GlobalTest(unittest.TestCase):
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.util.misc.square, plug['helpers']['util']['misc']['square'])
-        self.assertEqual(plug.helpers.util.misc.fabulous, plug['helpers']['util']['misc']['fabulous'])
-        self.assertEqual(plug.helpers.util.misc.formit, plug['helpers']['util']['misc']['formit'])
-        self.assertEqual(plug.helpers.util.misc.lower, plug['helpers']['util']['misc']['lower'])
-        self.assertEqual(plug.helpers.util.misc.upper, plug['helpers']['util']['misc']['upper'])
+        self.assertEqual(
+            plug.helpers.util.misc.square,
+            plug['helpers']['util']['misc']['square']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.fabulous,
+            plug['helpers']['util']['misc']['fabulous']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.formit,
+            plug['helpers']['util']['misc']['formit']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.lower,
+            plug['helpers']['util']['misc']['lower']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.upper,
+            plug['helpers']['util']['misc']['upper']
+        )
 
     def test_identity_namespace(self):
         from tubing.app import App
@@ -251,8 +289,12 @@ class GlobalTest(unittest.TestCase):
         from re import match
         from string import lowercase, uppercase
         plug = self._make_multiple()
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2))
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'fabulous'), 2), fabs(2))
+        self.assertEqual(
+            plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2)
+        )
+        self.assertEqual(
+            plug(('helpers', 'util', 'misc', 'fabulous'), 2), fabs(2)
+        )
         self.assertEqual(
             plug(('helpers', 'util', 'misc',  'formit'), '2', '2').string,
             match('2', '2').string
@@ -282,8 +324,8 @@ class GlobalAppconf(unittest.TestCase):
         return app
 
     def setUp(self):
-        from tubing import appconfig, include
-        appconfig(
+        from tubing import appconf, include
+        appconf(
             ('helpers', 'util'),
             ('misc', include('tubing.test')),
             use_global=True,
@@ -303,11 +345,26 @@ class GlobalAppconf(unittest.TestCase):
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.util.misc.square, plug['helpers']['util']['misc']['square'])
-        self.assertEqual(plug.helpers.util.misc.fabulous, plug['helpers']['util']['misc']['fabulous'])
-        self.assertEqual(plug.helpers.util.misc.formit, plug['helpers']['util']['misc']['formit'])
-        self.assertEqual(plug.helpers.util.misc.lower, plug['helpers']['util']['misc']['lower'])
-        self.assertEqual(plug.helpers.util.misc.upper, plug['helpers']['util']['misc']['upper'])
+        self.assertEqual(
+            plug.helpers.util.misc.square,
+            plug['helpers']['util']['misc']['square']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.fabulous,
+            plug['helpers']['util']['misc']['fabulous']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.formit,
+            plug['helpers']['util']['misc']['formit']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.lower,
+            plug['helpers']['util']['misc']['lower']
+        )
+        self.assertEqual(
+            plug.helpers.util.misc.upper,
+            plug['helpers']['util']['misc']['upper']
+        )
 
     def test_identity_namespace(self):
         from tubing.app import App
@@ -332,8 +389,12 @@ class GlobalAppconf(unittest.TestCase):
         from re import match
         from string import lowercase, uppercase
         plug = self._make_multiple()
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2))
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'fabulous'), 2), fabs(2))
+        self.assertEqual(
+            plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2)
+        )
+        self.assertEqual(
+            plug(('helpers', 'util', 'misc', 'fabulous'), 2), fabs(2)
+        )
         self.assertEqual(
             plug(('helpers', 'util', 'misc',  'formit'), '2', '2').string,
             match('2', '2').string

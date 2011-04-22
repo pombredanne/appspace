@@ -9,11 +9,14 @@ from functools import wraps
 from collections import OrderedDict
 
 import pkg_resources
-from appspace.exception import ConfigurationError
+from appspace.error import ConfigurationError
 
-# Illegal characters for Python names
+# illegal characters for Python names
 _ichar = '()[]{}@,:.`=;+-*/%&|^><\'"#\\$?!~'
-_reserve, _keywords = string.maketrans('', ''), frozenset(kwlist)
+_reserve = string.maketrans('', '')
+# reserved Python keywords
+_keywords = frozenset(kwlist)
+# names for loader
 init_names = [
     '__init__%s' % x[0] for x in imp.get_suffixes()
     if x[0] and x[2] not in (imp.C_EXTENSION, imp.C_BUILTIN)
@@ -22,12 +25,15 @@ init_names = [
 def lru_cache(maxsize=100):
     '''Least-recently-used cache decorator.
 
+    From Raymond Hettinger
+
     Arguments to the cached function must be hashable.
-    Cache performance statistics stored in f.hits and f.misses.
-    http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used
+
+    @param maxsize: maximum number of results in LRU cache
     '''
     def decorating_function(func):
-        cache = OrderedDict()   # order: least recent to most recent
+        # order: least recent to most recent
+        cache = OrderedDict()
         @wraps(func)
         def wrapper(*args, **kw):
             key = args
@@ -38,16 +44,17 @@ def lru_cache(maxsize=100):
                 result = func(*args, **kw)
                 # purge least recently used cache entry
                 if len(cache) >= maxsize: cache.popitem(0)
-            cache[key] = result         # record recent use of this key
+            # record recent use of this key
+            cache[key] = result
             return result
         return wrapper
     return decorating_function
 
 def checkname(name):
     '''Ensures a string is a legal Python name.'''
-    # Remove characters that are illegal in a Python name
+    # remove characters that are illegal in a Python name
     name = name.replace('.', '_').translate(_reserve, _ichar)
-    # Add _ if value is a Python keyword
+    # add _ if value is a Python keyword
     if name in _keywords: return ''.join([name, '_'])
     return name
 
@@ -176,6 +183,8 @@ class reify(object):
     '''Put the result of a method which uses this (non-data)
     descriptor decorator in the instance dict after the first call,
     effectively replacing the decorator with an instance variable.
+
+    From pyramid by Agendaless Consulting
     '''
 
     def __init__(self, wrapped):

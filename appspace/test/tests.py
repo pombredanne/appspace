@@ -6,8 +6,8 @@ import unittest
 class TestSingle(unittest.TestCase):
 
     def _make_one(self):
-        from appspace.builder import AppFactory, App
-        return App(AppFactory('', ('get', 'math.sqrt')).appspace)
+        from appspace.builder import AppspaceFactory, App
+        return App(AppspaceFactory('', ('get', 'math.sqrt')).appspace)
 
     def test_init(self):
         plug = self._make_one()
@@ -44,8 +44,8 @@ class TestSingle(unittest.TestCase):
 class TestDouble(unittest.TestCase):
 
     def _make_multiple(self):
-        from appspace.builder import AppFactory, App
-        return App(AppFactory('helpers', ('get', 'math.sqrt')).appspace)
+        from appspace.builder import AppspaceFactory, App
+        return App(AppspaceFactory('helpers', ('get', 'math.sqrt')).appspace)
 
     def test_init_multiple(self):
         plug = self._make_multiple()
@@ -91,8 +91,8 @@ class TestDouble(unittest.TestCase):
 class TestTriple(unittest.TestCase):
 
     def _make_multiple(self):
-        from appspace.builder import AppFactory, App
-        return App(AppFactory(
+        from appspace.builder import AppspaceFactory, App
+        return App(AppspaceFactory(
             ('helpers', 'math'),
             ('sqrt', 'math.sqrt'),
             ('fabs', 'math.fabs'),
@@ -140,8 +140,8 @@ class TestTriple(unittest.TestCase):
 class TestQuintuple(unittest.TestCase):
 
     def _make_multiple(self):
-        from appspace.builder import AppFactory, App
-        return App(AppFactory(
+        from appspace.builder import AppspaceFactory, App
+        return App(AppspaceFactory(
             ('helpers', 'util', 'misc'),
             ('square', 'math.sqrt'),
             ('fabulous', 'math.fabs'),
@@ -440,10 +440,10 @@ class TestAppconf(unittest.TestCase):
         self.assert_(plug.helpers.util.misc.store is UserDict)
 
     def test_call_multiple(self):
-        from math import sqrt, fabs
         from re import match
-        from string import lowercase, uppercase
+        from math import sqrt, fabs
         from UserDict import UserDict
+        from string import lowercase, uppercase
         plug = self._make_multiple()
         self.assertEqual(
             plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2)

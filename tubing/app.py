@@ -9,8 +9,8 @@ from tubing.appspace import AAppSpace, AApp, AppSpace, global_appspace
 def appconfig(appspace, *args, **kw):
     return App(AppFactory(appspace, *args, **kw).appspace)
 
-def include(appspace, path):
-    return (appspace, path)
+def include(path):
+    return ('include', path)
 
 def patterns(appspace, *args, **kw):
     return AppFactory(appspace, *args, **kw)
@@ -77,16 +77,17 @@ class AppFactory(AppBase):
         return self.appspace
 
     def _app(self, name, path):
-        app = self._dotted(path)
-#        try:
-        self._s(
-            getattr(getattr(app, self._appname), self._appconf).appspace,
-            self._defspace,
-            name,
-        )
-#        except AttributeError:
-#            aspace = self._g(self._defspace, self._name)
-#            aspace.setapp(app, AApp, name)
+        if isinstance(path, tuple):
+            app = self._dotted('.'.join([path[-1], self._appname]))
+            self._s(
+                getattr(app, self._appconf).appspace,
+                self._defspace,
+                name,
+            )
+        elif isinstance(path, basestring):
+            app = self._dotted(path)
+            aspace = self._g(self._defspace, self._name)
+            aspace.setapp(app, AApp, name)
 
     def _dotted(self, dotted):
         return self._nresolve(dotted)

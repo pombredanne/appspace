@@ -285,7 +285,7 @@ class GlobalAppconf(unittest.TestCase):
         from tubing import appconfig, include
         appconfig(
             ('helpers', 'util'),
-            include('misc', 'tubing.test'),
+            ('misc', include('tubing.test')),
             use_global=True,
         )
 

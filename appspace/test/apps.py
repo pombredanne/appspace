@@ -1,4 +1,4 @@
-from tubing import patterns
+from appspace import patterns
 
 apps = patterns(
     '',

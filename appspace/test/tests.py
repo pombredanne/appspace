@@ -1,4 +1,4 @@
-'''tubing tests'''
+'''appspace tests'''
 
 import unittest
 
@@ -6,7 +6,7 @@ import unittest
 class TestSingle(unittest.TestCase):
 
     def _make_one(self):
-        from tubing.app import AppFactory, App
+        from appspace.core import AppFactory, App
         return App(AppFactory('', ('get', 'math.sqrt')).appspace)
 
     def test_init(self):
@@ -44,7 +44,7 @@ class TestSingle(unittest.TestCase):
 class TestDouble(unittest.TestCase):
 
     def _make_multiple(self):
-        from tubing.app import AppFactory, App
+        from appspace.core import AppFactory, App
         return App(AppFactory('helpers', ('get', 'math.sqrt')).appspace)
 
     def test_init_multiple(self):
@@ -68,7 +68,7 @@ class TestDouble(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from tubing.app import App
+        from appspace.core import App
         app = self._make_multiple()
         self.assertIsInstance(app.helpers, App)
 
@@ -91,7 +91,7 @@ class TestDouble(unittest.TestCase):
 class TestTriple(unittest.TestCase):
 
     def _make_multiple(self):
-        from tubing.app import AppFactory, App
+        from appspace.core import AppFactory, App
         return App(AppFactory(
             ('helpers', 'math'),
             ('sqrt', 'math.sqrt'),
@@ -113,7 +113,7 @@ class TestTriple(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from tubing.app import App
+        from appspace.core import App
         app = self._make_multiple()
         self.assertIsInstance(app.helpers, App)
         self.assertIsInstance(app.helpers.math, App)
@@ -140,7 +140,7 @@ class TestTriple(unittest.TestCase):
 class TestQuintuple(unittest.TestCase):
 
     def _make_multiple(self):
-        from tubing.app import AppFactory, App
+        from appspace.core import AppFactory, App
         return App(AppFactory(
             ('helpers', 'util', 'misc'),
             ('square', 'math.sqrt'),
@@ -188,7 +188,7 @@ class TestQuintuple(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from tubing.app import App
+        from appspace.core import App
         app = self._make_multiple()
         self.assertIsInstance(app.helpers, App)
         self.assertIsInstance(app.helpers.util, App)
@@ -250,11 +250,11 @@ class TestQuintuple(unittest.TestCase):
 class TestGlobal(unittest.TestCase):
 
     def _make_multiple(self):
-        from tubing import app
+        from appspace import app
         return app
 
     def setUp(self):
-        from tubing import patterns
+        from appspace import patterns
         patterns(
             ('helpers', 'util', 'misc'),
             ('square', 'math.sqrt'),
@@ -307,7 +307,7 @@ class TestGlobal(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from tubing.app import App
+        from appspace.core import App
         app = self._make_multiple()
         self.assertIsInstance(app.helpers, App)
         self.assertIsInstance(app.helpers.util, App)
@@ -368,14 +368,14 @@ class TestGlobal(unittest.TestCase):
 class TestAppconf(unittest.TestCase):
 
     def _make_multiple(self):
-        from tubing import app
+        from appspace import app
         return app
 
     def setUp(self):
-        from tubing import appconf, include
+        from appspace import appconf, include
         appconf(
             ('helpers', 'util'),
-            ('misc', include('tubing.test')),
+            ('misc', include('appspace.test')),
             use_global=True,
         )
 
@@ -420,7 +420,7 @@ class TestAppconf(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from tubing.app import App
+        from appspace.core import App
         app = self._make_multiple()
         self.assertIsInstance(app.helpers, App)
         self.assertIsInstance(app.helpers.util, App)

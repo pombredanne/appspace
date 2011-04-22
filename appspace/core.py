@@ -2,7 +2,7 @@
 
 from appspace.exception import NoAppError, AppLookupError
 from appspace.util import name_resolver, checkname, reify, lru_cache
-from appspace.appspace import AAppSpace, AApp, AppSpace, global_appspace
+from appspace.registry import AAppSpace, AApp, AppSpace, global_appspace
 
 def appconf(appspace, *args, **kw):
     return App(AppFactory(appspace, *args, **kw).appspace)

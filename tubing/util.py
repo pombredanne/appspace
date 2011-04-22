@@ -5,6 +5,8 @@ import sys
 import imp
 import string
 from keyword import kwlist
+from functools import wraps
+from collections import OrderedDict
 
 import pkg_resources
 from tubing.exception import ConfigurationError
@@ -16,6 +18,30 @@ init_names = [
     '__init__%s' % x[0] for x in imp.get_suffixes()
     if x[0] and x[2] not in (imp.C_EXTENSION, imp.C_BUILTIN)
 ]
+
+def lru_cache(maxsize=100):
+    '''Least-recently-used cache decorator.
+
+    Arguments to the cached function must be hashable.
+    Cache performance statistics stored in f.hits and f.misses.
+    http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used
+    '''
+    def decorating_function(func):
+        cache = OrderedDict()   # order: least recent to most recent
+        @wraps(func)
+        def wrapper(*args, **kw):
+            key = args
+            if kw: key += tuple(sorted(kw.items()))
+            try:
+                result = cache.pop(key)
+            except KeyError:
+                result = func(*args, **kw)
+                # purge least recently used cache entry
+                if len(cache) >= maxsize: cache.popitem(0)
+            cache[key] = result         # record recent use of this key
+            return result
+        return wrapper
+    return decorating_function
 
 def checkname(name):
     '''Ensures a string is a legal Python name.'''

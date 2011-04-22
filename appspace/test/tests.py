@@ -502,21 +502,14 @@ class TestAltAppKey(unittest.TestCase):
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
-        self.assertEqual(plug.classtest.one, plug['classtest']['one'])
-        self.assertEqual(plug.classtest.two, plug['classtest']['two'])
-        self.assertEqual(plug.classtest.three, plug['classtest']['three'])
+        self.assertEqual(plug.one, plug['classtest']['one'])
+        self.assertEqual(plug.two, plug['classtest']['two'])
+        self.assertEqual(plug.three, plug['classtest']['three'])
 
     def test_identity_namespace(self):
         from appspace.builder import App
         app = self._make_multiple()
         self.assertIsInstance(app.classtest, App)
-
-    def test_identity_multiple(self):
-        from appspace.test.classtest import testclass
-        plug = self._make_multiple()
-        self.assert_(plug.classtest.one is testclass.footrain)
-        self.assert_(plug.classtest.two is testclass.rootrain)
-        self.assert_(plug.classtest.three is testclass.bahrain)
 
     def test_call_multiple(self):
         from appspace.test.classtest import testclass
@@ -531,19 +524,6 @@ class TestAltAppKey(unittest.TestCase):
         self.assertEqual(plug.one(2), testclass.footrain(2))
         self.assertEqual(plug.two(2), testclass.rootrain(2))
         self.assertEqual(plug.three(2), testclass.bahrain(2))
-
-    def test_test_akey(self):
-        from appspace.test.classtest import ATestClass
-        from appspace import appconf
-        app = appconf(
-            'classtest',
-            ('one', 'appspace.test.classtest.testclass.footrain'),
-            ('two', 'appspace.test.classtest.testclass.rootrain'),
-            ('three', 'appspace.test.classtest.testclass.bahrain'),
-            ('four', 'math.sqrt'),
-            app=ATestClass,
-        )
-        self.assertTrue(app, app)
 
 
 

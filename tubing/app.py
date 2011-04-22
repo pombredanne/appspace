@@ -1,5 +1,6 @@
 '''tubing application core'''
 
+from tubing.lru_cache import lru_cache
 from tubing.util import name_resolver, checkname, reify
 from tubing.exception import NoAppError, AppLookupError
 from tubing.appspace import AAppSpace, AApp, AppSpace, global_appspace
@@ -121,6 +122,7 @@ class App(AppBase):
     def _getspace(self, name=None):
         return self._q(AAppSpace, name, self._appspace)
 
+    @lru_cache(100)
     def _resolve(self, name):
         try:
             return self._g(AApp, name)
@@ -130,6 +132,7 @@ class App(AppBase):
             except AppLookupError:
                 raise NoAppError('%s' % name)
 
+    @lru_cache(100)
     def _sort(self, result, *args, **kw):
         try:
             return result(*args, **kw)

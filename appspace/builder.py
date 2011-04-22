@@ -1,7 +1,7 @@
 '''appspace builder'''
 
+from appspace.error import AppLookupError
 from appspace.util import resolve, reify, lru_cache
-from appspace.error import NoAppError, AppLookupError
 from appspace.state import (
     AAppSpace, AApp, AppSpace, global_appspace, ADefaultAppKey)
 

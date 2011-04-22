@@ -145,9 +145,6 @@ class _DottedNameResolver(object):
         return dotted
 
 
-name_resolver = _DottedNameResolver(caller_package())
-
-
 class reify(object):
 
     '''Put the result of a method which uses this (non-data)
@@ -167,3 +164,6 @@ class reify(object):
         val = self.wrapped(inst)
         setattr(inst, self.wrapped.__name__, val)
         return val
+
+
+name_resolver = _DottedNameResolver(caller_package())

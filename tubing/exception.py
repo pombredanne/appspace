@@ -1,6 +1,6 @@
 '''tubing exceptions'''
 
-from zope.component.interfaces import ComponentLookupError as AppLookupError #@UnresolvedImport @UnusedImport
+from zope.component.interfaces import ComponentLookupError as AppLookupError  #@UnusedImport
 
 
 class ConfigurationError(Exception):

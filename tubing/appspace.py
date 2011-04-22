@@ -1,8 +1,8 @@
 '''tubing application namespace management'''
 
-from zope.component.registry import Components #@UnresolvedImport
-from zope.interface import implements as appifies #@UnresolvedImport
-from zope.interface.interface import InterfaceClass as AppSpacer #@UnresolvedImport
+from zope.component.registry import Components
+from zope.interface import implements as appifies
+from zope.interface.interface import InterfaceClass as AppSpacer
 
 from tubing.util import reify
 

@@ -6,6 +6,15 @@ from tubing.util import name_resolver, checkname, reify
 from tubing.exception import NoAppError, AppLookupError
 from tubing.appspace import AAppSpace, AApp, AppSpace, global_appspace
 
+def appconfig(appspace, *args, **kw):
+    return App(AppFactory(appspace, *args, **kw).appspace)
+
+def include(appspace, path):
+    return (appspace, path)
+
+def patterns(appspace, *args, **kw):
+    return AppFactory(appspace, *args, **kw)
+
 
 class AppBase(object):
 
@@ -67,19 +76,17 @@ class AppFactory(AppBase):
     def _appspace(self):
         return self.appspace
 
-    def _app(self, name, path, kw=None):
-        mdotted = self._dotted
-        try:
-            app = mdotted(path)
-            aspace = self._g(self._defspace, self._name)
-            aspace.setapp(app, AApp, name)
-        except:
-            g = getattr
-            self._s(
-                g(g(mdotted(name[1]), self._appname), self._appconf).appspace,
-                self._defspace,
-                name[0],
-            )
+    def _app(self, name, path):
+        app = self._dotted(path)
+#        try:
+        self._s(
+            getattr(getattr(app, self._appname), self._appconf).appspace,
+            self._defspace,
+            name,
+        )
+#        except AttributeError:
+#            aspace = self._g(self._defspace, self._name)
+#            aspace.setapp(app, AApp, name)
 
     def _dotted(self, dotted):
         return self._nresolve(dotted)
@@ -140,12 +147,3 @@ class App(AppBase):
 
 # Global app shortcut
 app = App(global_appspace)
-
-def appconfig(appspace, *args, **kw):
-    return App(AppFactory(appspace, *args, **kw).appspace)
-
-def include(appspace, path):
-    return appspace, path
-
-def patterns(appspace, *args, **kw):
-    return AppFactory(appspace, *args, **kw)

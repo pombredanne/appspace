@@ -1,6 +1,6 @@
 '''tubing application core'''
 
-import inspect
+from inspect import isroutine, isclass
 
 from tubing.util import name_resolver, checkname, reify
 from tubing.exception import NoAppError, AppLookupError
@@ -29,9 +29,9 @@ class AppFactory(AppBase):
     def __init__(self, name, *args, **kw):
         self._appconf = kw.get('appconf', 'appconf')
         self._appname = kw.get('appname', 'apps')
-        self._defapp = kw.get('defapp', AApp)
-        self._defspace = kw.get('defspace', AAppSpace)
-        self._global = kw.get('global', False)
+        self._defapp = kw.get('app', AApp)
+        self._defspace = kw.get('appspace', AAppSpace)
+        self._global = kw.get('use_global', False)
         if isinstance(name, tuple) and name:
             self._name = self._checkname(name[0])
             nombus = name[1:]
@@ -52,7 +52,7 @@ class AppFactory(AppBase):
 
     @reify
     def _nresolve(self):
-        return name_resolver.maybe_resolve
+        return name_resolver.resolve
 
     @reify
     def _sa(self):
@@ -133,9 +133,8 @@ class App(AppBase):
                 raise NoAppError('%s' % name)
 
     def _sort(self, result, *args, **kw):
-        inspecting = inspect
-        if inspecting.isroutine(result): return result.__call__(*args, **kw)
-        if inspecting.isclass(result): return result.__init__(*args, **kw)
+        if isroutine(result): return result.__call__(*args, **kw)
+        if isclass(result): return result.__init__(*args, **kw)
         return result
 
 

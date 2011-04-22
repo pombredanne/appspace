@@ -140,11 +140,6 @@ class _DottedNameResolver(object):
         return found
 
     def resolve(self, dotted):
-        if not isinstance(dotted, basestring):
-            raise ConfigurationError('%r is not a string' % (dotted,))
-        return self.maybe_resolve(dotted)
-
-    def maybe_resolve(self, dotted):
         if isinstance(dotted, basestring):
             return self._zope_dottedname_style(dotted)
         return dotted

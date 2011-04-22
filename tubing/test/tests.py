@@ -3,10 +3,10 @@
 import unittest
 
 
-class SingleTest(unittest.TestCase):
+class TestSingle(unittest.TestCase):
 
     def _make_one(self):
-        from tubing import AppFactory, App
+        from tubing.app import AppFactory, App
         return App(AppFactory('', ('get', 'math.sqrt')).appspace)
 
     def test_init(self):
@@ -33,10 +33,10 @@ class SingleTest(unittest.TestCase):
         self.assertIsNot(plug.get(2), sqrt(2))
 
 
-class DoubleTest(unittest.TestCase):
+class TestDouble(unittest.TestCase):
 
     def _make_multiple(self):
-        from tubing import AppFactory, App
+        from tubing.app import AppFactory, App
         return App(AppFactory('helpers', ('get', 'math.sqrt')).appspace)
 
     def test_init_multiple(self):
@@ -68,10 +68,10 @@ class DoubleTest(unittest.TestCase):
         self.assertIsNot(plug.helpers.get(2), sqrt(2))
 
 
-class TripleTest(unittest.TestCase):
+class TestTriple(unittest.TestCase):
 
     def _make_multiple(self):
-        from tubing import AppFactory, App
+        from tubing.app import AppFactory, App
         return App(AppFactory(
             ('helpers', 'math'),
             ('sqrt', 'math.sqrt'),
@@ -117,10 +117,10 @@ class TripleTest(unittest.TestCase):
         self.assertIsNot(plug.helpers.math.sqrt(2), sqrt(2))
 
 
-class QuintupleTest(unittest.TestCase):
+class TestQuintuple(unittest.TestCase):
 
     def _make_multiple(self):
-        from tubing import AppFactory, App
+        from tubing.app import AppFactory, App
         return App(AppFactory(
             ('helpers', 'util', 'misc'),
             ('square', 'math.sqrt'),
@@ -128,6 +128,7 @@ class QuintupleTest(unittest.TestCase):
             ('formit', 're.match'),
             ('lower', 'string.lowercase'),
             ('upper', 'string.uppercase'),
+            ('store', 'UserDict.UserDict'),
         ).appspace)
 
     def test_init_multiple(self):
@@ -137,6 +138,7 @@ class QuintupleTest(unittest.TestCase):
         self.assertEqual('formit' in plug['helpers']['util']['misc'], True)
         self.assertEqual('lower' in plug['helpers']['util']['misc'], True)
         self.assertEqual('upper' in plug['helpers']['util']['misc'], True)
+        self.assertEqual('store' in plug['helpers']['util']['misc'], True)
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
@@ -160,6 +162,10 @@ class QuintupleTest(unittest.TestCase):
             plug.helpers.util.misc.upper,
             plug['helpers']['util']['misc']['upper']
         )
+        self.assertEqual(
+            plug.helpers.util.misc.store,
+            plug['helpers']['util']['misc']['store']
+        )
 
     def test_identity_namespace(self):
         from tubing.app import App
@@ -172,17 +178,20 @@ class QuintupleTest(unittest.TestCase):
         from math import sqrt, fabs
         from re import match
         from string import lowercase, uppercase
+        from UserDict import UserDict
         plug = self._make_multiple()
         self.assert_(plug.helpers.util.misc.square is sqrt)
         self.assert_(plug.helpers.util.misc.fabulous is fabs)
         self.assert_(plug.helpers.util.misc.formit is match)
         self.assert_(plug.helpers.util.misc.lower is lowercase)
         self.assert_(plug.helpers.util.misc.upper is uppercase)
+        self.assert_(plug.helpers.util.misc.store is UserDict)
 
     def test_call_multiple(self):
         from math import sqrt, fabs
         from re import match
         from string import lowercase, uppercase
+        from UserDict import UserDict
         plug = self._make_multiple()
         self.assertEqual(
             plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2)
@@ -196,11 +205,15 @@ class QuintupleTest(unittest.TestCase):
         )
         self.assertEqual(plug(('helpers', 'util', 'misc', 'lower')), lowercase)
         self.assertEqual(plug(('helpers', 'util', 'misc', 'upper')), uppercase)
+        self.assert_(
+            isinstance(plug(('helpers', 'util', 'misc', 'store')), UserDict)
+        )
 
 
     def test_call2_multiple(self):
         from re import match
         from math import sqrt, fabs
+        from UserDict import UserDict
         from string import lowercase, uppercase
         plug = self._make_multiple()
         self.assertEqual(plug.helpers.util.misc.square(2), sqrt(2))
@@ -211,9 +224,10 @@ class QuintupleTest(unittest.TestCase):
         )
         self.assertEqual(plug.helpers.util.misc.lower, lowercase)
         self.assertEqual(plug.helpers.util.misc.upper, uppercase)
+        self.assertEqual(plug.helpers.util.misc.store, UserDict)
 
 
-class GlobalTest(unittest.TestCase):
+class TestGlobal(unittest.TestCase):
 
     def _make_multiple(self):
         from tubing import app
@@ -228,6 +242,7 @@ class GlobalTest(unittest.TestCase):
             ('formit', 're.match'),
             ('lower', 'string.lowercase'),
             ('upper', 'string.uppercase'),
+            ('store', 'UserDict.UserDict'),
             use_global=True,
         )
 
@@ -242,6 +257,7 @@ class GlobalTest(unittest.TestCase):
         self.assertEqual('formit' in plug['helpers']['util']['misc'], True)
         self.assertEqual('lower' in plug['helpers']['util']['misc'], True)
         self.assertEqual('upper' in plug['helpers']['util']['misc'], True)
+        self.assertEqual('store' in plug['helpers']['util']['misc'], True)
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
@@ -265,6 +281,10 @@ class GlobalTest(unittest.TestCase):
             plug.helpers.util.misc.upper,
             plug['helpers']['util']['misc']['upper']
         )
+        self.assertEqual(
+            plug.helpers.util.misc.store,
+            plug['helpers']['util']['misc']['store']
+        )
 
     def test_identity_namespace(self):
         from tubing.app import App
@@ -274,6 +294,7 @@ class GlobalTest(unittest.TestCase):
         self.assertIsInstance(app.helpers.util.misc, App)
 
     def test_identity_multiple(self):
+        from UserDict import UserDict
         from math import sqrt, fabs
         from re import match
         from string import lowercase, uppercase
@@ -283,10 +304,12 @@ class GlobalTest(unittest.TestCase):
         self.assert_(plug.helpers.util.misc.formit is match)
         self.assert_(plug.helpers.util.misc.lower is lowercase)
         self.assert_(plug.helpers.util.misc.upper is uppercase)
+        self.assert_(plug.helpers.util.misc.store is UserDict)
 
     def test_call_multiple(self):
-        from math import sqrt, fabs
         from re import match
+        from math import sqrt, fabs
+        from UserDict import UserDict
         from string import lowercase, uppercase
         plug = self._make_multiple()
         self.assertEqual(
@@ -301,10 +324,14 @@ class GlobalTest(unittest.TestCase):
         )
         self.assertEqual(plug(('helpers', 'util', 'misc', 'lower')), lowercase)
         self.assertEqual(plug(('helpers', 'util', 'misc', 'upper')), uppercase)
+        self.assert_(
+            isinstance(plug(('helpers', 'util', 'misc', 'store')), UserDict)
+        )
 
     def test_call2_multiple(self):
         from re import match
         from math import sqrt, fabs
+        from UserDict import UserDict
         from string import lowercase, uppercase
         plug = self._make_multiple()
         self.assertEqual(plug.helpers.util.misc.square(2), sqrt(2))
@@ -315,9 +342,10 @@ class GlobalTest(unittest.TestCase):
         )
         self.assertEqual(plug.helpers.util.misc.lower, lowercase)
         self.assertEqual(plug.helpers.util.misc.upper, uppercase)
+        self.assertEqual(plug.helpers.util.misc.store, UserDict)
 
 
-class GlobalAppconf(unittest.TestCase):
+class TestAppconf(unittest.TestCase):
 
     def _make_multiple(self):
         from tubing import app
@@ -342,6 +370,7 @@ class GlobalAppconf(unittest.TestCase):
         self.assertEqual('formit' in plug['helpers']['util']['misc'], True)
         self.assertEqual('lower' in plug['helpers']['util']['misc'], True)
         self.assertEqual('upper' in plug['helpers']['util']['misc'], True)
+        self.assertEqual('store' in plug['helpers']['util']['misc'], True)
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
@@ -365,6 +394,10 @@ class GlobalAppconf(unittest.TestCase):
             plug.helpers.util.misc.upper,
             plug['helpers']['util']['misc']['upper']
         )
+        self.assertEqual(
+            plug.helpers.util.misc.store,
+            plug['helpers']['util']['misc']['store']
+        )
 
     def test_identity_namespace(self):
         from tubing.app import App
@@ -377,17 +410,20 @@ class GlobalAppconf(unittest.TestCase):
         from math import sqrt, fabs
         from re import match
         from string import lowercase, uppercase
+        from UserDict import UserDict
         plug = self._make_multiple()
         self.assert_(plug.helpers.util.misc.square is sqrt)
         self.assert_(plug.helpers.util.misc.fabulous is fabs)
         self.assert_(plug.helpers.util.misc.formit is match)
         self.assert_(plug.helpers.util.misc.lower is lowercase)
         self.assert_(plug.helpers.util.misc.upper is uppercase)
+        self.assert_(plug.helpers.util.misc.store is UserDict)
 
     def test_call_multiple(self):
         from math import sqrt, fabs
         from re import match
         from string import lowercase, uppercase
+        from UserDict import UserDict
         plug = self._make_multiple()
         self.assertEqual(
             plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2)
@@ -401,10 +437,14 @@ class GlobalAppconf(unittest.TestCase):
         )
         self.assertEqual(plug(('helpers', 'util', 'misc', 'lower')), lowercase)
         self.assertEqual(plug(('helpers', 'util', 'misc', 'upper')), uppercase)
+        self.assert_(
+            isinstance(plug(('helpers', 'util', 'misc', 'store')), UserDict)
+        )
 
     def test_call2_multiple(self):
         from re import match
         from math import sqrt, fabs
+        from UserDict import UserDict as UD
         from string import lowercase, uppercase
         plug = self._make_multiple()
         self.assertEqual(plug.helpers.util.misc.square(2), sqrt(2))
@@ -415,6 +455,7 @@ class GlobalAppconf(unittest.TestCase):
         )
         self.assertEqual(plug.helpers.util.misc.lower, lowercase)
         self.assertEqual(plug.helpers.util.misc.upper, uppercase)
+        self.assertEqual(plug.helpers.util.misc.store, UD)
 
 
 if __name__ == '__main__':

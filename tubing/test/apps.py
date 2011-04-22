@@ -7,4 +7,5 @@ apps = patterns(
     ('formit', 're.match'),
     ('lower', 'string.lowercase'),
     ('upper', 'string.uppercase'),
+    ('store', 'UserDict.UserDict'),
 )

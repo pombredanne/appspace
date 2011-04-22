@@ -17,6 +17,14 @@ class TestSingle(unittest.TestCase):
         plug = self._make_one()
         self.assertEqual(plug.get, plug['get'])
 
+    def test_not_init(self):
+        plug = self._make_one()
+        self.assertNotEqual('foo' in plug, True)
+
+    def test_not_attr2(self):
+        plug = self._make_one()
+        self.assertNotEqual(getattr(plug, 'foo', ''), plug['get'])
+
     def test_identity(self):
         from math import sqrt
         plug = self._make_one()
@@ -46,6 +54,18 @@ class TestDouble(unittest.TestCase):
     def test_attr_multiple(self):
         plug = self._make_multiple()
         self.assertEqual(plug.helpers.get, plug['helpers']['get'])
+
+    def test_init_multiple2(self):
+        plug = self._make_multiple()
+        self.assertNotEqual('foo' in plug['helpers'], True)
+        self.assertNotEqual('foo' in plug, True)
+
+    def test_attr_multiple2(self):
+        plug = self._make_multiple()
+        self.assertNotEqual(getattr(plug, 'make', ''), plug['helpers']['get'])
+        self.assertNotEqual(
+            getattr(plug.helpers, 'make', ''), plug['helpers']['get']
+        )
 
     def test_identity_namespace(self):
         from tubing.app import App

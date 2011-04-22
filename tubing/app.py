@@ -102,8 +102,9 @@ class App(AppBase):
 
     def __contains__(self, name):
         try:
-            self._resolve(name)
-            return True
+            result = self._resolve(name)
+            if result != name: return True
+            return False
         except NoAppError:
             return False
 

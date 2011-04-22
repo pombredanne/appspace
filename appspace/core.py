@@ -1,8 +1,9 @@
-'''appspace application core'''
+'''appspace builder'''
 
-from appspace.exception import NoAppError, AppLookupError
+from appspace.error import NoAppError, AppLookupError
 from appspace.util import name_resolver, checkname, reify, lru_cache
-from appspace.registry import AAppSpace, AApp, AppSpace, global_appspace
+from appspace.state import (
+    AAppSpace, AApp, AppSpace, global_appspace, ADefaultAppKey)
 
 def appconf(appspace, *args, **kw):
     return App(AppFactory(appspace, *args, **kw).appspace)
@@ -31,7 +32,6 @@ class AppFactory(AppBase):
         self._appconf = kw.get('appconf', 'apps')
         self._appname = kw.get('appname', 'apps')
         self._defapp = kw.get('app', AApp)
-        self._defspace = kw.get('appspace', AAppSpace)
         self._global = kw.get('use_global', False)
         if isinstance(name, tuple) and name:
             self._name = self._checkname(name[0])
@@ -40,28 +40,13 @@ class AppFactory(AppBase):
                 newaf = AppFactory(nombus, *args, **kw).appspace
             else:
                 newaf = AppFactory(self._name, *args, **kw).appspace
-            self._sa(newaf, self._defspace, self._name)
+            self._s(newaf, AAppSpace, self._name)
         elif isinstance(name, basestring):
             self._name = name
-            self._sa(self._appspace, self._defspace, name)
+            self._s(self._defapp, ADefaultAppKey)
+            self._s(self._appspace, self._defapp, name)
             apper = self._app
             for arg in args: apper(*arg)
-
-    @property
-    def _defapp(self):
-        return self._dapp
-
-    @_defapp.setter
-    def _setdefapp(self, dapp):
-        self._dapp = dapp
-
-    @property
-    def _defspace(self):
-        return self._dspace
-
-    @_defspace.setter
-    def _setdefspace(self, dspace):
-        self._dspace = dspace
 
     @reify
     def _checkname(self):
@@ -72,7 +57,7 @@ class AppFactory(AppBase):
         return name_resolver.resolve
 
     @reify
-    def _sa(self):
+    def _s(self):
         return self._appspace.setapp
 
     @reify
@@ -86,16 +71,16 @@ class AppFactory(AppBase):
 
     def _app(self, name, path):
         if isinstance(path, basestring):
-            self._g(self._defspace, self._name).setapp(
-                self._dotted(path), AApp, name,
+            self._g(AAppSpace, self._name).setapp(
+                self._dotted(path), self._defapp, name,
             )
         elif isinstance(path, tuple):
-            self._sa(
+            self._s(
                 getattr(
                     self._dotted('.'.join([path[-1], self._appname])),
-                    self._appconf
+                    self._appconf,
                 ).appspace,
-                self._defspace,
+                AAppSpace,
                 name,
                 app.__doc__,
             )
@@ -116,9 +101,9 @@ class App(AppBase):
 
     def __contains__(self, name):
         try:
-            self._resolve(name)
+            self._g(self._defapp, name)
             return True
-        except NoAppError:
+        except AppLookupError:
             return False
 
     def __getitem__(self, name):
@@ -133,18 +118,19 @@ class App(AppBase):
         except AttributeError:
             return self._resolve(name)
 
+    @reify
+    def _defapp(self):
+        return self._g(ADefaultAppKey)
+
     def _getspace(self, name=None):
         return self._q(AAppSpace, name, self._appspace)
 
     @lru_cache()
     def _resolve(self, name):
         try:
-            return self._g(AApp, name)
+            return self._g(self._defapp, name)
         except AppLookupError:
-            try:
-                return App(self._getspace(name))
-            except AppLookupError:
-                raise NoAppError('%s' % name)
+            return App(self._getspace(name))
 
     @lru_cache(50)
     def _sort(self, result, *args, **kw):

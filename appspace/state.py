@@ -49,4 +49,8 @@ class AppSpace(Components):
         return self.unregisterUtility
 
 
+class ADefaultAppKey(AppSpaceKey):
+    pass
+
+
 global_appspace = AppSpace('global')

@@ -34,8 +34,8 @@ except:
 setup(
     name='appspace',
     version='0.1',
-    description='''Loosely coupled Python application plumbing''',
-    long_description='''Loosely coupled Python application plumbing''',
+    description='''Loose coupled Python application plumbing''',
+    long_description='''Loose coupled Python application plumbing''',
     author='L. C. Rees',
     author_email='lcrees@gmail.com',
     license='ZPL',

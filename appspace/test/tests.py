@@ -6,7 +6,7 @@ import unittest
 class TestSingle(unittest.TestCase):
 
     def _make_one(self):
-        from appspace.core import AppFactory, App
+        from appspace.builder import AppFactory, App
         return App(AppFactory('', ('get', 'math.sqrt')).appspace)
 
     def test_init(self):
@@ -44,7 +44,7 @@ class TestSingle(unittest.TestCase):
 class TestDouble(unittest.TestCase):
 
     def _make_multiple(self):
-        from appspace.core import AppFactory, App
+        from appspace.builder import AppFactory, App
         return App(AppFactory('helpers', ('get', 'math.sqrt')).appspace)
 
     def test_init_multiple(self):
@@ -68,7 +68,7 @@ class TestDouble(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from appspace.core import App
+        from appspace.builder import App
         app = self._make_multiple()
         self.assertIsInstance(app.helpers, App)
 
@@ -91,7 +91,7 @@ class TestDouble(unittest.TestCase):
 class TestTriple(unittest.TestCase):
 
     def _make_multiple(self):
-        from appspace.core import AppFactory, App
+        from appspace.builder import AppFactory, App
         return App(AppFactory(
             ('helpers', 'math'),
             ('sqrt', 'math.sqrt'),
@@ -113,7 +113,7 @@ class TestTriple(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from appspace.core import App
+        from appspace.builder import App
         app = self._make_multiple()
         self.assertIsInstance(app.helpers, App)
         self.assertIsInstance(app.helpers.math, App)
@@ -140,7 +140,7 @@ class TestTriple(unittest.TestCase):
 class TestQuintuple(unittest.TestCase):
 
     def _make_multiple(self):
-        from appspace.core import AppFactory, App
+        from appspace.builder import AppFactory, App
         return App(AppFactory(
             ('helpers', 'util', 'misc'),
             ('square', 'math.sqrt'),
@@ -188,7 +188,7 @@ class TestQuintuple(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from appspace.core import App
+        from appspace.builder import App
         app = self._make_multiple()
         self.assertIsInstance(app.helpers, App)
         self.assertIsInstance(app.helpers.util, App)
@@ -307,7 +307,7 @@ class TestGlobal(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from appspace.core import App
+        from appspace.builder import App
         app = self._make_multiple()
         self.assertIsInstance(app.helpers, App)
         self.assertIsInstance(app.helpers.util, App)
@@ -420,7 +420,7 @@ class TestAppconf(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from appspace.core import App
+        from appspace.builder import App
         app = self._make_multiple()
         self.assertIsInstance(app.helpers, App)
         self.assertIsInstance(app.helpers.util, App)

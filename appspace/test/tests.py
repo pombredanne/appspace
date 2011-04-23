@@ -481,51 +481,5 @@ class TestAppconf(unittest.TestCase):
         self.assertEqual(plug.helpers.util.misc.store, UD)
 
 
-class TestAltAppKey(unittest.TestCase):
-
-    def _make_multiple(self):
-        from appspace.test.classtest import ATestClass
-        from appspace import appconf
-        return appconf(
-            'classtest',
-            ('one', 'appspace.test.classtest.testclass.footrain'),
-            ('two', 'appspace.test.classtest.testclass.rootrain'),
-            ('three', 'appspace.test.classtest.testclass.bahrain'),
-            app=ATestClass,
-        )
-
-    def test_init_multiple(self):
-        plug = self._make_multiple()
-        self.assertEqual('one' in plug['classtest'], True)
-        self.assertEqual('two' in plug['classtest'], True)
-        self.assertEqual('three' in plug['classtest'], True)
-
-    def test_attr_multiple(self):
-        plug = self._make_multiple()
-        self.assertEqual(plug.one, plug['classtest']['one'])
-        self.assertEqual(plug.two, plug['classtest']['two'])
-        self.assertEqual(plug.three, plug['classtest']['three'])
-
-    def test_identity_namespace(self):
-        from appspace.builder import App
-        app = self._make_multiple()
-        self.assertIsInstance(app.classtest, App)
-
-    def test_call_multiple(self):
-        from appspace.test.classtest import testclass
-        plug = self._make_multiple()
-        self.assertEqual(plug('one', 2), testclass.footrain(2))
-        self.assertEqual(plug('two', 2), testclass.rootrain(2))
-        self.assertEqual(plug('two', 2), testclass.bahrain(2))
-
-    def test_call2_multiple(self):
-        from appspace.test.classtest import testclass
-        plug = self._make_multiple()
-        self.assertEqual(plug.one(2), testclass.footrain(2))
-        self.assertEqual(plug.two(2), testclass.rootrain(2))
-        self.assertEqual(plug.three(2), testclass.bahrain(2))
-
-
-
 if __name__ == '__main__':
     unittest.main()

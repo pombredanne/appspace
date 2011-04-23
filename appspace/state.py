@@ -12,7 +12,7 @@ AppSpaceKey = AppSpacer('AppSpaceKey')
 
 class AApp(AppSpaceKey):
 
-    '''Usual app key'''
+    '''App key'''
 
 
 class AAppSpace(AppSpaceKey):
@@ -52,11 +52,6 @@ class AppSpace(Components):
     def setapp(self):
         '''App registrar'''
         return self.registerUtility
-
-
-class ADefaultAppKey(AppSpaceKey):
-
-    '''Default app key key'''
 
 
 # global appspace

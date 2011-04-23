@@ -2,8 +2,7 @@
 
 from appspace.error import AppLookupError
 from appspace.util import resolve, reify, lru_cache
-from appspace.state import (
-    AAppSpace, AApp, AppSpace, global_appspace, ADefaultAppKey)
+from appspace.state import AAppSpace, AApp, AppSpace, global_appspace
 
 def appconf(appspace, *args, **kw):
     '''Configuration for root appspace
@@ -52,8 +51,6 @@ class AppspaceFactory(AppspaceBase):
         self._appconf = kw.get('appconf', 'apps')
         # name of appspace in branch appspace module e.g. someapp.apps.apps
         self._appname = kw.get('appname', 'apps')
-        # default appspace key
-        self._defapp = kw.get('app', AApp)
         # use global appspace instead of local appspace
         self._global = kw.get('use_global', False)
         # handle tuple hierarchy
@@ -69,8 +66,6 @@ class AppspaceFactory(AppspaceBase):
             self._s(newaf, AAppSpace, self._name)
         elif isinstance(name, basestring):
             self._name = name
-            # register default app key for appspace
-            self._s(self._defapp, ADefaultAppKey)
             # register branch appspace
             self._s(self._appspace, AAppSpace, name)
             apper = self._app
@@ -108,7 +103,7 @@ class AppspaceFactory(AppspaceBase):
         # register app
         if isinstance(path, basestring):
             self._g(AAppSpace, self._name).setapp(
-                self._dotted(path), self._defapp, name,
+                self._dotted(path), AApp, name,
             )
         # register branch appspace from included module
         elif isinstance(path, tuple):
@@ -123,7 +118,7 @@ class AppspaceFactory(AppspaceBase):
             )
         else:
             self._g(AAppSpace, self._name).setapp(
-                self._dotted(path), self._defapp, name,
+                self._dotted(path), AApp, name,
             )
 
 
@@ -148,7 +143,7 @@ class App(AppspaceBase):
 
     def __contains__(self, name):
         try:
-            self._g(self._defapp, name)
+            self._g(AApp, name)
             return True
         except AppLookupError:
             return False
@@ -161,11 +156,6 @@ class App(AppspaceBase):
             return object.__getattribute__(self, name)
         except AttributeError:
             return self._resolve(name)
-
-    @reify
-    def _defapp(self):
-        '''Default app key'''
-        return self._g(ADefaultAppKey)
 
     @lru_cache()
     def _getspace(self, name=None):
@@ -182,7 +172,7 @@ class App(AppspaceBase):
         @param name: app name
         '''
         try:
-            return self._g(self._defapp, name)
+            return self._g(AApp, name)
         except AppLookupError:
             # return appspace if no app is found to traverse appspace
             return App(self._getspace(name))

@@ -7,15 +7,15 @@ from zope.interface.interface import InterfaceClass as AppSpacer
 from appspace.util import reify
 
 # appspace key
-AppSpaceKey = AppSpacer('AppSpaceKey')
+AppspaceKey = AppSpacer('AppspaceKey')
 
 
-class AApp(AppSpaceKey):
+class AApp(AppspaceKey):
 
     '''App key'''
 
 
-class AAppSpace(AppSpaceKey):
+class AAppspace(AppspaceKey):
 
     '''Appspace key'''
 
@@ -32,11 +32,11 @@ class AAppSpace(AppSpaceKey):
         ''''Delete app'''
 
 
-class AppSpace(Components):
+class Appspace(Components):
 
     '''Default appspace state manager'''
 
-    appifies(AAppSpace)
+    appifies(AAppspace)
 
     @reify
     def getapp(self):
@@ -55,4 +55,4 @@ class AppSpace(Components):
 
 
 # global appspace
-global_appspace = AppSpace('global')
+global_appspace = Appspace('global')

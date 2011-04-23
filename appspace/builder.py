@@ -2,7 +2,7 @@
 
 from appspace.error import AppLookupError
 from appspace.util import resolve, reify, lru_cache
-from appspace.state import AAppSpace, AApp, AppSpace, global_appspace
+from appspace.state import AAppspace, AApp, Appspace, global_appspace
 
 def appconf(appspace, *args, **kw):
     '''Configuration for root appspace
@@ -63,11 +63,11 @@ class AppspaceFactory(AppspaceBase):
             else:
                 # create branch appspace
                 newaf = AppspaceFactory(self._name, *args, **kw).appspace
-            self._s(newaf, AAppSpace, self._name)
+            self._s(newaf, AAppspace, self._name)
         elif isinstance(name, basestring):
             self._name = name
             # register branch appspace
-            self._s(self._appspace, AAppSpace, name)
+            self._s(self._appspace, AAppspace, name)
             apper = self._app
             # register apps in appspace
             for arg in args: apper(*arg)
@@ -88,7 +88,7 @@ class AppspaceFactory(AppspaceBase):
         # using global appspace
         if self._global: return global_appspace
         # using local appspace
-        return AppSpace(self._name)
+        return Appspace(self._name)
 
     @reify
     def _appspace(self):
@@ -102,7 +102,7 @@ class AppspaceFactory(AppspaceBase):
         '''
         # register app
         if isinstance(path, basestring):
-            self._g(AAppSpace, self._name).setapp(
+            self._g(AAppspace, self._name).setapp(
                 self._dotted(path), AApp, name,
             )
         # register branch appspace from included module
@@ -112,12 +112,12 @@ class AppspaceFactory(AppspaceBase):
                     self._dotted('.'.join([path[-1], self._appname])),
                     self._appconf,
                 ).appspace,
-                AAppSpace,
+                AAppspace,
                 name,
                 app.__doc__,
             )
         else:
-            self._g(AAppSpace, self._name).setapp(
+            self._g(AAppspace, self._name).setapp(
                 self._dotted(path), AApp, name,
             )
 
@@ -163,7 +163,7 @@ class App(AppspaceBase):
 
         @param name: name of appspace
         '''
-        return self._q(AAppSpace, name, self._appspace)
+        return self._q(AAppspace, name, self._appspace)
 
     @lru_cache()
     def _resolve(self, name):

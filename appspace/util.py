@@ -3,20 +3,6 @@
 from functools import wraps
 from collections import OrderedDict
 
-def loader(value, module=None):
-    '''package.module.attr style'''
-    name = value.split('.')
-    used = name.pop(0)
-    found = __import__(used)
-    for n in name:
-        used += '.' + n
-        try:
-            found = getattr(found, n)
-        except AttributeError:
-            __import__(used)
-            found = getattr(found, n) # pragma: no cover
-    return found
-
 def lru_cache(maxsize=100):
     '''Least-recently-used cache decorator.
 
@@ -45,17 +31,12 @@ def lru_cache(maxsize=100):
         return wrapper
     return decorating_function
 
-@lru_cache()
-def resolve(dotted):
-    if isinstance(dotted, basestring): return loader(dotted)
-    return dotted
-
 
 class reify(object):
 
-    '''Put the result of a method which uses this (non-data)
-    descriptor decorator in the instance dict after the first call,
-    effectively replacing the decorator with an instance variable.
+    '''Put the result of a method which uses this (non-data) descriptor
+    decorator in the instance dict after the first call, effectively replacing
+    the decorator with an instance variable.
 
     From pyramid by Agendaless Consulting
     '''

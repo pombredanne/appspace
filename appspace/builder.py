@@ -1,7 +1,7 @@
 '''appspace builder'''
 
 from appspace.error import AppLookupError
-from appspace.util import resolve, reify, lru_cache
+from appspace.util import reify, lru_cache
 from appspace.state import AAppspace, AApp, Appspace, global_appspace
 
 def appconf(appspace, *args, **kw):
@@ -72,10 +72,23 @@ class AppspaceFactory(AppspaceBase):
             # register apps in appspace
             for arg in args: apper(*arg)
 
-    @reify
-    def _dotted(self):
+    @staticmethod
+    @lru_cache()
+    def _dotted(value):
         '''Python dynamic loader'''
-        return resolve
+        if isinstance(value, basestring):
+            name = value.split('.')
+            used = name.pop(0)
+            found = __import__(used)
+            for n in name:
+                used += '.' + n
+                try:
+                    found = getattr(found, n)
+                except AttributeError:
+                    __import__(used)
+                    found = getattr(found, n) # pragma: no cover
+            return found
+        return value
 
     @reify
     def _s(self):

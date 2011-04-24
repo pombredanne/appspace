@@ -1,4 +1,4 @@
-'''tubing utilities'''
+'''appspace utilities'''
 
 from functools import wraps
 from collections import OrderedDict

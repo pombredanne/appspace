@@ -177,7 +177,8 @@ class App(AppspaceBase):
             # return appspace if no app is found to traverse appspace
             return App(self._getspace(name))
 
-    def _sort(self, result, *args, **kw):
+    @staticmethod
+    def _sort(result, *args, **kw):
         '''Sorts between funcs/classes on one hand and non func/classes on other
 
         @param result: object to be sorted

@@ -1,4 +1,4 @@
-'''tubing exceptions'''
+'''appspace exceptions'''
 
 from zope.component.interfaces import ComponentLookupError
 

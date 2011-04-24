@@ -1,4 +1,4 @@
-'''tubing application namespace management'''
+'''appspace state management'''
 
 from zope.component.registry import Components
 from zope.interface import implements as appifies

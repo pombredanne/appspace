@@ -5,7 +5,8 @@ import unittest
 
 class TestSingle(unittest.TestCase):
 
-    def _make_one(self):
+    @staticmethod
+    def _make_one():
         from appspace.builder import AppspaceFactory, App
         return App(AppspaceFactory('', ('get', 'math.sqrt')).appspace)
 
@@ -43,7 +44,8 @@ class TestSingle(unittest.TestCase):
 
 class TestDouble(unittest.TestCase):
 
-    def _make_multiple(self):
+    @staticmethod
+    def _make_multiple():
         from appspace.builder import AppspaceFactory, App
         return App(AppspaceFactory('helpers', ('get', 'math.sqrt')).appspace)
 
@@ -90,7 +92,8 @@ class TestDouble(unittest.TestCase):
 
 class TestTriple(unittest.TestCase):
 
-    def _make_multiple(self):
+    @staticmethod
+    def _make_multiple():
         from math import fabs
         from appspace.builder import AppspaceFactory, App
         return App(AppspaceFactory(
@@ -140,7 +143,8 @@ class TestTriple(unittest.TestCase):
 
 class TestQuintuple(unittest.TestCase):
 
-    def _make_multiple(self):
+    @staticmethod
+    def _make_multiple():
         from math import fabs
         from appspace.builder import AppspaceFactory, App
         return App(AppspaceFactory(
@@ -231,7 +235,6 @@ class TestQuintuple(unittest.TestCase):
             isinstance(plug(('helpers', 'util', 'misc', 'store')), UserDict)
         )
 
-
     def test_call2_multiple(self):
         from re import match
         from math import sqrt, fabs
@@ -251,7 +254,8 @@ class TestQuintuple(unittest.TestCase):
 
 class TestGlobal(unittest.TestCase):
 
-    def _make_multiple(self):
+    @staticmethod
+    def _make_multiple():
         from appspace import app
         return app
 
@@ -370,7 +374,8 @@ class TestGlobal(unittest.TestCase):
 
 class TestAppconf(unittest.TestCase):
 
-    def _make_multiple(self):
+    @staticmethod
+    def _make_multiple():
         from appspace import app
         return app
 

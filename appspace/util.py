@@ -12,7 +12,7 @@ def lru_cache(maxsize=100):
 
     @param maxsize: maximum number of results in LRU cache
     '''
-    def decorating_function(func):
+    def wrapped(func):
         # order: least recent to most recent
         cache = OrderedDict()
         @wraps(func)
@@ -29,7 +29,7 @@ def lru_cache(maxsize=100):
             cache[key] = result
             return result
         return wrapper
-    return decorating_function
+    return wrapped
 
 
 class lazy(object):
@@ -38,10 +38,13 @@ class lazy(object):
 
     def __init__(self, method):
         self.method = method
-        self.name = method.__name__
+        try:
+            self.__doc__ = method.__doc__
+        except:
+            pass
 
-    def __get__(self, instance, cls):
+    def __get__(self, instance, cls=None):
         if instance is None: return self
         value = self.method(instance)
-        setattr(instance, self.name, value)
+        setattr(instance, self.method.__name__, value)
         return value

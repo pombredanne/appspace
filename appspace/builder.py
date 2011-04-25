@@ -182,7 +182,7 @@ class App(AppspaceBase):
         try:
             return self._g(AApp, name)
         except AppLookupError:
-            # return appspace if no app found to traverse appspace
+            # return appspace if no app found
             return App(self._getspace(name))
 
     @staticmethod

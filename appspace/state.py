@@ -26,10 +26,7 @@ class AAppspace(AppspaceKey):
         '''Ask for an app'''
 
     def setapp(): #@NoSelf
-        '''App registr'''
-
-    def deleteapp(): #@NoSelf
-        ''''Delete app'''
+        '''App registration'''
 
 
 class Appspace(Components):

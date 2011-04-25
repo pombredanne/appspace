@@ -15,9 +15,9 @@ class AApp(AppspaceKey):
     '''App key'''
 
 
-class AAppspace(AppspaceKey):
+class AAppspaceManager(AppspaceKey):
 
-    '''Appspace key'''
+    '''AppspaceManager key'''
 
     def getapp(): #@NoSelf
         '''Get an app'''
@@ -29,11 +29,46 @@ class AAppspace(AppspaceKey):
         '''App registration'''
 
 
-class Appspace(Components):
+class AAppspace(AppspaceKey):
+
+    def __init__(self, appspace):
+        '''@param appspace: configured appspace'''
+        self._appspace = appspace
+
+    def __call__(self, name, *args, **kw):
+        '''@param name: name of app in appspace'''
+
+    def __contains__(name): #@NoSelf
+        pass
+
+    def __getitem__(name): #@NoSelf
+        pass
+
+    def __getattr__(name): #@NoSelf
+        pass
+
+    def _getspace(name=None): #@NoSelf
+        '''Fetch appropriate appspace
+
+        @param name: name of appspace
+        '''
+
+    def _resolve(name): #@NoSelf
+        '''Resolve name of app in appspace
+
+        @param name: app name
+        '''
+
+    def _sort(result, *args, **kw): #@NoSelf
+        '''Sorts between funcs/classes on one hand and non func/classes on other
+        '''
+
+
+class AppspaceManager(Components):
 
     '''Default appspace state manager'''
 
-    appifies(AAppspace)
+    appifies(AAppspaceManager)
 
     @lazy
     def getapp(self):
@@ -52,4 +87,4 @@ class Appspace(Components):
 
 
 # global appspace
-global_appspace = Appspace('global')
+global_appspace = AppspaceManager('global')

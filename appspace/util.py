@@ -40,6 +40,8 @@ class lazy(object):
         self.method = method
         try:
             self.__doc__ = method.__doc__
+            self.__module__ = method.__module__
+            self.__name__ = method.__name__
         except:
             pass
 

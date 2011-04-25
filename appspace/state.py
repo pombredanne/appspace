@@ -4,7 +4,7 @@ from zope.component.registry import Components
 from zope.interface import implements as appifies
 from zope.interface.interface import InterfaceClass as AppSpacer
 
-from appspace.util import reify
+from appspace.util import lazy
 
 # appspace key
 AppspaceKey = AppSpacer('AppspaceKey')
@@ -38,17 +38,17 @@ class Appspace(Components):
 
     appifies(AAppspace)
 
-    @reify
+    @lazy
     def getapp(self):
         '''App fetcher'''
         return self.getUtility
 
-    @reify
+    @lazy
     def askapp(self):
         '''App querier'''
         return self.queryUtility
 
-    @reify
+    @lazy
     def setapp(self):
         '''App registrar'''
         return self.registerUtility

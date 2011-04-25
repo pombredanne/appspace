@@ -32,24 +32,16 @@ def lru_cache(maxsize=100):
     return decorating_function
 
 
-class reify(object):
+class lazy(object):
 
-    '''Put the result of a method which uses this (non-data) descriptor
-    decorator in the instance dict after the first call, effectively replacing
-    the decorator with an instance variable.
+    '''Lazily assign attributes on an instance upon first use.'''
 
-    From pyramid by Agendaless Consulting
-    '''
+    def __init__(self, method):
+        self.method = method
+        self.name = method.__name__
 
-    def __init__(self, wrapped):
-        self.wrapped = wrapped
-        try:
-            self.__doc__ = wrapped.__doc__
-        except: # pragma: no cover
-            pass
-
-    def __get__(self, inst, objtype=None):
-        if inst is None: return self
-        val = self.wrapped(inst)
-        setattr(inst, self.wrapped.__name__, val)
-        return val
+    def __get__(self, instance, cls):
+        if instance is None: return self
+        value = self.method(instance)
+        setattr(instance, self.name, value)
+        return value

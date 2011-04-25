@@ -1,7 +1,7 @@
 '''appspace builder'''
 
 from appspace.error import AppLookupError
-from appspace.util import reify, lru_cache
+from appspace.util import lazy, lru_cache
 from appspace.state import AAppspace, AApp, Appspace, global_appspace
 
 def appconf(appspace, *args, **kw):
@@ -30,12 +30,12 @@ class AppspaceBase(object):
 
     '''Shared appspace base'''
 
-    @reify
+    @lazy
     def _g(self):
         '''State app fetcher'''
         return self._appspace.getapp
 
-    @reify
+    @lazy
     def _q(self):
         '''State app querier'''
         return self._appspace.askapp
@@ -73,7 +73,6 @@ class AppspaceFactory(AppspaceBase):
             for arg in args: apper(*arg)
 
     @staticmethod
-    @lru_cache()
     def _dotted(value):
         '''Python dynamic loader'''
         if isinstance(value, basestring):
@@ -90,12 +89,12 @@ class AppspaceFactory(AppspaceBase):
             return found
         return value
 
-    @reify
+    @lazy
     def _s(self):
         '''Appspace registration'''
         return self._appspace.setapp
 
-    @reify
+    @lazy
     def appspace(self):
         '''Appspace state'''
         # using global appspace
@@ -103,7 +102,7 @@ class AppspaceFactory(AppspaceBase):
         # using local appspace
         return Appspace(self._name)
 
-    @reify
+    @lazy
     def _appspace(self):
         # compatibility with AppspaceBase
         return self.appspace
@@ -141,7 +140,7 @@ class App(AppspaceBase):
         '''@param appspace: configured appspace'''
         self._appspace = appspace
 
-    @lru_cache(100)
+    @lru_cache()
     def __call__(self, name, *args, **kw):
         '''@param name: name of app in appspace'''
         # handle non hierarchial appspace

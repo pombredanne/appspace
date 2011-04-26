@@ -13,4 +13,4 @@ class ConfigurationError(Exception):
 
 class NoAppError(Exception):
 
-    '''No application was found exception'''
+    '''No application found exception'''

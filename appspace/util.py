@@ -12,7 +12,7 @@ def lru_cache(maxsize=100):
 
     @param maxsize: maximum number of results in LRU cache
     '''
-    def decorating_function(func):
+    def wrapped(func):
         # order: least recent to most recent
         cache = OrderedDict()
         @wraps(func)
@@ -29,27 +29,24 @@ def lru_cache(maxsize=100):
             cache[key] = result
             return result
         return wrapper
-    return decorating_function
+    return wrapped
 
 
-class reify(object):
+class lazy(object):
 
-    '''Put the result of a method which uses this (non-data) descriptor
-    decorator in the instance dict after the first call, effectively replacing
-    the decorator with an instance variable.
+    '''Lazily assign attributes on an instance upon first use.'''
 
-    From pyramid by Agendaless Consulting
-    '''
-
-    def __init__(self, wrapped):
-        self.wrapped = wrapped
+    def __init__(self, method):
+        self.method = method
         try:
-            self.__doc__ = wrapped.__doc__
-        except: # pragma: no cover
+            self.__doc__ = method.__doc__
+            self.__module__ = method.__module__
+            self.__name__ = method.__name__
+        except:
             pass
 
-    def __get__(self, inst, objtype=None):
-        if inst is None: return self
-        val = self.wrapped(inst)
-        setattr(inst, self.wrapped.__name__, val)
-        return val
+    def __get__(self, instance, cls=None):
+        if instance is None: return self
+        value = self.method(instance)
+        setattr(instance, self.method.__name__, value)
+        return value

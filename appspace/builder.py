@@ -1,15 +1,10 @@
 '''appspace builder'''
 
-from appspace.error import AppLookupError
 from appspace.util import lazy, lru_cache
-from appspace.state import AAppspace, AApp, Appspace, global_appspace
-
-def appconf(appspace, *args, **kw):
-    '''Configuration for root appspace
-
-    @param appspace: name of root appspace
-    '''
-    return App(AppspaceFactory(appspace, *args, **kw).appspace)
+from appspace.error import AppLookupError, NoAppError
+from appspace.state import (
+    AAppspace, AApp, AppspaceManager, global_appspace, appifies,
+)
 
 def include(path):
     '''Load a branch appspace
@@ -23,25 +18,10 @@ def patterns(appspace, *args, **kw):
 
     @param appspace: name of branch appspace
     '''
-    return AppspaceFactory(appspace, *args, **kw)
+    return AppspaceFactory(appspace, *args, **kw)()
 
 
-class AppspaceBase(object):
-
-    '''Shared appspace base'''
-
-    @lazy
-    def _g(self):
-        '''app fetcher'''
-        return self._appspace.getapp
-
-    @lazy
-    def _q(self):
-        '''app querier'''
-        return self._appspace.askapp
-
-
-class AppspaceFactory(AppspaceBase):
+class AppspaceFactory(object):
 
     '''Appspace factory'''
 
@@ -54,41 +34,36 @@ class AppspaceFactory(AppspaceBase):
         # use global appspace instead of local appspace
         self._global = kw.get('use_global', False)
         # handle tuple hierarchy
-        if isinstance(name, tuple) and name:
+        if isinstance(name, tuple):
             self._name = name[0]
-            nombus = name[1:]
-            if nombus:
+            namespace = name[1:]
+            if namespace:
                 # create tree of branch appspaces
-                newaf = AppspaceFactory(nombus, *args, **kw).appspace
+                newappspace = AppspaceFactory(namespace, *args, **kw)()
             else:
                 # create branch appspace
-                newaf = AppspaceFactory(self._name, *args, **kw).appspace
-            self._s(newaf, AAppspace, self._name)
+                newappspace = AppspaceFactory(self._name, *args, **kw)()
+            self._appspace.set(newappspace, AApp, self._name)
         elif isinstance(name, basestring):
             self._name = name
-            # register branch appspace
-            self._s(self._appspace, AAppspace, name)
             apper = self._app
             # register apps in appspace
             for arg in args: apper(*arg)
+            if name:
+                self._appspace.set(
+                    Appspace(self._appspace), AApp, self._name,
+                )
+
+    def __call__(self):
+        return Appspace(self._appspace)
 
     @lazy
     def _appspace(self):
-        '''compatibility with AppspaceBase'''
-        return self.appspace
-
-    @lazy
-    def _s(self):
-        '''Appspace registration'''
-        return self._appspace.setapp
-
-    @lazy
-    def appspace(self):
         '''Appspace state'''
         # using global appspace
         if self._global: return global_appspace
         # using local appspace
-        return Appspace(self._name)
+        return AppspaceManager(self._name)
 
     def _app(self, name, path):
         '''Register appspaces or apps in appspace
@@ -96,28 +71,29 @@ class AppspaceFactory(AppspaceBase):
         @param name: app or appspace
         @param path: Python path
         '''
-        # register app
-        if isinstance(path, basestring):
-            self._g(AAppspace, self._name).setapp(self._load(path), AApp, name)
         # register branch appspace from included module
-        elif isinstance(path, tuple):
-            self._s(
+        if isinstance(path, tuple):
+            self._appspace.set(
                 getattr(
                     self._load('.'.join([path[-1], self._appname])),
                     self._appconf,
-                ).appspace,
-                AAppspace,
+                ),
+                AApp,
                 name,
                 app.__doc__,
             )
+        # register app
         else:
-            self._g(AAppspace, self._name).setapp(path, AApp, name)
+            self._appspace.set(self._load(path), AApp, name)
 
     @staticmethod
-    def _load(value):
-        '''Python dynamic loader'''
-        if isinstance(value, basestring):
-            name = value.split('.')
+    def _load(path):
+        '''Python dynamic loader
+
+        @param path: something to load
+        '''
+        if isinstance(path, basestring):
+            name = path.split('.')
             used = name.pop(0)
             found = __import__(used)
             for n in name:
@@ -128,10 +104,12 @@ class AppspaceFactory(AppspaceBase):
                     __import__(used)
                     found = getattr(found, n)
             return found
-        return value
+        return path
 
 
-class App(AppspaceBase):
+class Appspace(object):
+
+    appifies(AAppspace)
 
     def __init__(self, appspace):
         '''@param appspace: configured appspace'''
@@ -139,63 +117,36 @@ class App(AppspaceBase):
 
     def __call__(self, name, *args, **kw):
         '''@param name: name of app in appspace'''
-        # non-hierarchial appspace
-        if not isinstance(name, tuple):
-            return self._sort(self._resolve(name), *args, **kw)
-        # hierarchial namespace in tuple
-        obj = self
-        for n in name:
-            obj = obj._resolve(n)
-            # loop over through branch appspaces until app is found
-            if not isinstance(obj, App): return self._sort(obj, *args, **kw)
-
-    def __contains__(self, name):
-        try:
-            self._g(AApp, name)
-            return True
-        except AppLookupError:
-            return False
-
-    def __getitem__(self, name):
-        return self._resolve(name)
-
-    def __getattr__(self, name):
-        try:
-            return object.__getattribute__(self, name)
-        except AttributeError:
-            return self._resolve(name)
-
-    @lru_cache()
-    def _getspace(self, name=None):
-        '''Fetch appropriate appspace
-
-        @param name: name of appspace
-        '''
-        return self._q(AAppspace, name, self._appspace)
-
-    @lru_cache()
-    def _resolve(self, name):
-        '''Resolve name of app in appspace
-
-        @param name: app name
-        '''
-        try:
-            return self._g(AApp, name)
-        except AppLookupError:
-            # return appspace if no app found
-            return App(self._getspace(name))
-
-    @staticmethod
-    def _sort(result, *args, **kw):
-        '''Sorts between funcs/classes on one hand and non func/classes on other
-
-        @param result: object sorted
-        '''
+        result = self.__getitem__(name)
         try:
             return result(*args, **kw)
         except TypeError:
             return result
 
+    def __contains__(self, name=''):
+        try:
+            self._appspace.get(AApp, name)
+            return True
+        except AppLookupError:
+            return False
+
+    @lru_cache()
+    def __getitem__(self, name=''):
+        '''Resolve name of app in appspace
+
+        @param name: app name
+        '''
+        try:
+            return self._appspace.get(AApp, name)
+        except AppLookupError:
+            raise NoAppError('%s' % name)
+
+    def __getattr__(self, name=''):
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            return self.__getitem__(name)
+
 
 # Global appspace shortcut
-app = App(global_appspace)
+app = Appspace(global_appspace)

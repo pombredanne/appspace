@@ -1,14 +1,15 @@
 '''appspace tests'''
 
 import unittest
+from appspace.error import NoAppError
 
 
 class TestSingle(unittest.TestCase):
 
     @staticmethod
     def _make_one():
-        from appspace.builder import AppspaceFactory, Appspace
-        return Appspace(AppspaceFactory('', ('get', 'math.sqrt'))())
+        from appspace import patterns
+        return patterns('', ('get', 'math.sqrt'))
 
     def test_init(self):
         plug = self._make_one()
@@ -24,7 +25,11 @@ class TestSingle(unittest.TestCase):
 
     def test_not_attr2(self):
         plug = self._make_one()
-        self.assertNotEqual(getattr(plug, 'foo', ''), plug['get'])
+        self.assertNotEqual(
+            NoAppError,
+            lambda x: x==getattr(plug, 'foo', ''),
+            plug['get'],
+        )
 
     def test_identity(self):
         from math import sqrt
@@ -46,8 +51,8 @@ class TestDouble(unittest.TestCase):
 
     @staticmethod
     def _make_multiple():
-        from appspace.builder import AppspaceFactory, Appspace
-        return Appspace(AppspaceFactory('helpers', ('get', 'math.sqrt'))())
+        from appspace import patterns
+        return patterns('helpers', ('get', 'math.sqrt'))
 
     def test_init_multiple(self):
         plug = self._make_multiple()
@@ -64,9 +69,15 @@ class TestDouble(unittest.TestCase):
 
     def test_attr_multiple2(self):
         plug = self._make_multiple()
-        self.assertNotEqual(getattr(plug, 'make', ''), plug['helpers']['get'])
-        self.assertNotEqual(
-            getattr(plug.helpers, 'make', ''), plug['helpers']['get']
+        self.assertRaises(
+            NoAppError,
+            lambda x: x==getattr(plug, 'make', ''),
+            plug['helpers']['get'],
+        )
+        self.assertRaises(
+            NoAppError,
+            lambda x: x==getattr(plug.helpers, 'make', ''),
+            plug['helpers']['get'],
         )
 
     def test_identity_namespace(self):
@@ -79,11 +90,6 @@ class TestDouble(unittest.TestCase):
         plug = self._make_multiple()
         self.assert_(plug.helpers.get is sqrt)
 
-    def test_call_multiple(self):
-        from math import sqrt
-        plug = self._make_multiple()
-        self.assertEqual(plug(('helpers', 'get'), 2), sqrt(2))
-
     def test_call2_multiple(self):
         from math import sqrt
         plug = self._make_multiple()
@@ -95,12 +101,12 @@ class TestTriple(unittest.TestCase):
     @staticmethod
     def _make_multiple():
         from math import fabs
-        from appspace.builder import AppspaceFactory, Appspace
-        return Appspace(AppspaceFactory(
+        from appspace import patterns
+        return patterns(
             ('helpers', 'math'),
             ('sqrt', 'math.sqrt'),
             ('fabs', fabs),
-        )())
+        )
 
     def test_init_multiple(self):
         plug = self._make_multiple()
@@ -128,12 +134,6 @@ class TestTriple(unittest.TestCase):
         self.assert_(plug.helpers.math.sqrt is sqrt)
         self.assert_(plug.helpers.math.fabs is fabs)
 
-    def test_call_multiple(self):
-        from math import sqrt, fabs
-        plug = self._make_multiple()
-        self.assertEqual(plug(('helpers', 'math', 'sqrt'), 2), sqrt(2))
-        self.assertEqual(plug(('helpers', 'math', 'fabs'), 2), fabs(2))
-
     def test_call2_multiple(self):
         from math import sqrt, fabs
         plug = self._make_multiple()
@@ -146,8 +146,8 @@ class TestQuintuple(unittest.TestCase):
     @staticmethod
     def _make_multiple():
         from math import fabs
-        from appspace.builder import AppspaceFactory, Appspace
-        return Appspace(AppspaceFactory(
+        from appspace import patterns
+        return patterns(
             ('helpers', 'util', 'misc'),
             ('square', 'math.sqrt'),
             ('fabulous', fabs),
@@ -155,7 +155,7 @@ class TestQuintuple(unittest.TestCase):
             ('lower', 'string.lowercase'),
             ('upper', 'string.uppercase'),
             ('store', 'UserDict.UserDict'),
-        )())
+        )
 
     def test_init_multiple(self):
         plug = self._make_multiple()
@@ -212,28 +212,6 @@ class TestQuintuple(unittest.TestCase):
         self.assert_(plug.helpers.util.misc.lower is lowercase)
         self.assert_(plug.helpers.util.misc.upper is uppercase)
         self.assert_(plug.helpers.util.misc.store is UserDict)
-
-    def test_call_multiple(self):
-        from math import sqrt, fabs
-        from re import match
-        from string import lowercase, uppercase
-        from UserDict import UserDict
-        plug = self._make_multiple()
-        self.assertEqual(
-            plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2)
-        )
-        self.assertEqual(
-            plug(('helpers', 'util', 'misc', 'fabulous'), 2), fabs(2)
-        )
-        self.assertEqual(
-            plug(('helpers', 'util', 'misc',  'formit'), '2', '2').string,
-            match('2', '2').string
-        )
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'lower')), lowercase)
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'upper')), uppercase)
-        self.assert_(
-            isinstance(plug(('helpers', 'util', 'misc', 'store')), UserDict)
-        )
 
     def test_call2_multiple(self):
         from re import match
@@ -333,28 +311,6 @@ class TestGlobal(unittest.TestCase):
         self.assert_(plug.helpers.util.misc.upper is uppercase)
         self.assert_(plug.helpers.util.misc.store is UserDict)
 
-    def test_call_multiple(self):
-        from re import match
-        from math import sqrt, fabs
-        from UserDict import UserDict
-        from string import lowercase, uppercase
-        plug = self._make_multiple()
-        self.assertEqual(
-            plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2)
-        )
-        self.assertEqual(
-            plug(('helpers', 'util', 'misc', 'fabulous'), 2), fabs(2)
-        )
-        self.assertEqual(
-            plug(('helpers', 'util', 'misc',  'formit'), '2', '2').string,
-            match('2', '2').string
-        )
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'lower')), lowercase)
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'upper')), uppercase)
-        self.assert_(
-            isinstance(plug(('helpers', 'util', 'misc', 'store')), UserDict)
-        )
-
     def test_call2_multiple(self):
         from re import match
         from math import sqrt, fabs
@@ -380,8 +336,8 @@ class TestAppconf(unittest.TestCase):
         return app
 
     def setUp(self):
-        from appspace import appconf, include
-        appconf(
+        from appspace import patterns, include
+        patterns(
             ('helpers', 'util'),
             ('misc', include('appspace.test')),
             use_global=True,
@@ -446,28 +402,6 @@ class TestAppconf(unittest.TestCase):
         self.assert_(plug.helpers.util.misc.lower is lowercase)
         self.assert_(plug.helpers.util.misc.upper is uppercase)
         self.assert_(plug.helpers.util.misc.store is UserDict)
-
-    def test_call_multiple(self):
-        from re import match
-        from math import sqrt, fabs
-        from UserDict import UserDict
-        from string import lowercase, uppercase
-        plug = self._make_multiple()
-        self.assertEqual(
-            plug(('helpers', 'util', 'misc', 'square'), 2), sqrt(2)
-        )
-        self.assertEqual(
-            plug(('helpers', 'util', 'misc', 'fabulous'), 2), fabs(2)
-        )
-        self.assertEqual(
-            plug(('helpers', 'util', 'misc',  'formit'), '2', '2').string,
-            match('2', '2').string
-        )
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'lower')), lowercase)
-        self.assertEqual(plug(('helpers', 'util', 'misc', 'upper')), uppercase)
-        self.assert_(
-            isinstance(plug(('helpers', 'util', 'misc', 'store')), UserDict)
-        )
 
     def test_call2_multiple(self):
         from re import match

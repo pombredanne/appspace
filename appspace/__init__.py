@@ -1,3 +1,3 @@
 '''Python application plumbing'''
 
-from appspace.builder import include, patterns, appconf, app
+from appspace.builder import include, patterns, app

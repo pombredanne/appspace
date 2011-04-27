@@ -33,6 +33,8 @@ class AppspaceFactory(object):
         self._appname = kw.get('appname', 'apps')
         # use global appspace instead of local appspace
         self._global = kw.get('use_global', False)
+        # module prefix
+        self._prefix = kw.get('prefix')
         # handle tuple hierarchy
         if isinstance(name, tuple):
             self._name = name[0]
@@ -86,13 +88,13 @@ class AppspaceFactory(object):
         # using local appspace
         return AppspaceManager()
 
-    @staticmethod
-    def _load(path):
+    def _load(self, path):
         '''Python dynamic loader
 
         @param path: something to load
         '''
         try:
+            if self._prefix is not None: name = '.'.join([self._prefix, path])
             name = path.split('.')
             used = name.pop(0)
             found = __import__(used)

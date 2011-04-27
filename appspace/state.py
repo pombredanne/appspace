@@ -2,13 +2,12 @@
 
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
-from zope.interface.interface import InterfaceClass as AppSpacer
+from zope.interface.interface import InterfaceClass as Appspacer
 
+from appspace.util import lru_cache
 from appspace.error import AppLookupError
 
-
-# appspace key
-AppspaceKey = AppSpacer('AppspaceKey')
+AppspaceKey = Appspacer('AppspaceKey')
 
 
 class AApp(AppspaceKey):
@@ -20,14 +19,16 @@ class AAppspaceManager(AppspaceKey):
 
     '''AppspaceManager key'''
 
-    def get(): #@NoSelf
+    def get(app, name=''): #@NoSelf
         '''Get an app'''
 
-    def set(): #@NoSelf
+    def set(app, appspace, name, info=''): #@NoSelf
         '''App registration'''
 
 
 class AAppspace(AppspaceKey):
+
+    '''Appspace key'''
 
     def __init__(self, appspace):
         '''@param appspace: configured appspace'''
@@ -35,30 +36,32 @@ class AAppspace(AppspaceKey):
     def __call__(self, name, *args, **kw):
         '''@param name: name of app in appspace'''
 
-    def __contains__(name=''): #@NoSelf
+    def __contains__(name): #@NoSelf
         pass
 
-    def __getitem__(name=''): #@NoSelf
+    def __getitem__(name): #@NoSelf
         pass
 
-    def __getattr__(name=''): #@NoSelf
+    def __getattr__(name): #@NoSelf
         pass
 
 
-class AppspaceManager(object):
+class AppspaceManager(AdapterRegistry):
 
-    '''Default appspace state manager'''
+    '''Appspace state manager'''
+
+    __slots__ = ['_apps']
 
     appifies(AAppspaceManager)
 
-    def __init__(self, name=''):
-        self._name = name
-        self._appspace = AdapterRegistry()
+    def __init__(self):
+        super(AppspaceManager, self).__init__(())
         self._apps = dict()
 
+    @lru_cache()
     def get(self, app, name=''):
         '''App fetcher'''
-        app = self._appspace.lookup((), app, name)
+        app = self.lookup((), app, name)
         if app is None: raise AppLookupError(app, name)
         return app
 
@@ -67,15 +70,8 @@ class AppspaceManager(object):
         reg = self._apps.get((appspace, name))
         # already registered
         if reg is not None and reg == (app, info): return None
-        subscribed = False
-        for ((p, _), data) in self._apps.iteritems():
-            if p == appspace and data[0] == app:
-                subscribed = True
-                break
         self._apps[(appspace, name)] = app, info
-        self._appspace.register((), appspace, name, app)
-        if not subscribed: self._appspace.subscribe((), appspace, app)
+        self.register((), appspace, name, app)
 
 
-# global appspace
-global_appspace = AppspaceManager('global')
+global_appspace = AppspaceManager()

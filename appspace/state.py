@@ -2,12 +2,12 @@
 
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
-from zope.interface.interface import InterfaceClass as AppSpacer
+from zope.interface.interface import InterfaceClass as Appspacer
 
 from appspace.util import lru_cache
 from appspace.error import AppLookupError
 
-AppspaceKey = AppSpacer('AppspaceKey')
+AppspaceKey = Appspacer('AppspaceKey')
 
 
 class AApp(AppspaceKey):
@@ -28,6 +28,8 @@ class AAppspaceManager(AppspaceKey):
 
 class AAppspace(AppspaceKey):
 
+    '''Appspace key'''
+
     def __init__(self, appspace):
         '''@param appspace: configured appspace'''
 
@@ -46,13 +48,12 @@ class AAppspace(AppspaceKey):
 
 class AppspaceManager(AdapterRegistry):
 
-    '''Default appspace state manager'''
+    '''Appspace persistence manager'''
 
     appifies(AAppspaceManager)
 
-    def __init__(self, name=''):
+    def __init__(self):
         super(AppspaceManager, self).__init__(())
-        self._name = name
         self._apps = dict()
 
     @lru_cache()
@@ -67,14 +68,8 @@ class AppspaceManager(AdapterRegistry):
         reg = self._apps.get((appspace, name))
         # already registered
         if reg is not None and reg == (app, info): return None
-        subscribed = False
-        for ((p, _), data) in self._apps.iteritems():
-            if p == appspace and data[0] == app:
-                subscribed = True
-                break
         self._apps[(appspace, name)] = app, info
         self.register((), appspace, name, app)
-        if not subscribed: self.subscribe((), appspace, app)
 
 
-global_appspace = AppspaceManager('global')
+global_appspace = AppspaceManager()

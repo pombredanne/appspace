@@ -57,14 +57,6 @@ class AppspaceFactory(object):
     def __call__(self):
         return Appspace(self._appspace)
 
-    @lazy
-    def _appspace(self):
-        '''Appspace state'''
-        # using global appspace
-        if self._global: return global_appspace
-        # using local appspace
-        return AppspaceManager(self._name)
-
     def _app(self, name, path):
         '''Register appspaces or apps in appspace
 
@@ -86,13 +78,21 @@ class AppspaceFactory(object):
         else:
             self._appspace.set(self._load(path), AApp, name)
 
+    @lazy
+    def _appspace(self):
+        '''Appspace state'''
+        # using global appspace
+        if self._global: return global_appspace
+        # using local appspace
+        return AppspaceManager()
+
     @staticmethod
     def _load(path):
         '''Python dynamic loader
 
         @param path: something to load
         '''
-        if isinstance(path, basestring):
+        try:
             name = path.split('.')
             used = name.pop(0)
             found = __import__(used)
@@ -104,7 +104,8 @@ class AppspaceFactory(object):
                     __import__(used)
                     found = getattr(found, n)
             return found
-        return path
+        except AttributeError:
+            return path
 
 
 class Appspace(object):
@@ -123,30 +124,25 @@ class Appspace(object):
         except TypeError:
             return result
 
-    @lru_cache()
-    def __contains__(self, name=''):
+    def __contains__(self, name):
         try:
             self._appspace.get(AApp, name)
             return True
         except AppLookupError:
             return False
 
-    @lru_cache()
-    def __getitem__(self, name=''):
-        '''Resolve name of app in appspace
-
-        @param name: app name
-        '''
-        try:
-            return self._appspace.get(AApp, name)
-        except AppLookupError:
-            raise NoAppError('%s' % name)
-
-    def __getattr__(self, name=''):
+    def __getattribute__(self, name):
         try:
             return object.__getattribute__(self, name)
         except AttributeError:
             return self.__getitem__(name)
+
+    @lru_cache()
+    def __getitem__(self, name):
+        try:
+            return self._appspace.get(AApp, name)
+        except AppLookupError:
+            raise NoAppError('%s' % name)
 
 
 # Global appspace shortcut

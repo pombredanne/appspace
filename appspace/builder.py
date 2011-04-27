@@ -110,6 +110,8 @@ class AppspaceFactory(object):
 
 class Appspace(object):
 
+    __slots__ = ['_appspace']
+
     appifies(AAppspace)
 
     def __init__(self, appspace):

@@ -50,6 +50,8 @@ class AppspaceManager(AdapterRegistry):
 
     '''Appspace persistence manager'''
 
+    __slots__ = ['_apps']
+
     appifies(AAppspaceManager)
 
     def __init__(self):

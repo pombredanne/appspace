@@ -19,10 +19,10 @@ class AAppspaceManager(AppspaceKey):
 
     '''AppspaceManager key'''
 
-    def get(): #@NoSelf
+    def get(app, name=''): #@NoSelf
         '''Get an app'''
 
-    def set(): #@NoSelf
+    def set(app, appspace, name, info=''): #@NoSelf
         '''App registration'''
 
 
@@ -36,19 +36,19 @@ class AAppspace(AppspaceKey):
     def __call__(self, name, *args, **kw):
         '''@param name: name of app in appspace'''
 
-    def __contains__(name=''): #@NoSelf
+    def __contains__(name): #@NoSelf
         pass
 
-    def __getitem__(name=''): #@NoSelf
+    def __getitem__(name): #@NoSelf
         pass
 
-    def __getattr__(name=''): #@NoSelf
+    def __getattr__(name): #@NoSelf
         pass
 
 
 class AppspaceManager(AdapterRegistry):
 
-    '''Appspace persistence manager'''
+    '''Appspace state manager'''
 
     __slots__ = ['_apps']
 

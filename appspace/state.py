@@ -6,7 +6,6 @@ from zope.interface.interface import InterfaceClass as AppSpacer
 
 from appspace.error import AppLookupError
 
-
 # appspace key
 AppspaceKey = AppSpacer('AppspaceKey')
 

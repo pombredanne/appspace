@@ -123,6 +123,7 @@ class Appspace(object):
         except TypeError:
             return result
 
+    @lru_cache()
     def __contains__(self, name=''):
         try:
             self._appspace.get(AApp, name)

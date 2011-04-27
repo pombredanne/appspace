@@ -4,9 +4,9 @@ from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interface import InterfaceClass as AppSpacer
 
+from appspace.util import lru_cache
 from appspace.error import AppLookupError
 
-# appspace key
 AppspaceKey = AppSpacer('AppspaceKey')
 
 
@@ -44,20 +44,21 @@ class AAppspace(AppspaceKey):
         pass
 
 
-class AppspaceManager(object):
+class AppspaceManager(AdapterRegistry):
 
     '''Default appspace state manager'''
 
     appifies(AAppspaceManager)
 
     def __init__(self, name=''):
+        super(AppspaceManager, self).__init__(())
         self._name = name
-        self._appspace = AdapterRegistry()
         self._apps = dict()
 
+    @lru_cache()
     def get(self, app, name=''):
         '''App fetcher'''
-        app = self._appspace.lookup((), app, name)
+        app = self.lookup((), app, name)
         if app is None: raise AppLookupError(app, name)
         return app
 
@@ -72,9 +73,8 @@ class AppspaceManager(object):
                 subscribed = True
                 break
         self._apps[(appspace, name)] = app, info
-        self._appspace.register((), appspace, name, app)
-        if not subscribed: self._appspace.subscribe((), appspace, app)
+        self.register((), appspace, name, app)
+        if not subscribed: self.subscribe((), appspace, app)
 
 
-# global appspace
 global_appspace = AppspaceManager('global')

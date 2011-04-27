@@ -30,10 +30,10 @@ class AAppspace(AppspaceKey):
 
     '''Appspace key'''
 
-    def __init__(self, appspace):
+    def __init__(appspace): #@NoSelf
         '''@param appspace: configured appspace'''
 
-    def __call__(self, name, *args, **kw):
+    def __call__(name, *args, **kw): #@NoSelf
         '''@param name: name of app in appspace'''
 
     def __contains__(name): #@NoSelf

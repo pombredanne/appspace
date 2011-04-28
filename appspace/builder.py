@@ -33,28 +33,14 @@ class AppspaceFactory(object):
         self._appname = kw.get('appname', 'apps')
         # use global appspace instead of local appspace
         self._global = kw.get('use_global', False)
+        # namespace
+        self._name = name
         # module prefix
         self._prefix = kw.get('prefix')
-        # handle tuple hierarchy
-        if isinstance(name, tuple):
-            self._name = name[0]
-            namespace = name[1:]
-            if namespace:
-                # create tree of branch appspaces
-                newappspace = AppspaceFactory(namespace, *args, **kw)()
-            else:
-                # create branch appspace
-                newappspace = AppspaceFactory(self._name, *args, **kw)()
-            self._appspace.set(newappspace, AApp, self._name)
-        elif isinstance(name, basestring):
-            self._name = name
-            apper = self._app
-            # register apps in appspace
-            for arg in args: apper(*arg)
-            if name:
-                self._appspace.set(
-                    Appspace(self._appspace), AApp, self._name,
-                )
+        # register apps in appspace
+        apper = self._app
+        for arg in args: apper(*arg)
+        if name: self._appspace.set(Appspace(self._appspace), AApp, self._name)
 
     def __call__(self):
         return Appspace(self._appspace)

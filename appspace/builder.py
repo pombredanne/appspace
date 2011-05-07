@@ -33,26 +33,14 @@ class AppspaceFactory(object):
         self._appname = kw.get('appname', 'apps')
         # use global appspace instead of local appspace
         self._global = kw.get('use_global', False)
-        # handle tuple hierarchy
-        if isinstance(name, tuple):
-            self._name = name[0]
-            namespace = name[1:]
-            if namespace:
-                # create tree of branch appspaces
-                newappspace = AppspaceFactory(namespace, *args, **kw)()
-            else:
-                # create branch appspace
-                newappspace = AppspaceFactory(self._name, *args, **kw)()
-            self._appspace.set(newappspace, AApp, self._name)
-        elif isinstance(name, basestring):
-            self._name = name
-            apper = self._app
-            # register apps in appspace
-            for arg in args: apper(*arg)
-            if name:
-                self._appspace.set(
-                    Appspace(self._appspace), AApp, self._name,
-                )
+        # namespace
+        self._name = name
+        # module prefix
+        self._prefix = kw.get('prefix')
+        # register apps in appspace
+        apper = self._app
+        for arg in args: apper(*arg)
+        if name: self._appspace.set(Appspace(self._appspace), AApp, self._name)
 
     def __call__(self):
         return Appspace(self._appspace)
@@ -86,13 +74,13 @@ class AppspaceFactory(object):
         # using local appspace
         return AppspaceManager()
 
-    @staticmethod
-    def _load(path):
+    def _load(self, path):
         '''Python dynamic loader
 
         @param path: something to load
         '''
         try:
+            if self._prefix is not None: name = '.'.join([self._prefix, path])
             name = path.split('.')
             used = name.pop(0)
             found = __import__(used)

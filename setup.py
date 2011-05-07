@@ -1,15 +1,12 @@
-'''setup - setuptools based setup for tubing'''
+'''setup for appspace'''
 
-try:
-    from setuptools import setup
-except:
-    from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='appspace',
     version='0.1',
-    description='''Loose coupled Python application plumbing''',
-    long_description='''Loose coupled Python application plumbing''',
+    description='''Loosely coupled application plumbing''',
+    long_description='''Loosely coupled application plumbing''',
     author='L. C. Rees',
     author_email='lcrees@gmail.com',
     license='ZPL',
@@ -17,9 +14,9 @@ setup(
     packages = ['appspace', 'appspace.test'],
     test_suite='appspace.test',
     zip_safe = False,
-    keywords='application composition component injection aspect-oriented spring',
+    keywords='component injection aspect-oriented spring',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: ZPL License',
         'Natural Language :: English',

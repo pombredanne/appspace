@@ -1,0 +1,25 @@
+Allows arbitrary combinations of Python imports to be aggregated into a single
+application. This application is defined using an application configuration file
+("appconf") similar to Django's urlconf:
+
+>>> from appspace import patterns
+>>> apps = patterns(
+...    'helpers',
+...    ('square', 'math.sqrt'),
+...    ('fabulous', 'math.fabs'),
+...    include('subapp', 'foo.bar')
+... )
+
+Members of an application objects can be accessed as object attributes,
+dictionary keys, or through the application object's __call__ interface:
+
+>>> fab1 = plug.helpers.fabulous
+>>> fab2 = plug['helpers']['fabulous']
+>>> fab1(2)
+2.0
+>>> fab2(2)
+2.0
+>>> plug.helpers.fabulous(2)
+2.0
+>>> plug('fabulous', 2)
+2.0

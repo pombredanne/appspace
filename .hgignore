@@ -1,4 +1,5 @@
 syntax:glob
+.DS_Store
 *.pyc
 *.egg-info
 *~
@@ -6,8 +7,7 @@ syntax:glob
 .coverage
 build/
 dist/
-
-syntax: glob
 .project
-syntax: glob
 .pydevproject
+.git/
+.settings/

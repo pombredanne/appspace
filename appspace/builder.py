@@ -80,7 +80,7 @@ class AppspaceFactory(object):
         @param path: something to load
         '''
         try:
-            if self._prefix is not None: name = '.'.join([self._prefix, path])
+            if self._prefix is not None: path = '.'.join([self._prefix, path])
             name = path.split('.')
             used = name.pop(0)
             found = __import__(used)

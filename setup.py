@@ -14,6 +14,7 @@ setup(
     author='L. C. Rees',
     author_email='lcrees@gmail.com',
     license='MIT',
+    url='https://bitbucket.org/lcrees/appspace',
     packages = ['appspace', 'appspace.test'],
     test_suite='appspace.test',
     zip_safe = False,

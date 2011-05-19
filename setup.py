@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name='appspace',
-    version='0.1',
+    version='0.1.1',
     description='Loosely coupled application plumbing',
     long_description=open(os.path.join(os.getcwd(), 'README'), 'rb').read(),
     author='L. C. Rees',

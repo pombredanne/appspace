@@ -1,14 +1,20 @@
 '''setup for appspace'''
 
 import os
+import sys
+
 try:
     from setuptools import setup
 except ImportError:
     from distutils.util import setup
 
+install_requires = ['zope.component>=3.10.0']
+if sys.version_info[0] == 2 and sys.version_info[1] < 7:
+    install_requires.append('importlib')
+
 setup(
     name='appspace',
-    version='0.1.1',
+    version='0.1.2',
     description='Loosely coupled application plumbing',
     long_description=open(os.path.join(os.getcwd(), 'README'), 'rb').read(),
     author='L. C. Rees',
@@ -30,5 +36,5 @@ setup(
         'Topic :: Software Development :: Libraries',
         'Topic :: Utilities',
     ],
-    install_requires=['zope.component>=3.10.0']
+    install_requires=install_requires,
 )

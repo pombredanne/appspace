@@ -1,5 +1,7 @@
 '''appspace builder'''
 
+from importlib import import_module
+
 from appspace.util import lazy, lru_cache
 from appspace.error import AppLookupError, NoAppError
 from appspace.state import (
@@ -7,14 +9,16 @@ from appspace.state import (
 )
 
 def include(path):
-    '''Load a branch appspace
+    '''
+    Load a branch appspace
 
     @param path: module import path
     '''
     return ('include', path)
 
 def patterns(appspace, *args, **kw):
-    '''Configuration for branch appspace
+    '''
+    Configuration for branch appspace
 
     @param appspace: name of branch appspace
     '''
@@ -75,25 +79,22 @@ class AppspaceFactory(object):
         return AppspaceManager()
 
     def _load(self, path):
-        '''Python dynamic loader
+        '''
+        Python dynamic loader
 
         @param path: something to load
         '''
-        try:
-            if self._prefix is not None: path = '.'.join([self._prefix, path])
-            name = path.split('.')
-            used = name.pop(0)
-            found = __import__(used)
-            for n in name:
-                used += '.' + n
-                try:
-                    found = getattr(found, n)
-                except AttributeError:
-                    __import__(used)
-                    found = getattr(found, n)
-            return found
-        except AttributeError:
-            return path
+        if isinstance(path, basestring):
+            if self._prefix is not None:
+                path = '.'.join([self._prefix, path])
+            try:
+                dot = path.rindex('.')
+                # import module
+                path = getattr(import_module(path[:dot]), path[dot+1:])
+            # If nothing but module name, import the module
+            except AttributeError:
+                path = import_module(path)
+        return path
 
 
 class Appspace(object):

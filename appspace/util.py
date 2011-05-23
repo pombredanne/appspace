@@ -4,7 +4,8 @@ from functools import wraps
 from collections import OrderedDict
 
 def lru_cache(maxsize=100):
-    '''Least-recently-used cache decorator.
+    '''
+    Least-recently-used cache decorator.
 
     From Raymond Hettinger
 
@@ -34,7 +35,7 @@ def lru_cache(maxsize=100):
 
 class lazy(object):
 
-    '''Lazily assign attributes on an instance upon first use.'''
+    '''Lazily assign attributes to instance on first access'''
 
     def __init__(self, method):
         self.method = method

@@ -1,6 +1,7 @@
 '''appspace tests'''
 
-import unittest
+import unittest2 as unittest
+
 from appspace.error import NoAppError
 
 
@@ -27,7 +28,7 @@ class TestSingle(unittest.TestCase):
         plug = self._make_one()
         self.assertNotEqual(
             NoAppError,
-            lambda x: x==getattr(plug, 'foo', ''),
+            lambda x: x == getattr(plug, 'foo', ''),
             plug['get'],
         )
 
@@ -71,12 +72,12 @@ class TestDouble(unittest.TestCase):
         plug = self._make_multiple()
         self.assertRaises(
             NoAppError,
-            lambda x: x==getattr(plug, 'make', ''),
+            lambda x: x == getattr(plug, 'make', ''),
             plug['helpers']['get'],
         )
         self.assertRaises(
             NoAppError,
-            lambda x: x==getattr(plug.helpers, 'make', ''),
+            lambda x: x == getattr(plug.helpers, 'make', ''),
             plug['helpers']['get'],
         )
 

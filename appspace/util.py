@@ -1,7 +1,10 @@
 '''appspace utilities'''
 
 from functools import wraps
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except:
+    from ordereddict import OrderedDict
 
 def lru_cache(maxsize=100):
     '''

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''appspace tests'''
 
 import unittest2 as unittest

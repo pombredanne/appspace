@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''appspace state management'''
 
 from zope.interface import implements as appifies

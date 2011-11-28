@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''appspace builder'''
 
 from importlib import import_module

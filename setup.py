@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''setup for appspace'''
 
 import os

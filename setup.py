@@ -16,7 +16,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 7:
 
 setup(
     name='appspace',
-    version='0.1.3',
+    version='0.2.0',
     description='Loosely coupled application plumbing',
     long_description=open(os.path.join(os.getcwd(), 'README'), 'rb').read(),
     author='L. C. Rees',

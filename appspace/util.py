@@ -3,7 +3,7 @@
 from functools import wraps
 try:
     from collections import OrderedDict
-except:
+except ImportError:
     from ordereddict import OrderedDict
 
 def lru_cache(maxsize=100):
@@ -50,7 +50,8 @@ class lazy(object):
             pass
 
     def __get__(self, instance, cls=None):
-        if instance is None: return self
+        if instance is None: 
+            return self
         value = self.method(instance)
         setattr(instance, self.method.__name__, value)
         return value

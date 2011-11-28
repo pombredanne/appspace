@@ -2,10 +2,10 @@
 
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
-from zope.interface.interface import InterfaceClass as Appspacer
+from zope.interface.interface import InterfaceClass as Appspacer 
 
 from appspace.util import lru_cache
-from appspace.error import AppLookupError
+from appspace.error import AppLookupError 
 
 AppspaceKey = Appspacer('AppspaceKey')
 
@@ -22,7 +22,7 @@ class AAppspaceManager(AppspaceKey):
     def get(app, name=''): #@NoSelf
         '''Get an app'''
 
-    def set(app, appspace, name, info=''): #@NoSelf
+    def set(app, appspace, name, info=''): #@NoSelf @ReservedAssignment
         '''App registration'''
 
 
@@ -62,16 +62,23 @@ class AppspaceManager(AdapterRegistry):
     def get(self, app, name=''):
         '''App fetcher'''
         app = self.lookup((), app, name)
-        if app is None: raise AppLookupError(app, name)
+        if app is None: 
+            raise AppLookupError(app, name)
         return app
 
-    def set(self, app, appspace, name, info=''):
+    def set(self, app, appspace, name, info=''): #@ReservedAssignment
         '''App registrar'''
         reg = self._apps.get((appspace, name))
         # already registered
-        if reg is not None and reg == (app, info): return None
+        if reg is not None and reg == (app, info): 
+            return None
         self._apps[(appspace, name)] = app, info
         self.register((), appspace, name, app)
-
+        
+    def set_live(self, app, name, info=''):
+        '''Live app registar'''
+        self._apps[(AApp, name)] = app, info
+        self.register((), AApp, name, app)
+        
 
 global_appspace = AppspaceManager()

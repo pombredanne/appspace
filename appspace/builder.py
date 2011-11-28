@@ -43,8 +43,10 @@ class AppspaceFactory(object):
         self._prefix = kw.get('prefix')
         # register apps in appspace
         apper = self._app
-        for arg in args: apper(*arg)
-        if name: self._appspace.set(Appspace(self._appspace), AApp, self._name)
+        for arg in args: 
+            apper(*arg)
+        if name: 
+            self._appspace.set(Appspace(self._appspace), AApp, self._name)
 
     def __call__(self):
         return Appspace(self._appspace)
@@ -74,7 +76,8 @@ class AppspaceFactory(object):
     def _appspace(self):
         '''Appspace state'''
         # using global appspace
-        if self._global: return global_appspace
+        if self._global: 
+            return global_appspace
         # using local appspace
         return AppspaceManager()
 

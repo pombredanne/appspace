@@ -19,7 +19,7 @@ setup(
     name='appspace',
     version='0.2.0',
     description='Loosely coupled application plumbing',
-    long_description=open(os.path.join(os.getcwd(), 'README'), 'rb').read(),
+    long_description=open(os.path.join(os.getcwd(), 'README.rst'), 'rb').read(),
     author='L. C. Rees',
     author_email='lcrees@gmail.com',
     license='MIT',

@@ -13,3 +13,7 @@
 0.2.0
 
 - dynamic binding support
+
+0.3.0
+
+- lazy load modules from appconf

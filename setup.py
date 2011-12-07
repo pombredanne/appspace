@@ -3,21 +3,15 @@
 
 import os
 import sys
-
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.util import setup
+from distutils.core import setup
 
 install_requires = ['zope.component>=3.10.0']
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
-    install_requires.append('importlib')
-    install_requires.append('ordereddict')
-    install_requires.append('unittest2')
+    install_requires.extend(['importlib', 'ordereddict', 'unittest2'])
 
 setup(
     name='appspace',
-    version='0.2.0',
+    version='0.3.0',
     description='Loosely coupled application plumbing',
     long_description=open(os.path.join(os.getcwd(), 'README.rst'), 'rb').read(),
     author='L. C. Rees',

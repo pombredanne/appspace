@@ -1,8 +1,8 @@
 *appspace* is a component injection framework that allows any mishmash of Python 
-classes, objects, functions, or modules to be loosely cobbled together into an 
+classes, objects, functions, or modules to be cobbled loosely together into an 
 application. 
 
-An *appspace* application is built with an appconf (application configuration) 
+An appspaced application is built with an appconf (application configuration) 
 similar to a Django urlconf:
 
 >>> from appspace import patterns

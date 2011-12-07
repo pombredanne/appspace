@@ -3,7 +3,7 @@
 
 import os
 import sys
-from distutils.core import setup
+from setuptools import setup
 
 install_requires = ['zope.component>=3.10.0']
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:

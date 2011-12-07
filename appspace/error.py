@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''appspace exceptions'''
 
-from zope.component.interfaces import ComponentLookupError
+from zope.interface.interfaces import ComponentLookupError
 
 # app lookup exception
 AppLookupError = ComponentLookupError

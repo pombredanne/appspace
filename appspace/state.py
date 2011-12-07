@@ -2,6 +2,8 @@
 ## pylint: disable-msg=w0232
 '''appspace state management'''
 
+from __future__ import absolute_import
+
 from importlib import import_module
 
 ## pylint: disable-msg=f0401
@@ -9,9 +11,9 @@ from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
 ## pylint: disable-msg=f0401
 
-from appspace.util import lru_cache
-from appspace.error import AppLookupError 
-from appspace.keys import AAppspaceManager, AApp
+from .util import lru_cache
+from .error import AppLookupError 
+from .keys import AAppspaceManager, AApp
 
 
 class App(object):
@@ -29,9 +31,6 @@ class AppspaceManager(AdapterRegistry):
     __slots__ = ['_apps']
 
     appifies(AAppspaceManager)
-
-    def __init__(self):
-        super(AppspaceManager, self).__init__()
         
     def _app(self, name, path):
         '''
@@ -75,13 +74,13 @@ class AppspaceManager(AdapterRegistry):
             app = self._app(name, app.path)
         return app
 
-    def set(self, app, appspace, name, info=''):
+    def set(self, app, appspace, name):
         '''app registrar'''
-        if isinstance(app, (str, tuple)):
+        if isinstance(app, (basestring, tuple)):
             app = App(app)
         self.register((), appspace, name, app)
         
-    def set_live(self, app, name, info=''):
+    def set_live(self, app, name):
         '''live app registrar'''
         self.register((), AApp, name, app)
         

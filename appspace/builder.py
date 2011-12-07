@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 '''appspace builder'''
 
-from appspace.keys import AAppspace, AApp
-from appspace.util import lazy, lru_cache
-from appspace.error import AppLookupError, NoAppError
-from appspace.state import AppspaceManager, global_appspace, appifies
+from __future__ import absolute_import
+
+from .keys import AAppspace, AApp
+from .util import lazy, lru_cache
+from .error import AppLookupError, NoAppError
+from .state import AppspaceManager, global_appspace, appifies
 
 def include(path):
     '''

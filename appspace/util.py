@@ -10,13 +10,11 @@ except ImportError:
 
 def lru_cache(maxsize=100):
     '''
-    Least-recently-used cache decorator.
+    least-recently-used cache decorator from Raymond Hettinger
 
-    From Raymond Hettinger
+    arguments to the cached function must be hashable.
 
-    Arguments to the cached function must be hashable.
-
-    @param maxsize: maximum number of results in LRU cache
+    @param maxsize: maximum number of results in LRU cache (default: 100)
     '''
     def wrapped(func):
         # order: least recent to most recent
@@ -40,7 +38,7 @@ def lru_cache(maxsize=100):
 
 class lazy(object):
 
-    '''Lazily assign attributes to instance on first access'''
+    '''lazily assign attributes to instance on first access'''
 
     def __init__(self, method):
         self.method = method

@@ -1,84 +1,88 @@
 # -*- coding: utf-8 -*-
+## pylint: disable-msg=w0232
 '''appspace state management'''
 
+from importlib import import_module
+
+## pylint: disable-msg=f0401
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
-from zope.interface.interface import InterfaceClass as Appspacer 
+## pylint: disable-msg=f0401
 
 from appspace.util import lru_cache
 from appspace.error import AppLookupError 
-
-AppspaceKey = Appspacer('AppspaceKey')
-
-
-class AApp(AppspaceKey):
-
-    '''App key'''
+from appspace.keys import AAppspaceManager, AApp
 
 
-class AAppspaceManager(AppspaceKey):
-
-    '''AppspaceManager key'''
-
-    def get(app, name=''): #@NoSelf
-        '''Get an app'''
-
-    def set(app, appspace, name, info=''): #@NoSelf @ReservedAssignment
-        '''App registration'''
-
-
-class AAppspace(AppspaceKey):
-
-    '''Appspace key'''
-
-    def __init__(appspace): #@NoSelf
-        '''@param appspace: configured appspace'''
-
-    def __call__(name, *args, **kw): #@NoSelf
-        '''@param name: name of app in appspace'''
-
-    def __contains__(name): #@NoSelf
-        pass
-
-    def __getitem__(name): #@NoSelf
-        pass
-
-    def __getattr__(name): #@NoSelf
-        pass
+class App(object):
+    
+    appifies(AApp)
+    
+    def __init__(self, path):
+        self.path = path
 
 
 class AppspaceManager(AdapterRegistry):
 
-    '''Appspace state manager'''
+    '''appspace state manager'''
 
     __slots__ = ['_apps']
 
     appifies(AAppspaceManager)
 
     def __init__(self):
-        super(AppspaceManager, self).__init__(())
-        self._apps = dict()
+        super(AppspaceManager, self).__init__()
+        
+    def _app(self, name, path):
+        '''
+        register appspaces or apps in appspace
+
+        @param name: app or appspace
+        @param path: Python path
+        '''
+        # register branch appspace from included module
+        if isinstance(path, tuple):
+            app = getattr(self._load('.'.join([path[-1], 'apps'])), 'apps')
+        # register app
+        else:
+            app = self._load(path)
+        self.set(app, AApp, name)
+        return app
+        
+    def _load(self, path):
+        '''
+        dynamic loader
+
+        @param path: something to load
+        '''
+        if isinstance(path, basestring):
+            try:
+                dot = path.rindex('.')
+                # import module
+                path = getattr(import_module(path[:dot]), path[dot+1:])
+            # If nothing but module name, import the module
+            except AttributeError:
+                path = import_module(path)
+        return path
 
     @lru_cache()
     def get(self, app, name=''):
-        '''App fetcher'''
+        '''app fetcher'''
         app = self.lookup((), app, name)
         if app is None: 
             raise AppLookupError(app, name)
+        if isinstance(app, App):
+            app = self._app(name, app.path)
         return app
 
-    def set(self, app, appspace, name, info=''): #@ReservedAssignment
-        '''App registrar'''
-        reg = self._apps.get((appspace, name))
-        # already registered
-        if reg is not None and reg == (app, info): 
-            return None
-        self._apps[(appspace, name)] = app, info
+    def set(self, app, appspace, name, info=''):
+        '''app registrar'''
+        if isinstance(app, (basestring, tuple)):
+            app = App(app)
         self.register((), appspace, name, app)
         
     def set_live(self, app, name, info=''):
-        '''Live app registar'''
-        self._apps[(AApp, name)] = app, info
+        '''live app registrar'''
         self.register((), AApp, name, app)
         
 

@@ -55,7 +55,7 @@ class AppspaceManager(AdapterRegistry):
 
         @param path: something to load
         '''
-        if isinstance(path, basestring):
+        if isinstance(path, str):
             try:
                 dot = path.rindex('.')
                 # import module
@@ -77,7 +77,7 @@ class AppspaceManager(AdapterRegistry):
 
     def set(self, app, appspace, name, info=''):
         '''app registrar'''
-        if isinstance(app, (basestring, tuple)):
+        if isinstance(app, (str, tuple)):
             app = App(app)
         self.register((), appspace, name, app)
         

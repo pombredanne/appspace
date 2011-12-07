@@ -17,3 +17,7 @@
 0.3.0
 
 - lazy load modules from appconf
+
+0.3.1
+
+- remove zope.component dependency

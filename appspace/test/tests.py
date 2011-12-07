@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 '''appspace tests'''
 
-import unittest2 as unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 from appspace.error import NoAppError
 
@@ -205,11 +208,7 @@ class TestGlobal(unittest.TestCase):
             ('store', 'UserDict.UserDict'),
             use_global=True,
         )
-
-    def tearDown(self):
-        from zope.component import getSiteManager
-        getSiteManager.reset()
-
+        
     def test_init_multiple(self):
         plug = self._make_multiple()
         self.assertEqual('square' in plug['helpers'], True)
@@ -295,10 +294,6 @@ class TestAppconf(unittest.TestCase):
             ('misc', include('appspace.test')),
             use_global=True,
         )
-
-    def tearDown(self):
-        from zope.component import getSiteManager
-        getSiteManager.reset()
 
     def test_init_multiple(self):
         plug = self._make_multiple()

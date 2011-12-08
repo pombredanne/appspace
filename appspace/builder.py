@@ -8,7 +8,7 @@ from .util import lazy, lru_cache
 from .error import AppLookupError, NoAppError
 from .state import AppspaceManager, global_appspace, appifies
 
-def add_app(appspace, name, new_app, branch=''):
+def add_app(appspace, name, new_app, branch='', use_global=False):
     '''
     add new app to existing namespace
     
@@ -16,10 +16,12 @@ def add_app(appspace, name, new_app, branch=''):
     @param name: name of branch appspace
     '''
     if branch:
-        new_appspace = add_appspace(appspace, branch)
-    new_appspace.appspace.set_live(new_app, name)
+        appspace = add_branch(appspace, branch)
+    elif use_global:
+        appspace = global_appspace
+    appspace.appspace.set_live(new_app, name)
 
-def add_appspace(appspace, name):
+def add_branch(appspace, name):
     '''
     add new appspace to existing appspace
 
@@ -55,11 +57,9 @@ class AppspaceFactory(object):
         '''
         @param name: name of appspace
         '''
-        # name of branch appspace module e.g. someapp.apps
-        self._appconf = kw.get('appconf', 'apps')
-        # name of appspace in branch appspace module e.g. someapp.apps.apps
-        self._appname = kw.get('appname', 'apps')
-        # use global appspace instead of local appspace
+        # name of appspace in branch appspace module e.g. someapp.apps.appconf
+        self._appconf = kw.get('appconf', 'appconf')
+        # whether to use global appspace instead of local appspace
         self._global = kw.get('use_global', False)
         # namespace
         self._name = name
@@ -93,7 +93,7 @@ class AppspaceFactory(object):
         if self._global: 
             return global_appspace
         # using local appspace
-        return AppspaceManager()
+        return AppspaceManager(self._appconf)
 
 
 class Appspace(object):

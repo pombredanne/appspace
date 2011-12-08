@@ -256,7 +256,7 @@ class TestAppconf(unittest.TestCase):
         from appspace import patterns, include
         patterns(
             'helpers',
-            ('misc', include('appspace.test')),
+            ('misc', include('appspace.test.apps')),
             use_global=True,
         )
 

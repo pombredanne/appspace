@@ -29,6 +29,10 @@ class AppspaceManager(AdapterRegistry):
     '''appspace state manager'''
 
     appifies(AAppspaceManager)
+    
+    def __init__(self, appconf='appconf'):
+        super(AppspaceManager, self).__init__()
+        self._appconf = appconf
         
     def _app(self, name, path):
         '''
@@ -39,7 +43,7 @@ class AppspaceManager(AdapterRegistry):
         '''
         # register branch appspace from included module
         if isinstance(path, tuple):
-            app = getattr(self._load('.'.join([path[-1], 'apps'])), 'apps')
+            app = getattr(self._load(path[-1]), self._appconf)
         # register app
         else:
             app = self._load(path)
@@ -79,7 +83,6 @@ class AppspaceManager(AdapterRegistry):
         self.register((), appspace, name, app)
         
     def set_live(self, app, name, appspace=AApp):
-        '''live app registrar'''
         if isinstance(app, basestring):
             app = App(app)
         self.register((), appspace, name, app)

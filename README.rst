@@ -6,11 +6,11 @@ An appspaced application is built with an appconf (application configuration)
 similar to a Django urlconf:
 
 >>> from appspace import patterns
->>> apps = patterns(
+>>> appconf = patterns(
 ...    'helpers',
 ...    ('square', 'math.sqrt'),
 ...    ('fabulous', 'math.fabs'),
-...    include('subapp', 'foo.bar')
+...    include('subapp', 'foo.bar.apps')
 ... )
 
 Once configured, application components can be accessed as object attributes,

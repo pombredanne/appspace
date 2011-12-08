@@ -25,3 +25,7 @@
 0.3.2
 
 - shift to absolute imports
+
+0.3.3
+
+- add utility functions

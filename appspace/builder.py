@@ -8,6 +8,28 @@ from .util import lazy, lru_cache
 from .error import AppLookupError, NoAppError
 from .state import AppspaceManager, global_appspace, appifies
 
+def add_app(appspace, name, new_app, branch=''):
+    '''
+    add new app to existing namespace
+    
+    @param appspace: existing appspace
+    @param name: name of branch appspace
+    '''
+    if branch:
+        new_appspace = add_appspace(appspace, branch)
+    new_appspace.appspace.set_live(new_app, name)
+
+def add_appspace(appspace, name):
+    '''
+    add new appspace to existing appspace
+
+    @param appspace: existing appspace
+    @param name: name of new appspace
+    '''
+    new_appspace = Appspace(AppspaceManager())
+    appspace.set(new_appspace, AApp, name)
+    return new_appspace
+
 def include(path):
     '''
     load a branch appspace
@@ -46,13 +68,21 @@ class AppspaceFactory(object):
         for arg in args: 
             apper(*arg)
         if name: 
-            self._appspace.set(Appspace(self._appspace), AApp, self._name)
+            self._add_branch(name)
 
     def __call__(self):
         return Appspace(self._appspace)
     
-    def _app(self, name, path):
-        self._appspace.set(path, AApp, name)
+    def _add_branch(self, name):
+        '''
+        add new branch appspace
+    
+        @param name: name of branch appspace
+        '''
+        self._appspace.set(Appspace(self._appspace), AApp, name)
+    
+    def _app(self, name, new_app):
+        self._appspace.set(new_app, AApp, name)
 
     @lazy
     def _appspace(self):
@@ -68,7 +98,7 @@ class AppspaceFactory(object):
 
 class Appspace(object):
 
-    __slots__ = ['_appspace']
+    __slots__ = ['appspace']
 
     appifies(AAppspace)
 
@@ -76,7 +106,7 @@ class Appspace(object):
         '''
         @param appspace: configured appspace
         '''
-        self._appspace = appspace
+        self.appspace = appspace
 
     def __call__(self, name, *args, **kw):
         '''@param name: name of app in appspace'''
@@ -85,13 +115,6 @@ class Appspace(object):
             return result(*args, **kw)
         except TypeError:
             return result
-
-    def __contains__(self, name):
-        try:
-            self._appspace.get(AApp, name)
-            return True
-        except AppLookupError:
-            return False
 
     def __getattribute__(self, name):
         try:
@@ -102,7 +125,7 @@ class Appspace(object):
     @lru_cache()
     def __getitem__(self, name):
         try:
-            return self._appspace.get(AApp, name)
+            return self.appspace.get(AApp, name)
         except AppLookupError:
             raise NoAppError('%s' % name)
 

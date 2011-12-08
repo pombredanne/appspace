@@ -28,8 +28,6 @@ class AppspaceManager(AdapterRegistry):
 
     '''appspace state manager'''
 
-    __slots__ = ['_apps']
-
     appifies(AAppspaceManager)
         
     def _app(self, name, path):
@@ -80,9 +78,11 @@ class AppspaceManager(AdapterRegistry):
             app = App(app)
         self.register((), appspace, name, app)
         
-    def set_live(self, app, name):
+    def set_live(self, app, name, appspace=AApp):
         '''live app registrar'''
-        self.register((), AApp, name, app)
+        if isinstance(app, basestring):
+            app = App(app)
+        self.register((), appspace, name, app)
         
-
+        
 global_appspace = AppspaceManager()

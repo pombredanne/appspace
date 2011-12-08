@@ -16,17 +16,9 @@ class TestSingle(unittest.TestCase):
         from appspace import patterns
         return patterns('', ('get', 'math.sqrt'))
 
-    def test_init(self):
-        plug = self._make_one()
-        self.assertEqual('get' in plug, True)
-
     def test_attr(self):
         plug = self._make_one()
         self.assertEqual(plug.get, plug['get'])
-
-    def test_not_init(self):
-        plug = self._make_one()
-        self.assertNotEqual('foo' in plug, True)
 
     def test_not_attr2(self):
         plug = self._make_one()
@@ -59,18 +51,9 @@ class TestDouble(unittest.TestCase):
         from appspace import patterns
         return patterns('helpers', ('get', 'math.sqrt'))
 
-    def test_init_multiple(self):
-        plug = self._make_multiple()
-        self.assertEqual('get' in plug['helpers'], True)
-
     def test_attr_multiple(self):
         plug = self._make_multiple()
         self.assertEqual(plug.helpers.get, plug['helpers']['get'])
-
-    def test_init_multiple2(self):
-        plug = self._make_multiple()
-        self.assertNotEqual('foo' in plug['helpers'], True)
-        self.assertNotEqual('foo' in plug, True)
 
     def test_attr_multiple2(self):
         plug = self._make_multiple()
@@ -116,15 +99,6 @@ class TestQuintuple(unittest.TestCase):
             ('upper', 'string.uppercase'),
             ('store', 'UserDict.UserDict'),
         )
-
-    def test_init_multiple(self):
-        plug = self._make_multiple()
-        self.assertEqual('square' in plug['helpers'], True)
-        self.assertEqual('fabulous' in plug['helpers'], True)
-        self.assertEqual('formit' in plug['helpers'], True)
-        self.assertEqual('lower' in plug['helpers'], True)
-        self.assertEqual('upper' in plug['helpers'], True)
-        self.assertEqual('store' in plug['helpers'], True)
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
@@ -208,15 +182,6 @@ class TestGlobal(unittest.TestCase):
             ('store', 'UserDict.UserDict'),
             use_global=True,
         )
-        
-    def test_init_multiple(self):
-        plug = self._make_multiple()
-        self.assertEqual('square' in plug['helpers'], True)
-        self.assertEqual('fabulous' in plug['helpers'], True)
-        self.assertEqual('formit' in plug['helpers'], True)
-        self.assertEqual('lower' in plug['helpers'], True)
-        self.assertEqual('upper' in plug['helpers'], True)
-        self.assertEqual('store' in plug['helpers'], True)
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
@@ -295,15 +260,6 @@ class TestAppconf(unittest.TestCase):
             use_global=True,
         )
 
-    def test_init_multiple(self):
-        plug = self._make_multiple()
-        self.assertEqual('square' in plug['helpers']['misc'], True)
-        self.assertEqual('fabulous' in plug['helpers']['misc'], True)
-        self.assertEqual('formit' in plug['helpers']['misc'], True)
-        self.assertEqual('lower' in plug['helpers']['misc'], True)
-        self.assertEqual('upper' in plug['helpers']['misc'], True)
-        self.assertEqual('store' in plug['helpers']['misc'], True)
-
     def test_attr_multiple(self):
         plug = self._make_multiple()
         self.assertEqual(
@@ -364,6 +320,62 @@ class TestAppconf(unittest.TestCase):
         self.assertEqual(plug.helpers.misc.lower, lowercase)
         self.assertEqual(plug.helpers.misc.upper, uppercase)
         self.assertEqual(plug.helpers.misc.store, UD)
+        
+        
+class TestBuildFunctions(unittest.TestCase):
+
+    @staticmethod
+    def _make_multiple():
+        from appspace import patterns, add_app
+        plug = patterns('helpers', ('get', 'math.sqrt'))
+        add_app(plug.appspace, 'fabulous', 'math.fabs', 'branch')
+        return plug
+
+    def test_attr_multiple(self):
+        plug = self._make_multiple()
+        self.assertEqual(plug.branch.fabulous, plug['branch']['fabulous'])
+        self.assertEqual(plug.helpers.get, plug['helpers']['get'])
+
+    def test_attr_multiple2(self):
+        plug = self._make_multiple()
+        self.assertRaises(
+            NoAppError,
+            lambda x: x == getattr(plug, 'make', ''),
+            plug['branch']['fabulous'],
+        )
+        self.assertRaises(
+            NoAppError,
+            lambda x: x == getattr(plug.helpers, 'make', ''),
+            plug['branch']['fabulous'],
+        )
+        self.assertRaises(
+            NoAppError,
+            lambda x: x == getattr(plug, 'make', ''),
+            plug['helpers']['get'],
+        )
+        self.assertRaises(
+            NoAppError,
+            lambda x: x == getattr(plug.helpers, 'make', ''),
+            plug['helpers']['get'],
+        )
+
+    def test_identity_namespace(self):
+        from appspace.builder import Appspace
+        plug = self._make_multiple()
+        self.assertIsInstance(plug.helpers, Appspace)
+        self.assertIsInstance(plug.branch, Appspace)
+
+    def test_identity_multiple(self):
+        from math import sqrt, fabs
+        plug = self._make_multiple()
+        self.assert_(plug.branch.fabulous is fabs)
+        self.assert_(plug.helpers.get is sqrt)
+
+    def test_call2_multiple(self):
+        from math import sqrt, fabs
+        plug = self._make_multiple()
+        self.assertEqual(plug.helpers.get(2), sqrt(2))
+        self.assertEqual(plug.branch.fabulous(2), fabs(2))
 
 
 if __name__ == '__main__':

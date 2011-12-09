@@ -328,7 +328,7 @@ class TestBuildFunctions(unittest.TestCase):
     def _make_multiple():
         from appspace import patterns, add_app
         plug = patterns('helpers', ('get', 'math.sqrt'))
-        add_app(plug.appspace, 'fabulous', 'math.fabs', 'branch')
+        add_app(plug, 'fabulous', 'math.fabs', 'branch')
         return plug
 
     def test_attr_multiple(self):

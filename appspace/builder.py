@@ -3,11 +3,10 @@
 
 from __future__ import absolute_import
 
-from .util import lru_cache
 from .keys import AAppspace
+from .util import lru_cache, lazy
 from .error import AppLookupError, NoAppError
 from .state import AppspaceManager, appifies, global_appspace
-from appspace.util import lazy
 
 def add_app(appspace, label, component, branch='', use_global=False):
     '''
@@ -20,10 +19,10 @@ def add_app(appspace, label, component, branch='', use_global=False):
     @param use_global: use global appspace (default: False)
     '''
     if use_global:
-        appspace = global_appspace
+        appspace = app
     elif branch:
         appspace = add_branch(appspace, branch)
-    appspace.set(label, component)
+    appspace.appspace.set(label, component)
 
 def add_branch(appspace, label, use_global=False):
     '''
@@ -35,7 +34,7 @@ def add_branch(appspace, label, use_global=False):
     '''
     if label not in appspace and not use_global:
         new_appspace = Appspace(AppspaceManager())
-        appspace.set(label, new_appspace)
+        appspace.appspace.set(label, new_appspace)
         return new_appspace
     return appspace
 

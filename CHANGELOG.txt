@@ -36,3 +36,8 @@
 module when passed to 'include' e.g. 'module.path.apps' instead of 'module.path'
 - change default name of app configuration object to 'appconf' from 'apps'
 - rename 'add_appspace' function to 'add_branch'
+
+0.4.1
+
+- refine utility functions
+- update documentation and self-documentation of methods

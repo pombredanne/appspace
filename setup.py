@@ -11,7 +11,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 7:
 
 setup(
     name='appspace',
-    version='0.4.0',
+    version='0.4.1',
     description='easily construct applications with easy building blocks',
     long_description=open(os.path.join(os.getcwd(), 'README.rst'), 'rb').read(),
     author='L. C. Rees',

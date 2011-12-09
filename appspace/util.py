@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=w0702
 '''appspace utilities'''
 
 from functools import wraps
@@ -22,13 +21,15 @@ def lru_cache(maxsize=100):
         @wraps(func)
         def wrapper(*args, **kw):
             key = args
-            if kw: key += tuple(sorted(kw.items()))
+            if kw: 
+                key += tuple(sorted(kw.items()))
             try:
                 result = cache.pop(key)
             except KeyError:
                 result = func(*args, **kw)
                 # purge least recently used cache entry
-                if len(cache) >= maxsize: cache.popitem(0)
+                if len(cache) >= maxsize: 
+                    cache.popitem(0)
             # record recent use of this key
             cache[key] = result
             return result
@@ -38,7 +39,7 @@ def lru_cache(maxsize=100):
 
 class lazy(object):
 
-    '''lazily assign attributes to instance on first access'''
+    '''Lazily assign attributes on an instance upon first use.'''
 
     def __init__(self, method):
         self.method = method
@@ -52,6 +53,7 @@ class lazy(object):
     def __get__(self, instance, cls=None):
         if instance is None: 
             return self
-        value = self.method(instance)
-        setattr(instance, self.method.__name__, value)
+        meth = self.method
+        value = meth(instance)
+        object.__setattr__(instance, meth.__name__, value)
         return value

@@ -116,19 +116,19 @@ class Delegated(object):
     
     def __getattr__(self, key):
         try:
-            return self.__dict__[key]
-        except KeyError:
+            return object.__getattribute__(self, key)
+        except AttributeError:
             for component in self.__dict__.itervalues():
                 if getattr(component, 'delegatable', False):
                     try:
-                        this = getattr(component, key)
-                        pkwds = {}
+                        this = object.__getattribute__(component, key)
                         if isinstance(this, MethodType):
+                            pkwds = {}
                             for k, v in self._delegates:
                                 if hasattr(this, k):
-                                    pkwds[k] = getattr(self, v)
+                                    pkwds[k] = object.__getattribute__(self, v)
                                 this = partial(this, **pkwds)
-                        self.__class__.__dict__[key] = this
+                        setattr(self.__class__, key, this)
                         return this
                     except AttributeError:
                         pass

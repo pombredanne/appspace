@@ -117,7 +117,7 @@ class Delegated(object):
             return object.__getattribute__(self, key)
         except AttributeError:
             for comp in self.__dict__.itervalues():
-                if getattr(comp, 'combinable', False):
+                if getattr(comp, 'delegatable', False):
                     try:
                         this = getattr(comp, key)
                         pkwds = {}

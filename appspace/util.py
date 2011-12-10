@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+## pylint: disable-msg=w0702
 '''appspace utilities'''
 
 from functools import wraps

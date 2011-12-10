@@ -4,13 +4,11 @@
 
 from __future__ import absolute_import
 
-from importlib import import_module
-
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
 
-from .util import lru_cache
 from .error import AppLookupError 
+from .util import deferred_import
 from .keys import AAppspaceManager, AApp, ALazyApp
 
 
@@ -58,32 +56,13 @@ class AppspaceManager(AdapterRegistry):
         '''
         # register branch appspace from included module
         if isinstance(module_path, tuple):
-            component = getattr(self._load(module_path[-1]), self._label)
+            component = deferred_import(module_path[-1], self._label)
         # register component
         else:
-            component = self._load(module_path)
+            component = deferred_import(module_path)
         self.set(label, component)
         return component
-        
-    def _load(self, module_path):
-        '''
-        dynamic module loader
 
-        @param module_path: something to load
-        '''
-        if isinstance(module_path, str):
-            try:
-                dot = module_path.rindex('.')
-                # import module
-                module_path = getattr(
-                    import_module(module_path[:dot]), module_path[dot+1:]
-                )
-            # If nothing but module name, import the module
-            except AttributeError:
-                module_path = import_module(module_path)
-        return module_path
-
-    @lru_cache()
     def get(self, label):
         '''
         component fetcher

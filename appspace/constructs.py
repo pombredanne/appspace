@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from types import MethodType
 from functools import partial, wraps
 
-from .builder import app
+from appspace.util import deferred_import
 
 def delegate(**fkw):
     '''
@@ -33,15 +33,17 @@ def instance_component(this, label, appspace_label=None, appspace=None):
     @param appspace: appspace (default: None)
     '''
     if appspace is None:
-        appspace = app
+        appspace = deferred_import('appspace.builder.app')
     # get configuration attribute label
-    this_name = getattr(this, label)
+    this_name = object.__getattribute__(this, label)
     if appspace_label is not None:
         # get configuration appspace label if set
-        comp = appspace[getattr(this, appspace_label)][this_name]
+        comp = appspace[
+            object.__getattribute__(this, appspace_label)
+        ][this_name]
     else:
         comp = appspace[this_name]
-    object.__setattr__(this, label, comp)
+    this.__dict__[label] = comp
     return comp
 
 
@@ -56,7 +58,7 @@ class class_component(object):
         @param appspace: appspace (default: None)
         '''
         if appspace is None:
-            appspace = app
+            appspace = deferred_import('appspace.builder.app')
         # configuration attribute label on class
         self.label = label
         # configuration attribute label on class
@@ -83,7 +85,7 @@ class delegated(object):
         @param appspace: appspace (default: None)
         '''
         if appspace is None:
-            appspace = app
+            appspace = deferred_import('appspace.builder.app')
         self.appspace = appspace
         self.method = method
         try:
@@ -114,19 +116,19 @@ class Delegated(object):
     
     def __getattr__(self, key):
         try:
-            return object.__getattribute__(self, key)
-        except AttributeError:
-            for comp in self.__dict__.itervalues():
-                if getattr(comp, 'delegatable', False):
+            return self.__dict__[key]
+        except KeyError:
+            for component in self.__dict__.itervalues():
+                if getattr(component, 'delegatable', False):
                     try:
-                        this = getattr(comp, key)
+                        this = getattr(component, key)
                         pkwds = {}
                         if isinstance(this, MethodType):
                             for k, v in self._delegates:
                                 if hasattr(this, k):
                                     pkwds[k] = getattr(self, v)
                                 this = partial(this, **pkwds)
-                        setattr(self.__class__, key, this)
+                        self.__class__.__dict__[key] = this
                         return this
                     except AttributeError:
                         pass

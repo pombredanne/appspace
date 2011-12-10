@@ -74,7 +74,6 @@ class AppspaceFactory(object):
         # register apps in appspace
         apper = self._appspace.set
         for arg in args:
-            print arg
             apper(*arg)
         if label:
             apper(label, Appspace(self._appspace))

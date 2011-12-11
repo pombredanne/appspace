@@ -2,7 +2,7 @@
 ## pylint: disable-msg=w0232,e1002,f0401,e1101,e1001
 '''appspace state management'''
 
-from __future__ import absolute_import, unicode_literals, print_function
+from __future__ import absolute_import
 
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry

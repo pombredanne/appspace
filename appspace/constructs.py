@@ -2,11 +2,11 @@
 ## pylint: disable-msg=w0702
 '''appspace component constructs'''
 
-from __future__ import absolute_import, unicode_literals, print_function
+from __future__ import absolute_import
 from types import MethodType
 from functools import partial, wraps
 
-from appspace.util import deferred_import, object_name
+from appspace.util import deferred_import, object_name, ResetMixin
 
 def delegate(**fkw):
     '''
@@ -105,7 +105,7 @@ class delegated(object):
         return self.appspace[label]
 
 
-class Delegated(object):
+class Delegated(ResetMixin):
     
     '''
     class where attributes and methods can be delegated to appspaced components
@@ -113,6 +113,7 @@ class Delegated(object):
     
     # list of delegates
     _delegates = {}
+    _descriptor_class = delegated
     
     def __getattr__(self, key):
         try:
@@ -134,15 +135,3 @@ class Delegated(object):
                         pass
             else:
                 raise AttributeError('"{key}" not found'.format(key=key))
-
-    def reset(self):
-        '''reset all combined attributes that may have fired already'''
-        instdict = set(self.__dict__.keys())
-        classdict = self.__class__.__dict__
-        # To reset them, we simply remove them from the instance dict. At that
-        # point, it's as if they had never been computed. On the next access,
-        # the accessor function from the parent class will be called, simply
-        # because that's how the python descriptor protocol works.
-        for mname, mval in classdict.items():
-            if mname in instdict and isinstance(mval, delegated):
-                delattr(self, mname)

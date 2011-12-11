@@ -2,7 +2,7 @@
 ## pylint: disable-msg=w0232,f0401,e0213
 '''appspace keys'''
 
-from __future__ import absolute_import, unicode_literals, print_function
+from __future__ import absolute_import
 
 from zope.interface.interface import InterfaceClass as Appspacer, Attribute
 

@@ -2,7 +2,7 @@
 ## pylint: disable-msg=w0702
 '''appspace utilities'''
 
-from __future__ import absolute_import, unicode_literals, print_function
+from __future__ import absolute_import
 from functools import wraps
 from importlib import import_module
 try:
@@ -127,15 +127,18 @@ class ResetMixin(object):
     called, all lazy attributes are reset to original format and their accessor 
     functions can be triggered again.
     '''
+    
+    _descriptor_class = lazy
 
     def reset(self):
         '''reset accessed lazy attributes'''
         instdict = self.__dict__
         classdict = self.__class__.__dict__
+        desc = self._descriptor_class
         # To reset them, we simply remove them from the instance dict.    At that
         # point, it's as if they had never been computed.    On the next access,
         # the accessor function from the parent class will be called, simply
         # because that's how the python descriptor protocol works.
         for key, value in classdict.iteritems():
-            if key in instdict and isinstance(value, lazy):
+            if key in instdict and isinstance(value, desc):
                 delattr(self, key)

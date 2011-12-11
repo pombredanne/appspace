@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from types import MethodType
 from functools import partial, wraps
 
-from appspace.util import deferred_import
+from appspace.util import deferred_import, object_name
 
 def delegate(**fkw):
     '''
@@ -43,7 +43,7 @@ def instance_component(this, label, appspace_label=None, appspace=None):
         ][this_name]
     else:
         comp = appspace[this_name]
-    this.__dict__[label] = comp
+    object.__setattr__(comp, label)
     return comp
 
 
@@ -91,7 +91,7 @@ class delegated(object):
         try:
             self.__doc__ = method.__doc__
             self.__module__ = method.__module__
-            self.__name__ = method.__name__
+            self.__name__ = object_name(method)
         except:
             pass
 

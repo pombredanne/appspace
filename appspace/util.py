@@ -38,10 +38,10 @@ def lru_cache(maxsize=100):
 
     @param maxsize: maximum number of results in LRU cache (default: 100)
     '''
-    def wrapped(func):
+    def wrapped(this):
         # order: least recent to most recent
         cache = OrderedDict()
-        @wraps(func)
+        @wraps(this)
         def wrapper(*args, **kw):
             key = args
             if kw: 
@@ -49,7 +49,7 @@ def lru_cache(maxsize=100):
             try:
                 result = cache.pop(key)
             except KeyError:
-                result = func(*args, **kw)
+                result = this(*args, **kw)
                 # purge least recently used cache entry
                 if len(cache) >= maxsize: 
                     cache.popitem(0)
@@ -59,17 +59,33 @@ def lru_cache(maxsize=100):
         return wrapper
     return wrapped
 
+def class_name(this):
+    '''
+    get class name
+    
+    @param this: object
+    '''
+    return this.__class__.__name__
+
+def object_name(this):
+    '''
+    get object name
+    
+    @param this: object
+    '''
+    return this.__name__
+
 
 class lazy_base(object):
 
-    '''lazy base class'''
+    '''lazy base'''
 
     def __init__(self, method):
         self.method = method
         try:
             self.__doc__ = method.__doc__
             self.__module__ = method.__module__
-            self.__name__ = method.__name__
+            self.__name__ = object_name(method)
         except:
             pass
 
@@ -81,7 +97,8 @@ class lazy(lazy_base):
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        value = instance.__dict__[self.__name__] = self.method(instance)
+        value = self.method(instance)
+        setattr(instance, self.__name__, value)
         return value
     
     
@@ -98,27 +115,26 @@ class lazy_class(lazy_base):
 class ResetMixin(object):
 
     '''
-    mixin class to add a .reset() method to users of "lazy"
+    mixin to add a ".reset()" method to methods decorated with "lazy"
     
-    By default, auto attributes once computed, become static. If they happen to
+    By default, lazy attributes, once computed, are static. If they happen to
     depend on other parts of an object and those parts change, their values may
-    now be invalid.
+    be out of sync.
 
-    This class offers a .reset() method that users can call *explicitly* when
-    they know the state of their objects may have changed and they want to
-    ensure that *all* their special attributes should be invalidated. Once
-    reset() is called, all their auto attributes are reset to their lazy 
-    descriptors, and their accessor functions will be triggered again.
+    This class offers a ".reset()" method that an instance can call its state 
+    has changed and invalidate all their lazy attributes. Once reset() is 
+    called, all lazy attributes are reset to original format and their accessor 
+    functions can be triggered again.
     '''
 
     def reset(self):
-        '''Reset all OneTimeProperty attributes that may have fired already.'''
+        '''reset accessed lazy attributes'''
         instdict = self.__dict__
         classdict = self.__class__.__dict__
         # To reset them, we simply remove them from the instance dict.    At that
         # point, it's as if they had never been computed.    On the next access,
         # the accessor function from the parent class will be called, simply
         # because that's how the python descriptor protocol works.
-        for mname, mval in classdict.items():
-            if mname in instdict and isinstance(mval, lazy):
-                delattr(self, mname)
+        for key, value in classdict.iteritems():
+            if key in instdict and isinstance(value, lazy):
+                delattr(self, key)

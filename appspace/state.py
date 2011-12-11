@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=w0232,e1002,f0401,e1101
+## pylint: disable-msg=w0232,e1002,f0401,e1101,e1001
 '''appspace state management'''
 
 from __future__ import absolute_import
@@ -16,6 +16,8 @@ class LazyApp(object):
     
     '''lazy component loader'''
     
+    __slots__ = ['path']
+    
     appifies(ALazyApp)
     
     def __init__(self, path):
@@ -31,6 +33,8 @@ class LazyApp(object):
 class AppspaceManager(AdapterRegistry):
 
     '''appspace state manager'''
+    
+    __slots__ = ['_label']
 
     appifies(AAppspaceManager)
     

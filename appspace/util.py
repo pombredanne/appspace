@@ -2,6 +2,7 @@
 ## pylint: disable-msg=w0702
 '''appspace utilities'''
 
+from __future__ import absolute_import, unicode_literals, print_function
 from functools import wraps
 from importlib import import_module
 try:

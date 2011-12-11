@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''appspace tests'''
 
+from __future__ import absolute_import, unicode_literals, print_function
 try:
     import unittest2 as unittest
 except ImportError:

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''setup for appspace'''
 
+from __future__ import absolute_import, unicode_literals, print_function
 import os
 import sys
 from setuptools import setup

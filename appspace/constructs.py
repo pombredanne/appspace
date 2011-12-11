@@ -2,7 +2,7 @@
 ## pylint: disable-msg=w0702
 '''appspace component constructs'''
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals, print_function
 from types import MethodType
 from functools import partial, wraps
 

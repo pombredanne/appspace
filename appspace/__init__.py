@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''Python application plumbing'''
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals, print_function
 
 from .util import ResetMixin, lazy, lazy_class
 from .builder import include, patterns, add_app, add_branch, app

@@ -90,7 +90,8 @@ class lazy_class(lazy_base):
     '''lazily assign attributes on a class on first use'''
 
     def __get__(self, instance, owner):
-        value = owner.__dict__[self.__name__] = self.method(owner)
+        value = self.method(owner)
+        setattr(owner, self.__name__, value) 
         return value
     
     

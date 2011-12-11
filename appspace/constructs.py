@@ -43,7 +43,7 @@ def instance_component(this, label, appspace_label=None, appspace=None):
         ][this_name]
     else:
         comp = appspace[this_name]
-    object.__setattr__(comp, label)
+    object.__setattr__(this, label, comp)
     return comp
 
 

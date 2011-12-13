@@ -1,5 +1,5 @@
 # encoding: utf-8
-# pylint: disable-msg=w0212,w0702
+# pylint: disable-msg=w0212,w0702,w0211
 '''
 A lightweight Traits like module.
 
@@ -47,7 +47,7 @@ import types
 import inspect
 from types import InstanceType, ClassType, FunctionType, ListType, TupleType
 
-from .util import ResetMixin, class_name, deferred_import
+from .util import ResetMixin, class_name, deferred_import, either
 
 ClassTypes = (ClassType, type)
 SequenceTypes = (ListType, TupleType, set, frozenset)
@@ -91,29 +91,6 @@ def get_members(this, predicate=None):
                 results.append((key, value))
     results.sort()
     return results
-
-def on_trait_change(name, post_init=False, *names):
-    ''' 
-    Marks the following method definition as being a handler for the extended 
-    trait change specified by *name(s)*.
-
-    Refer to the documentation for the on_trait_change() method of the 
-    **HasTraits** class for information on the correct syntax for the *name(s)* 
-    argument.
-
-    A handler defined using this decorator is normally effective immediately. 
-    However, if *post_init* is **True**, then the handler only become effective 
-    after all object constructor arguments have been processed. That is, trait 
-    values assigned as part of object construction will not cause the handler to 
-    be invoked.
-    '''
-    def decorator (function):
-        prefix = '<'
-        if post_init:
-            prefix = '>'
-        function.on_trait_change = prefix + (','.join([name] + list(names)))
-        return function
-    return decorator
 
 def parse_notifier_name(name):
     '''
@@ -202,12 +179,12 @@ class TraitType(object):
     custom metaclass for the main :class:`HasTraits` class that does the 
     following:
 
-    1. Sets the :attr:`name` attribute of every :class:`TraitType`
-       instance in the class dict to the name of the attribute.
-    2. Sets the :attr:`this_class` attribute of every :class:`TraitType`
-       instance in the class dict to the *class* that declared the trait.
-       This is used by the :class:`This` trait to allow subclasses to
-       accept superclasses for :class:`This` values.
+    1. Sets the :attr:`name` attribute of every :class:`TraitType` instance in 
+       the class dict to the name of the attribute.
+    2. Sets the :attr:`this_class` attribute of every :class:`TraitType` 
+       instance in the class dict to the *class* that declared the trait. This 
+       is used by the :class:`This` trait to allow subclasses to accept 
+       superclasses for :class:`This` values.
     '''
 
     default_value = Undefined
@@ -270,7 +247,7 @@ class TraitType(object):
         old_value = self.__get__(this)
         if old_value != new_value:
             this._trait_values[self.name] = new_value
-            this._notify_trait(self.name, old_value, new_value)
+            this._trait_notify(self.name, old_value, new_value)
 
     def _validate(self, this, value):
         if hasattr(self, 'validate'):
@@ -409,6 +386,7 @@ class MetaHasTraits(type):
 class HasTraits(ResetMixin):
 
     __metaclass__ = MetaHasTraits
+    _descriptor_class = TraitType
 
     def __new__(cls, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts
@@ -440,8 +418,9 @@ class HasTraits(ResetMixin):
         # Allow trait values to be set using keyword arguments. We need to use 
         # setattr for this to trigger validation and notifications.
         super(HasTraits, self).__init__()
-        for key, value in kw.iteritems():
-            setattr(self, key, value)
+        self.current = {}
+        self.cleaned = {}
+        self.changed = kw
 
     def _add_notifiers(self, handler, name):
         if not self._trait_notifiers.has_key(name):
@@ -452,7 +431,17 @@ class HasTraits(ResetMixin):
         if handler not in nlist:
             nlist.append(handler)
 
-    def _notify_trait(self, name, old_value, new_value):
+    def _remove_notifiers(self, handler, name):
+        if self._trait_notifiers.has_key(name):
+            nlist = self._trait_notifiers[name]
+            try:
+                index = nlist.index(handler)
+            except ValueError:
+                pass
+            else:
+                del nlist[index]
+                
+    def _trait_notify(self, name, old_value, new_value):
         # First dynamic ones
         callables = self._trait_notifiers.get(name, [])
         more_callables = self._trait_notifiers.get('anytrait', [])
@@ -491,16 +480,13 @@ class HasTraits(ResetMixin):
                     )
             else:
                 raise TraitError('trait changed callback must be callable')
-
-    def _remove_notifiers(self, handler, name):
-        if self._trait_notifiers.has_key(name):
-            nlist = self._trait_notifiers[name]
-            try:
-                index = nlist.index(handler)
-            except ValueError:
-                pass
-            else:
-                del nlist[index]
+                
+    @either
+    def _traits(self):
+        return dict(
+            m for m in get_members(self.__class__)
+            if isinstance(m[1], TraitType)
+        )
 
     @classmethod
     def class_trait_names(cls, **md):
@@ -526,10 +512,8 @@ class HasTraits(ResetMixin):
         any value.  This is because get_metadata returns None if a metadata key 
         doesn't exist.
         '''
-        traits = dict(
-            m for m in get_members(cls) if isinstance(m[1], TraitType)
-        )
-        if len(md) == 0:
+        traits = cls._traits
+        if not md:
             return traits
         for meta_name, meta_eval in md.items():
             if type(meta_eval) is not FunctionType:
@@ -593,80 +577,6 @@ class HasTraits(ResetMixin):
         '''Get a list of all the names of this classes traits.'''
         return self.traits(**md).keys()
 
-    def trait_set(self, trait_change_notify=True, **traits):
-        '''
-        Shortcut for setting object trait attributes.
-
-        Parameters
-        ----------
-        trait_change_notify : Boolean
-            If **True** (the default), then each value assigned may generate a
-            trait change notification. If **False**, then no trait change
-            notifications will be generated. (see also: trait_setq)
-        traits : list of key/value pairs
-            Trait attributes and their values to be set
-
-        Returns
-        -------
-        self
-            The method returns this object, after setting attributes.
-
-        Description
-        -----------
-        Treats each keyword argument to the method as the name of a trait
-        attribute and sets the corresponding trait attribute to the value
-        specified. This is a useful shorthand when a number of trait attributes
-        need to be set on an object, or a trait attribute value needs to be set
-        in a lambda function. For example, you can write::
-
-            person.trait_set(name='Bill', age=27)
-
-        instead of::
-
-            person.name = 'Bill'
-            person.age = 27
-        '''
-        if not trait_change_notify:
-            self._notify_trait(False)
-            try:
-                for name, value in traits.items():
-                    setattr(self, name, value)
-            finally:
-                self._notify_trait(True)
-        else:
-            for name, value in traits.items():
-                setattr(self, name, value)
-        return self
-
-    def traits(self, **md):
-        '''
-        Get a list of all the traits of this class.
-
-        The TraitTypes returned don't know anything about the values that the 
-        various HasTrait's instances are holding.
-
-        This follows the same algorithm as traits does and does not allow for 
-        any simple way of specifying merely that a metadata name exists, but 
-        has any value.  This is because get_metadata returns None if a metadata 
-        key doesn't exist.
-        '''
-        traits = dict(
-            m for m in get_members(self.__class__) if isinstance(m[1], TraitType)
-        )
-        if len(md) == 0:
-            return traits
-        for meta_name, meta_eval in md.items():
-            if type(meta_eval) is not FunctionType:
-                md[meta_name] = _SimpleTest(meta_eval)
-        result = {}
-        for name, trait in traits.items():
-            for meta_name, meta_eval in md.items():
-                if not meta_eval(trait.get_metadata(meta_name)):
-                    break
-            else:
-                result[name] = trait
-        return result
-
     def trait_reset(self, traits=None, **metadata):
         ''' 
         Resets some or all of an object's trait attributes to their default
@@ -700,6 +610,106 @@ class HasTraits(ResetMixin):
             except (AttributeError, TraitError):
                 unresetable.append(name)
         return unresetable
+
+    def trait_set(self, trait_change_notify=True, **traits):
+        '''
+        Shortcut for setting object trait attributes.
+
+        Parameters
+        ----------
+        trait_change_notify : Boolean
+            If **True** (the default), then each value assigned may generate a
+            trait change notification. If **False**, then no trait change
+            notifications will be generated. (see also: trait_setq)
+        traits: list of key/value pairs
+            Trait attributes and their values to be set
+
+        Returns
+        -------
+        self
+            The method returns this object, after setting attributes.
+
+        Description
+        -----------
+        Treats each keyword argument to the method as the name of a trait
+        attribute and sets the corresponding trait attribute to the value
+        specified. This is a useful shorthand when a number of trait attributes
+        need to be set on an object, or a trait attribute value needs to be set
+        in a lambda function. For example, you can write::
+
+            person.trait_set(name='Bill', age=27)
+
+        instead of::
+
+            person.name = 'Bill'
+            person.age = 27
+        '''
+        if not trait_change_notify:
+            self._trait_notify(False)
+            try:
+                for name, value in traits.items():
+                    setattr(self, name, value)
+            finally:
+                self._trait_notify(True)
+        else:
+            for name, value in traits.items():
+                setattr(self, name, value)
+        return self
+    
+    def trait_validate(self, trait, value):
+        try:
+            trait_class = self._traits[trait]
+            if trait_class.validate(trait, value):
+                return True
+        except KeyError:
+            return False
+
+    def traits(self, **md):
+        '''
+        Get a list of all the traits of this class.
+
+        The TraitTypes returned don't know anything about the values that the 
+        various HasTrait's instances are holding.
+
+        This follows the same algorithm as traits does and does not allow for 
+        any simple way of specifying merely that a metadata name exists, but 
+        has any value.  This is because get_metadata returns None if a metadata 
+        key doesn't exist.
+        '''
+        traits = self._traits
+        if not md:
+            return traits
+        for meta_name, meta_eval in md.items():
+            if type(meta_eval) is not FunctionType:
+                md[meta_name] = _SimpleTest(meta_eval)
+        result = {}
+        for name, trait in traits.items():
+            for meta_name, meta_eval in md.items():
+                if not meta_eval(trait.get_metadata(meta_name)):
+                    break
+            else:
+                result[name] = trait
+        return result
+
+    def traits_clean(self):
+        '''validate model data'''
+        data = self.current.copy()
+        for k, v in data:
+            if not self.trait_validate(k, v):
+                return False
+        self.cleaned.update(data)
+        return True
+    
+    def traits_sync(self, **kw):
+        '''synchronize traits with current instance property values'''
+        cur = self.current
+        self.trait_set(**{k:cur[k] for k in self.trait_names(**kw)})
+
+    def traits_update(self, **kw):
+        if self.changed:
+            self.current.update(self.changed.copy())
+        else:
+            self.traits_sync(**kw)
 
 
 ## Actual TraitTypes implementations/subclasses
@@ -1105,6 +1115,114 @@ class CUnicode(Unicode):
             return unicode(value)
         except:
             self.error(this, value)
+            
+            
+class CheckedUnicode(Unicode):
+    
+    ''' 
+    Defines a trait whose value must be a Python string whose length is
+    optionally in a specified range, and which optionally matches a specified 
+    regular expression.
+    '''
+
+    def __init__(self, value='', minlen=0, maxlen=sys.maxint, regex='', **md):
+        '''
+        Creates a String trait.
+
+        Parameters
+        ----------
+        value : string
+            The default value for the string
+        minlen : integer
+            The minimum length allowed for the string
+        maxlen : integer
+            The maximum length allowed for the string
+        regex : string
+            A Python regular expression that the string must match
+        '''
+        super(CheckedUnicode, self).__init__(value, **md)
+        self.minlen = max(0, minlen)
+        self.maxlen = max(self.minlen, maxlen)
+        self.regex = regex
+        self._validate = 'validate_all'
+        if self.regex != '':
+            self.match = re.compile(self.regex).match
+            if (self.minlen == 0) and (self.maxlen == sys.maxint):
+                self._validate = 'validate_regex'
+        elif (self.minlen == 0) and (self.maxlen == sys.maxint):
+            self._validate = 'validate_str'
+        else:
+            self._validate = 'validate_len'
+            
+    def info(self):
+        '''Returns a description of the trait.'''
+        msg = ''
+        if (self.minlen != 0) and (self.maxlen != sys.maxint):
+            msg = ' between %d and %d characters long' % (
+                self.minlen, self.maxlen
+            )
+        elif self.maxlen != sys.maxint:
+            msg = ' <= %d characters long' % self.maxlen
+        elif self.minlen != 0:
+            msg = ' >= %d characters long' % self.minlen
+        if self.regex != '':
+            if msg != '':
+                msg += ' and'
+            msg += (' matching the pattern %s' % self.regex)
+        return 'a string' + msg
+
+    def validate(self, name, value):
+        '''Validates that the value is a valid string'''
+        return getattr(self, self._validate)(name, value)
+
+    def validate_all(self, name, value):
+        '''
+        Validates that the value is a valid string in the specified length range 
+        which matches the specified regular expression.
+        '''
+        try:
+            value = super(CheckedUnicode, self).validate(value)
+            if all([
+                self.minlen <= len(value) <= self.maxlen,
+                self.match(value) is not None,
+            ]):
+                return value
+        except:
+            pass
+        self.error(name, value)
+
+    def validate_len(self, name, value):
+        ''' 
+        Validates that the value is a valid string in the specified length range
+        '''
+        try:
+            value = super(CheckedUnicode, self).validate(value)
+            if self.minlen <= len(value) <= self.maxlen:
+                return value
+        except:
+            pass
+        self.error(name, value)
+
+    def validate_regex(self, name, value):
+        ''' 
+        Validates that the value is a valid string which matches the specified 
+        regular expression.
+        '''
+        try:
+            value = super(CheckedUnicode, self).validate(value)
+            if self.match(value) is not None:
+                return value
+        except:
+            pass
+        self.error(name, value)
+        
+    def validate_str(self, name, value):
+        '''Validates that the value is a valid string'''
+        try:
+            return super(CheckedUnicode, self).validate(value)
+        except:
+            pass
+        self.error(name, value)
 
 
 class ObjectName(TraitType):

@@ -124,7 +124,7 @@ class both(lazy):
 
     def __init__(self, method, expr=None):
         super(both, self).__init__(method)
-        self.expr = expr
+        self.expr = expr or method
         update_wrapper(self, method)
 
     def __get__(self, instance, owner):
@@ -138,6 +138,23 @@ class both(lazy):
         '''
         self.expr = expr
         return self
+    
+    
+class either(both):
+
+    '''
+    decorator which allows definition of a Python descriptor with both 
+    instance-level and class-level behavior
+    '''
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            value = self.expr(owner)
+            setattr(owner, self.__name__, value)
+            return value
+        value = self.method(instance)
+        setattr(instance, self.__name__, value)
+        return value
     
     
 class lazy_class(lazy_base):

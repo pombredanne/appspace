@@ -3,8 +3,9 @@
 '''appspace utilities'''
 
 from __future__ import absolute_import
-from functools import wraps
 from importlib import import_module
+from functools import wraps, update_wrapper
+from collections import Sequence, Mapping
 try:
     from collections import OrderedDict
 except ImportError:
@@ -76,6 +77,18 @@ def object_name(this):
     '''
     return this.__name__
 
+def object_walk(obj, path=()):
+    if isinstance(obj, Mapping):
+        for key, value in obj.iteritems():
+            for child in object_walk(value, path + (key,)):
+                yield child
+    elif isinstance(obj, Sequence) and not isinstance(obj, basestring):
+        for index, value in enumerate(obj):
+            for child in object_walk(value, path + (index,)):
+                yield child
+    else:
+        yield path, obj
+
 
 class lazy_base(object):
 
@@ -101,6 +114,30 @@ class lazy(lazy_base):
         value = self.method(instance)
         setattr(instance, self.__name__, value)
         return value
+    
+class both(lazy):
+
+    '''
+    decorator which allows definition of a Python descriptor with both 
+    instance-level and class-level behavior
+    '''
+
+    def __init__(self, method, expr=None):
+        super(both, self).__init__(method)
+        self.expr = expr
+        update_wrapper(self, method)
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self.expr(owner)
+        return super(both, self).__get__(instance, owner)
+
+    def expression(self, expr):
+        '''
+        a modifying decorator that defines a general method
+        '''
+        self.expr = expr
+        return self
     
     
 class lazy_class(lazy_base):

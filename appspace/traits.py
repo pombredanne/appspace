@@ -388,14 +388,14 @@ class HasTraits(ResetMixin):
     __metaclass__ = MetaHasTraits
     _descriptor_class = TraitType
 
-    def __new__(cls, **kw):
+    def __new__(cls, *args, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts
         # the cls argument.
         new_meth = super(HasTraits, cls).__new__
         if new_meth is object.__new__:
             inst = new_meth(cls)
         else:
-            inst = new_meth(cls, **kw)
+            inst = new_meth(cls, *args, **kw)
         inst._trait_values = {}
         inst._trait_notifiers = {}
         inst._trait_dyn_inits = {}
@@ -414,7 +414,7 @@ class HasTraits(ResetMixin):
                     value.instance_init(inst)
         return inst
 
-    def __init__(self, **kw):
+    def __init__(self, *args, **kw):
         # Allow trait values to be set using keyword arguments. We need to use 
         # setattr for this to trigger validation and notifications.
         super(HasTraits, self).__init__()
@@ -693,12 +693,7 @@ class HasTraits(ResetMixin):
 
     def traits_clean(self):
         '''validate model data'''
-        data = self.current.copy()
-        for k, v in data:
-            if not self.trait_validate(k, v):
-                return False
-        self.cleaned.update(data)
-        return True
+        self.cleaned.update(self.current.copy())
     
     def traits_sync(self, **kw):
         '''synchronize traits with current instance property values'''
@@ -710,6 +705,13 @@ class HasTraits(ResetMixin):
             self.current.update(self.changed.copy())
         else:
             self.traits_sync(**kw)
+            
+    def traits_validate(self):
+        '''validate model data'''
+        for k, v in self.current.iteritems():
+            if not self.trait_validate(k, v):
+                return False
+        return True
 
 
 ## Actual TraitTypes implementations/subclasses

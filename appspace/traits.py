@@ -48,6 +48,7 @@ import inspect
 from types import InstanceType, ClassType, FunctionType, ListType, TupleType
 
 from .util import ResetMixin, class_name, deferred_import, either
+from appspace.util import lazy
 
 ClassTypes = (ClassType, type)
 SequenceTypes = (ListType, TupleType, set, frozenset)
@@ -246,6 +247,7 @@ class TraitType(object):
         new_value = self._validate(this, value)
         old_value = self.__get__(this)
         if old_value != new_value:
+            this._sync.update_current({self.name:new_value})
             this._trait_values[self.name] = new_value
             this._trait_notify(self.name, old_value, new_value)
 
@@ -341,7 +343,97 @@ class TraitType(object):
 
     def value_for(self, this, value):
         pass
+    
 
+class Meta(object):
+    
+    def __new__(cls, **kw):
+        for k, v in kw:
+            setattr(cls, k, v)
+        return super(Meta, cls).__new__(cls)
+    
+    
+class Sync(ResetMixin):
+    
+    def __init__(self, original=None, **kw):
+        super(Sync, self).__init__()
+        self.original = original if original is not None else {}
+        self.current = original.copy() if original else {}
+        self.cleaned = {}
+        if kw:
+            self.changed = kw
+            self.current.update(self.changed)
+            self.modified = True
+        else: 
+            self.changed = {}
+            self.modified = False
+            
+    def __call__(self):
+        return self.cleaned
+            
+    def __contains__(self, key):
+        return key in self.current
+        
+    def __iter__(self):
+        for k, v in self.current.iteritems():
+            yield k, v
+    
+    def __repr__(self):
+        return self.__unicode__()
+    
+    def __unicode__(self):
+        return unicode(dict(i for i in self.current.iteritems()))
+    
+    __str__ = __unicode__
+            
+    @lazy
+    def private(self):
+        return dict(
+            (k, v) for k, v in self.current.iteritems() if k.startswith('_')
+        )
+    
+    @lazy
+    def all(self):
+        return dict((k, v) for k, v in self.current.iteritems())
+    
+    @lazy
+    def public(self):
+        return dict(
+            (k, v) for k, v in self.current.iteritems() if not k.startswith('_')
+        )
+            
+    def commit(self):
+        self.modified = False
+        self.update_original(self.current)
+        self.cleaned.update(self.current.copy())
+        self.changed.clear()
+        
+    def copy(self, **kw):
+        previous = dict(i for i in self)
+        previous.update(kw)
+        return previous
+    
+    def rollback(self):
+        self.changed.clear()
+        self.reset()
+        self.modified = False
+    
+    def reset(self):
+        super(Sync, self).reset()
+        self.current.clear()
+        self.current.update(self.original.copy() if self.original else {})
+        self.cleaned.clear()
+        
+    def update_current(self, kw):
+        self.modified = True
+        self.current.update(kw)
+        self.changed.update(kw)
+        self.cleaned.clear()
+        
+    def update_original(self, kw):
+        self.original.update(kw)
+        self.reset()
+        
 
 ## The HasTraits implementation
 
@@ -360,6 +452,14 @@ class MetaHasTraits(type):
         This instantiates all TraitTypes in the class dict and sets their
         :attr:`name` attribute.
         '''
+        metas = [getattr(b, 'Meta') for b in bases if hasattr(b, 'Meta')]
+        all_metas = {}
+        for meta in metas:
+            for k, v in vars(meta).iteritems():
+                if not k.startswith('-'):
+                    all_metas[k] = v
+        all_metas['name'] = name.lower()
+        classdict['c'] = Meta(**all_metas)
         for k, v in classdict.iteritems():
             if isinstance(v, TraitType):
                 v.name = k
@@ -414,13 +514,11 @@ class HasTraits(ResetMixin):
                     value.instance_init(inst)
         return inst
 
-    def __init__(self, *args, **kw):
+    def __init__(self, original, **kw):
         # Allow trait values to be set using keyword arguments. We need to use 
         # setattr for this to trigger validation and notifications.
         super(HasTraits, self).__init__()
-        self.current = {}
-        self.cleaned = {}
-        self.changed = kw
+        self._sync = Sync(original, **kw)
 
     def _add_notifiers(self, handler, name):
         if not self._trait_notifiers.has_key(name):
@@ -691,27 +789,26 @@ class HasTraits(ResetMixin):
                 result[name] = trait
         return result
 
-    def traits_clean(self):
-        '''validate model data'''
-        self.cleaned.update(self.current.copy())
-    
     def traits_sync(self, **kw):
         '''synchronize traits with current instance property values'''
-        cur = self.current
+        cur = self._sync.current
         self.trait_set(**{k:cur[k] for k in self.trait_names(**kw)})
 
     def traits_update(self, **kw):
-        if self.changed:
-            self.current.update(self.changed.copy())
+        if self._sync.changed:
+            self._sync.current.update(self._sync.changed.copy())
         else:
             self.traits_sync(**kw)
             
     def traits_validate(self):
         '''validate model data'''
-        for k, v in self.current.iteritems():
+        for k, v in self._sync.current.iteritems():
             if not self.trait_validate(k, v):
                 return False
         return True
+    
+    class Meta:
+        pass
 
 
 ## Actual TraitTypes implementations/subclasses

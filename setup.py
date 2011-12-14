@@ -14,7 +14,7 @@ setup(
     name='appspace',
     version='0.5.0',
     description='easily construct applications with easy building blocks',
-    long_description=open(os.path.join(os.getcwd(), 'README.rst'), 'rb').read(),
+    long_description=open(os.path.join(os.getcwd(), 'README.rst'), 'r').read(),
     author='L. C. Rees',
     author_email='lcrees@gmail.com',
     license='MIT',

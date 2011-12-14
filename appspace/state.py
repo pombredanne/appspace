@@ -7,25 +7,25 @@ from __future__ import absolute_import
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
 
-from .error import AppLookupError 
+from .error import AppLookupError
 from .util import deferred_import
 from .keys import AAppspaceManager, AApp, ALazyApp
 
 
 class LazyApp(object):
-    
+
     '''lazy component loader'''
-    
+
     __slots__ = ['path']
-    
+
     appifies(ALazyApp)
-    
+
     def __init__(self, path):
         '''
         @param path: path to component module
         '''
         self.path = path
-    
+
     def __repr__(self):
         return 'App@{path}'.format(path=self.path)
 
@@ -33,24 +33,24 @@ class LazyApp(object):
 class AppspaceManager(AdapterRegistry):
 
     '''appspace state manager'''
-    
+
     __slots__ = ['_label']
 
     appifies(AAppspaceManager)
-    
-    def __init__(self, label='appconf', bases=()): 
+
+    def __init__(self, label='appconf', bases=()):
         '''
         @param label: label for application module name
         '''
         super(AppspaceManager, self).__init__(bases)
         self._label = label
-        
+
     def __contains__(self, label):
         return label in self.names((), AApp)
-        
+
     def __repr__(self):
         return str(self.lookupAll((), AApp))
-        
+
     def _component(self, label, module_path):
         '''
         register branch appspaces or apps in appspace
@@ -70,7 +70,7 @@ class AppspaceManager(AdapterRegistry):
     def get(self, label):
         '''
         component fetcher
-        
+
         @param appkey: application key
         @param label: component or branch appspace name
         '''
@@ -84,14 +84,14 @@ class AppspaceManager(AdapterRegistry):
     def set(self, label, component):
         '''
         register component
-        
+
         @param component: component to add to appspace
         @param label: appspace name
         '''
         if isinstance(component, (basestring, tuple)):
             component = LazyApp(component)
         self.register([AApp], AApp, label, component)
-        
-        
+
+
 # global appspace
 global_appspace = AppspaceManager()

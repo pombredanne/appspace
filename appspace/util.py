@@ -10,20 +10,21 @@ try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
-    
+
+
 def deferred_import(module_path, attribute=None):
     '''
     deferred module loader
 
     @param module_path: something to load
-    @param attribute: attributed on loaded module to return 
+    @param attribute: attributed on loaded module to return
     '''
     if isinstance(module_path, str):
         try:
             dot = module_path.rindex('.')
             # import module
             module_path = getattr(
-                import_module(module_path[:dot]), module_path[dot+1:]
+                import_module(module_path[:dot]), module_path[dot + 1:]
             )
         # If nothing but module name, import the module
         except AttributeError:
@@ -31,6 +32,7 @@ def deferred_import(module_path, attribute=None):
         if attribute:
             module_path = getattr(module_path, attribute)
     return module_path
+
 
 def lru_cache(maxsize=100):
     '''
@@ -43,17 +45,18 @@ def lru_cache(maxsize=100):
     def wrapped(this):
         # order: least recent to most recent
         cache = OrderedDict()
+
         @wraps(this)
         def wrapper(*args, **kw):
             key = args
-            if kw: 
+            if kw:
                 key += tuple(sorted(kw.items()))
             try:
                 result = cache.pop(key)
             except KeyError:
                 result = this(*args, **kw)
                 # purge least recently used cache entry
-                if len(cache) >= maxsize: 
+                if len(cache) >= maxsize:
                     cache.popitem(0)
             # record recent use of this key
             cache[key] = result
@@ -61,21 +64,24 @@ def lru_cache(maxsize=100):
         return wrapper
     return wrapped
 
+
 def class_name(this):
     '''
     get class name
-    
+
     @param this: object
     '''
     return this.__class__.__name__
 
+
 def object_name(this):
     '''
     get object name
-    
+
     @param this: object
     '''
     return this.__name__
+
 
 def object_walk(obj, path=()):
     if isinstance(obj, Mapping):
@@ -114,11 +120,12 @@ class lazy(lazy_base):
         value = self.method(instance)
         setattr(instance, self.__name__, value)
         return value
-    
+
+
 class both(lazy):
 
     '''
-    decorator which allows definition of a Python descriptor with both 
+    decorator which allows definition of a Python descriptor with both
     instance-level and class-level behavior
     '''
 
@@ -138,12 +145,12 @@ class both(lazy):
         '''
         self.expr = expr
         return self
-    
-    
+
+
 class either(both):
 
     '''
-    decorator which allows definition of a Python descriptor with both 
+    decorator which allows definition of a Python descriptor with both
     instance-level and class-level behavior
     '''
 
@@ -155,33 +162,33 @@ class either(both):
         value = self.method(instance)
         setattr(instance, self.__name__, value)
         return value
-    
-    
+
+
 class lazy_class(lazy_base):
 
     '''lazily assign attributes on a class on first use'''
 
     def __get__(self, instance, owner):
         value = self.method(owner)
-        setattr(owner, self.__name__, value) 
+        setattr(owner, self.__name__, value)
         return value
-    
-    
+
+
 class ResetMixin(object):
 
     '''
     mixin to add a ".reset()" method to methods decorated with "lazy"
-    
+
     By default, lazy attributes, once computed, are static. If they happen to
     depend on other parts of an object and those parts change, their values may
     be out of sync.
 
-    This class offers a ".reset()" method that an instance can call its state 
-    has changed and invalidate all their lazy attributes. Once reset() is 
-    called, all lazy attributes are reset to original format and their accessor 
+    This class offers a ".reset()" method that an instance can call its state
+    has changed and invalidate all their lazy attributes. Once reset() is
+    called, all lazy attributes are reset to original format and their accessor
     functions can be triggered again.
     '''
-    
+
     _descriptor_class = lazy
 
     def reset(self):
@@ -189,8 +196,8 @@ class ResetMixin(object):
         instdict = self.__dict__
         classdict = self.__class__.__dict__
         desc = self._descriptor_class
-        # To reset them, we simply remove them from the instance dict.    At that
-        # point, it's as if they had never been computed.    On the next access,
+        # To reset them, we simply remove them from the instance dict. At that
+        # point, it's as if they had never been computed. On the next access,
         # the accessor function from the parent class will be called, simply
         # because that's how the python descriptor protocol works.
         for key, value in classdict.iteritems():

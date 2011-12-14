@@ -8,26 +8,29 @@ from functools import partial, wraps
 
 from appspace.util import deferred_import, object_name, ResetMixin
 
+
 def delegate(**fkw):
     '''
     delegated method marking decorator
-    
-    @param **fkw: attributes to set on decorated method 
+
+    @param **fkw: attributes to set on decorated method
     '''
     def wrapped(func):
         func.delegated = True
         for k, v in fkw.iteritems():
             setattr(func, k, v)
+
         @wraps(func)
         def wrapper(*args, **kw):
             return func(*args, **kw)
         return wrapper
     return wrapped
 
+
 def instance_component(this, label, appspace_label=None, appspace=None):
     '''
     inject appspaced component as instance attribute
-    
+
     @param label: component label
     @param appspace_label: branch appspace label (default: None)
     @param appspace: appspace (default: None)
@@ -106,15 +109,15 @@ class delegated(object):
 
 
 class Delegated(ResetMixin):
-    
+
     '''
     class where attributes and methods can be delegated to appspaced components
     '''
-    
+
     # list of delegates
     _delegates = {}
     _descriptor_class = delegated
-    
+
     def __getattr__(self, key):
         try:
             return object.__getattribute__(self, key)

@@ -8,10 +8,11 @@ from .util import lru_cache, lazy
 from .error import AppLookupError, NoAppError
 from .state import AppspaceManager, appifies, global_appspace
 
+
 def add_app(appspace, label, component, branch='', use_global=False):
     '''
     add new component to appspace
-    
+
     @param appspace: existing appspace
     @param label: label of branch appspace
     @param component: new component
@@ -23,6 +24,7 @@ def add_app(appspace, label, component, branch='', use_global=False):
     elif branch:
         appspace = add_branch(appspace, branch)
     appspace.appspace.set(label, component)
+
 
 def add_branch(appspace, label, use_global=False):
     '''
@@ -38,6 +40,7 @@ def add_branch(appspace, label, use_global=False):
         return new_appspace
     return appspace
 
+
 def include(module_path):
     '''
     load a branch appspace
@@ -46,12 +49,13 @@ def include(module_path):
     '''
     return ('include', module_path)
 
+
 def patterns(label, *args, **kw):
     '''
     configuration for branch appspace
 
     @param label: name of branch appspace
-    @param *args: tuple of module paths or component inclusions 
+    @param *args: tuple of module paths or component inclusions
     '''
     return AppspaceFactory(label, *args, **kw)()
 
@@ -81,19 +85,19 @@ class AppspaceFactory(object):
     def __call__(self):
         '''instantiate appspace interface'''
         return Appspace(self._appspace)
-    
+
     @lazy
     def _appspace(self):
         '''provide appspace'''
         # using global appspace
-        if self._global: 
+        if self._global:
             return global_appspace
         # using local appspace
         return AppspaceManager(self._label)
 
 
 class Appspace(object):
-    
+
     '''appspace interface'''
 
     __slots__ = ['appspace']
@@ -103,7 +107,7 @@ class Appspace(object):
     def __init__(self, appspace):
         '''
         initialize appspace
-        
+
         @param appspace: configured appspace
         '''
         self.appspace = appspace
@@ -111,7 +115,7 @@ class Appspace(object):
     def __call__(self, label, *args, **kw):
         '''
         pass arguments to component in appspace
-        
+
         @param label: label of component in appspace
         '''
         result = self.__getitem__(label)
@@ -119,14 +123,14 @@ class Appspace(object):
             return result(*args, **kw)
         except TypeError:
             return result
-        
+
     def __contains__(self, label):
         return label in self.appspace
 
     def __getattribute__(self, label):
         '''
-        access component in appspace 
-        
+        access component in appspace
+
         @param label: label of component in appspace
         '''
         try:
@@ -138,7 +142,7 @@ class Appspace(object):
     def __getitem__(self, label):
         '''
         access component in appspace
-        
+
         @param label: label of component in appspace
         '''
         try:

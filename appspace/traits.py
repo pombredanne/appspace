@@ -1,5 +1,5 @@
 # encoding: utf-8
-# pylint: disable-msg=w0212,w0702,w0211
+# pylint: disable-msg=w0212,w0702,w0211,w0232
 '''
 A lightweight Traits like module.
 
@@ -25,8 +25,8 @@ There are also some important difference in our design:
 
 * enthought.traits does not validate default values.  We do.
 
-We choose to create this module because we need these capabilities, but we need 
-them to be pure Python so they work in all Python implementations, including 
+We choose to create this module because we need these capabilities, but we need
+them to be pure Python so they work in all Python implementations, including
 Jython and IronPython.
 
 Authors:
@@ -47,16 +47,16 @@ import types
 import inspect
 from types import InstanceType, ClassType, FunctionType, ListType, TupleType
 
-from .util import ResetMixin, class_name, deferred_import, either
-from appspace.util import lazy
+from .util import ResetMixin, class_name, deferred_import, either, lazy
 
 ClassTypes = (ClassType, type)
 SequenceTypes = (ListType, TupleType, set, frozenset)
 
 ## Utilities
 
+
 def add_article(name):
-    ''' 
+    '''
     Returns a string containing the correct indefinite article ('a' or 'an')
     prefixed to the specified string.
     '''
@@ -64,21 +64,23 @@ def add_article(name):
         return 'an ' + name
     return 'a ' + name
 
+
 def class_of(this):
-    ''' 
-    Returns a string containing the class name of an object with the correct 
+    '''
+    Returns a string containing the class name of an object with the correct
     indefinite article ('a' or 'an') preceding it.
     '''
     if isinstance(this, basestring):
         return add_article(this)
     return add_article(class_name(this))
 
+
 def get_members(this, predicate=None):
     '''
     A safe version of inspect.getmembers that handles missing attributes.
 
-    This is useful when there are descriptor based attributes that for some 
-    reason raise AttributeError even though they exist.  This happens in 
+    This is useful when there are descriptor based attributes that for some
+    reason raise AttributeError even though they exist.  This happens in
     zope.inteface with the __provides__ attribute.
     '''
     results = []
@@ -93,13 +95,14 @@ def get_members(this, predicate=None):
     results.sort()
     return results
 
+
 def parse_notifier_name(name):
     '''
     Convert the name argument to a list of names.
-    
+
     Examples
     --------
-    
+
     >>> parse_notifier_name('a')
     ['a']
     >>> parse_notifier_name(['a','b'])
@@ -116,9 +119,10 @@ def parse_notifier_name(name):
             assert isinstance(n, str), 'names must be strings'
         return name
 
+
 def repr_type(this):
     '''
-    Return a string representation of a value and its type for readable error 
+    Return a string representation of a value and its type for readable error
     messages.
     '''
     the_type = type(this)
@@ -152,10 +156,10 @@ NoDefaultSpecified = NoDefaultSpecified()
 
 class _SimpleTest:
 
-    def __init__ (self, value):
+    def __init__(self, value):
         self.value = value
 
-    def __call__ (self, test):
+    def __call__(self, test):
         return test == self.value
 
     def __repr__(self):
@@ -175,16 +179,16 @@ class TraitType(object):
 
     Notes
     -----
-    Our implementation of traits is based on Python's descriptor prototol.  This 
-    class is the base class for all such descriptors. The only magic we use is a 
-    custom metaclass for the main :class:`HasTraits` class that does the 
+    Our implementation of traits is based on Python's descriptor prototol. This
+    class is the base class for all such descriptors. The only magic we use is
+    a custom metaclass for the main :class:`HasTraits` class that does the
     following:
 
-    1. Sets the :attr:`name` attribute of every :class:`TraitType` instance in 
+    1. Sets the :attr:`name` attribute of every :class:`TraitType` instance in
        the class dict to the name of the attribute.
-    2. Sets the :attr:`this_class` attribute of every :class:`TraitType` 
-       instance in the class dict to the *class* that declared the trait. This 
-       is used by the :class:`This` trait to allow subclasses to accept 
+    2. Sets the :attr:`this_class` attribute of every :class:`TraitType`
+       instance in the class dict to the *class* that declared the trait. This
+       is used by the :class:`This` trait to allow subclasses to accept
        superclasses for :class:`This` values.
     '''
 
@@ -212,7 +216,7 @@ class TraitType(object):
         Get the value of the trait by self.name for the instance.
 
         Default values are instantiated when :meth:`HasTraits.__new__`
-        is called.  Thus by the time this method gets called either the 
+        is called. Thus by the time this method gets called either the
         default value or a user defined value (they called :meth:`__set__`)
         is in the :class:`HasTraits` instance.
         '''
@@ -230,8 +234,8 @@ class TraitType(object):
                     return value
                 else:
                     raise TraitError(
-                        'Unexpected error in TraitType: both default value and '
-                        'dynamic initializer are absent'
+                        'Unexpected error in TraitType: both default value and'
+                        ' dynamic initializer are absent'
                     )
             except Exception:
                 # HasTraits should call set_default_value to populate
@@ -247,7 +251,7 @@ class TraitType(object):
         new_value = self._validate(this, value)
         old_value = self.__get__(this)
         if old_value != new_value:
-            this._sync.update_current({self.name:new_value})
+            this._sync.update_current({self.name: new_value})
             this._trait_values[self.name] = new_value
             this._trait_notify(self.name, old_value, new_value)
 
@@ -278,11 +282,11 @@ class TraitType(object):
         This is called by :meth:`HasTraits.__new__` to finish init'ing.
 
         Some stages of initialization must be delayed until the parent
-        :class:`HasTraits` instance has been created.  This method is called in 
+        :class:`HasTraits` instance has been created.  This method is called in
         :meth:`HasTraits.__new__` after the instance has been created.
 
-        This method trigger the creation and validation of default values and 
-        also things like the resolution of str given class names in 
+        This method trigger the creation and validation of default values and
+        also things like the resolution of str given class names in
         :class:`Type` and :class`Instance`.
 
         Parameters
@@ -297,7 +301,7 @@ class TraitType(object):
 
     def error(self, this, value):
         if this is not None:
-            e = '%s trait of %s instance must be %s, but value %s specified' % (
+            e = '%s trait of %s instance must be %s but value %s specified' % (
                 self.name, class_of(this), self.info(), repr_type(value)
             )
         else:
@@ -313,9 +317,9 @@ class TraitType(object):
         '''
         Set the default value on a per instance basis.
 
-        This method is called by :meth:`instance_init` to create and validate 
-        the default value.  The creation and validation of default values must 
-        be delayed until the parent :class:`HasTraits` class has been 
+        This method is called by :meth:`instance_init` to create and validate
+        the default value.  The creation and validation of default values must
+        be delayed until the parent :class:`HasTraits` class has been
         instantiated.
         '''
         # Check for a deferred initializer defined in the same class as the
@@ -343,18 +347,23 @@ class TraitType(object):
 
     def value_for(self, this, value):
         pass
-    
+
 
 class Meta(object):
-    
+
     def __new__(cls, **kw):
-        for k, v in kw:
+        for k, v in kw.iteritems():
             setattr(cls, k, v)
         return super(Meta, cls).__new__(cls)
-    
-    
+
+    def __repr__(self):
+        return 'Meta: %s' % str(dict((k, v) for k, v in vars(
+            self.__class__
+        ).iteritems() if not k.startswith('_')))
+
+
 class Sync(ResetMixin):
-    
+
     def __init__(self, original=None, **kw):
         super(Sync, self).__init__()
         self.original = original if original is not None else {}
@@ -364,76 +373,77 @@ class Sync(ResetMixin):
             self.changed = kw
             self.current.update(self.changed)
             self.modified = True
-        else: 
+        else:
             self.changed = {}
             self.modified = False
-            
+
     def __call__(self):
         return self.cleaned
-            
+
     def __contains__(self, key):
         return key in self.current
-        
+
     def __iter__(self):
         for k, v in self.current.iteritems():
             yield k, v
-    
+
     def __repr__(self):
         return self.__unicode__()
-    
+
     def __unicode__(self):
         return unicode(dict(i for i in self.current.iteritems()))
-    
+
     __str__ = __unicode__
-            
+
     @lazy
     def private(self):
         return dict(
             (k, v) for k, v in self.current.iteritems() if k.startswith('_')
         )
-    
+
     @lazy
     def all(self):
         return dict((k, v) for k, v in self.current.iteritems())
-    
+
     @lazy
     def public(self):
         return dict(
-            (k, v) for k, v in self.current.iteritems() if not k.startswith('_')
+            (k, v) for k, v in self.current.iteritems()
+            if not k.startswith('_')
         )
-            
+
     def commit(self):
         self.modified = False
         self.update_original(self.current)
         self.cleaned.update(self.current.copy())
         self.changed.clear()
-        
+
     def copy(self, **kw):
         previous = dict(i for i in self)
         previous.update(kw)
         return previous
-    
+
     def rollback(self):
         self.changed.clear()
         self.reset()
         self.modified = False
-    
+
     def reset(self):
         super(Sync, self).reset()
         self.current.clear()
         self.current.update(self.original.copy() if self.original else {})
         self.cleaned.clear()
-        
+
     def update_current(self, kw):
         self.modified = True
         self.current.update(kw)
         self.changed.update(kw)
         self.cleaned.clear()
-        
+
     def update_original(self, kw):
         self.original.update(kw)
         self.reset()
-        
+
 
 ## The HasTraits implementation
 
@@ -442,7 +452,7 @@ class MetaHasTraits(type):
 
     '''
     A metaclass for HasTraits.
-    
+
     This metaclass makes sure that any TraitType class attributes are
     instantiated and sets their name attribute.
     '''
@@ -452,14 +462,6 @@ class MetaHasTraits(type):
         This instantiates all TraitTypes in the class dict and sets their
         :attr:`name` attribute.
         '''
-        metas = [getattr(b, 'Meta') for b in bases if hasattr(b, 'Meta')]
-        all_metas = {}
-        for meta in metas:
-            for k, v in vars(meta).iteritems():
-                if not k.startswith('-'):
-                    all_metas[k] = v
-        all_metas['name'] = name.lower()
-        classdict['c'] = Meta(**all_metas)
         for k, v in classdict.iteritems():
             if isinstance(v, TraitType):
                 v.name = k
@@ -473,7 +475,7 @@ class MetaHasTraits(type):
     def __init__(cls, name, bases, classdict):
         '''
         Finish initializing HasTraits class.
-        
+
         This sets the :attr:`this_class` attribute of each TraitType in the
         class dict to the newly created class ``cls``.
         '''
@@ -487,6 +489,7 @@ class HasTraits(ResetMixin):
 
     __metaclass__ = MetaHasTraits
     _descriptor_class = TraitType
+    c = None
 
     def __new__(cls, *args, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts
@@ -500,7 +503,7 @@ class HasTraits(ResetMixin):
         inst._trait_notifiers = {}
         inst._trait_dyn_inits = {}
         # Here we tell all the TraitType instances to set their default
-        # values on the instance. 
+        # values on the instance.
         for key in dir(cls):
             # Some descriptors raise AttributeError like zope.interface's
             # __provides__ attributes even though they exist.  This causes
@@ -512,16 +515,35 @@ class HasTraits(ResetMixin):
             else:
                 if isinstance(value, TraitType):
                     value.instance_init(inst)
+        bases = list(i for i in reversed(inspect.getmro(cls)))
+        metas = [getattr(b, 'Meta') for b in bases if hasattr(b, 'Meta')]
+        base = vars(cls).get('Meta')
+        cls.c = cls.Meta()
+        if base is not None:
+            metas.append(base)
+        for meta in metas:
+            for k, v in vars(meta).iteritems():
+                if not k.startswith('_'):
+                    setattr(cls.c, k, v)
+        cls.c.name = cls.__name__.lower()
         return inst
 
     def __init__(self, original, **kw):
-        # Allow trait values to be set using keyword arguments. We need to use 
+        # Allow trait values to be set using keyword arguments. We need to use
         # setattr for this to trigger validation and notifications.
         super(HasTraits, self).__init__()
         self._sync = Sync(original, **kw)
 
+    def __repr__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return unicode(dict(i for i in self._sync.current.iteritems()))
+
+    __str__ = __unicode__
+
     def _add_notifiers(self, handler, name):
-        if not self._trait_notifiers.has_key(name):
+        if not name in self._trait_notifiers:
             nlist = []
             self._trait_notifiers[name] = nlist
         else:
@@ -530,7 +552,7 @@ class HasTraits(ResetMixin):
             nlist.append(handler)
 
     def _remove_notifiers(self, handler, name):
-        if self._trait_notifiers.has_key(name):
+        if name in self._trait_notifiers:
             nlist = self._trait_notifiers[name]
             try:
                 index = nlist.index(handler)
@@ -538,7 +560,7 @@ class HasTraits(ResetMixin):
                 pass
             else:
                 del nlist[index]
-                
+
     def _trait_notify(self, name, old_value, new_value):
         # First dynamic ones
         callables = self._trait_notifiers.get(name, [])
@@ -578,7 +600,7 @@ class HasTraits(ResetMixin):
                     )
             else:
                 raise TraitError('trait changed callback must be callable')
-                
+
     @either
     def _traits(self):
         return dict(
@@ -591,7 +613,7 @@ class HasTraits(ResetMixin):
         '''
         Get a list of all the names of this classes traits.
 
-        This method is just like the :meth:`trait_names` method, but is unbound.
+        This method is just like the :meth:`trait_names` method, but is unbound
         '''
         return cls.class_traits(**md).keys()
 
@@ -602,13 +624,13 @@ class HasTraits(ResetMixin):
 
         This method is just like the :meth:`traits` method, but is unbound.
 
-        The TraitTypes returned don't know anything about the values that the 
+        The TraitTypes returned don't know anything about the values that the
         various HasTrait's instances are holding.
 
-        This follows the same algorithm as traits does and does not allow for 
-        any simple way of specifying merely that a metadata name exists, but has 
-        any value.  This is because get_metadata returns None if a metadata key 
-        doesn't exist.
+        This follows the same algorithm as traits does and does not allow for
+        any simple way of specifying merely that a metadata name exists, but
+        has any value.  This is because get_metadata returns None if a metadata
+        key doesn't exist.
         '''
         traits = cls._traits
         if not md:
@@ -630,25 +652,25 @@ class HasTraits(ResetMixin):
         Setup a handler to be called when a trait changes.
 
         This is used to setup dynamic notifications of trait changes.
-        
+
         Static handlers can be created by creating methods on a HasTraits
         subclass with the naming convention '_[traitname]_changed'.  Thus,
         to create static handler for the trait 'a', create the method
         _a_changed(self, name, old, new) (fewer arguments can be used, see
         below).
-        
+
         Parameters
         ----------
         handler : callable
-            A callable that is called when a trait changes.  Its 
+            A callable that is called when a trait changes.  Its
             signature can be handler(), handler(name), handler(name, new)
             or handler(name, old, new).
         name : list, str, None
-            If None, the handler will apply to all traits.  If a list of str, 
-            handler will apply to all names in the list.  If a str, the handler 
+            If None, the handler will apply to all traits.  If a list of str,
+            handler will apply to all names in the list.  If a str, the handler
             will apply just to that name.
         remove : bool
-            If False (the default), then install the handler.  If True then 
+            If False (the default), then install the handler.  If True then
             uninstall it.
         '''
         if remove:
@@ -676,7 +698,7 @@ class HasTraits(ResetMixin):
         return self.traits(**md).keys()
 
     def trait_reset(self, traits=None, **metadata):
-        ''' 
+        '''
         Resets some or all of an object's trait attributes to their default
         values.
 
@@ -687,17 +709,15 @@ class HasTraits(ResetMixin):
 
         Returns
         -------
-        A list of attributes that the method was unable to reset, which is empty
-        if all the attributes were successfully reset.
+        A list of attributes that the method was unable to reset, which is
+        empty if all the attributes were successfully reset.
 
         Description
         -----------
-        Resets each of the traits whose names are specified in the *traits* list
-        to their default values. If *traits* is None or omitted, the method
-        resets all explicitly-defined object trait attributes to their default
-        values. Note that this does not affect wildcard trait attributes or
-        trait attributes added via add_trait(), unless they are explicitly
-        named in *traits*.
+        Resets each of the traits whose names are specified in the *traits*
+        list to their default values. If *traits* is None or omitted, the
+        method resets all explicitly-defined object trait attributes to their
+        default values.
         '''
         unresetable = []
         if traits is None:
@@ -753,7 +773,7 @@ class HasTraits(ResetMixin):
             for name, value in traits.items():
                 setattr(self, name, value)
         return self
-    
+
     def trait_validate(self, trait, value):
         try:
             trait_class = self._traits[trait]
@@ -766,12 +786,12 @@ class HasTraits(ResetMixin):
         '''
         Get a list of all the traits of this class.
 
-        The TraitTypes returned don't know anything about the values that the 
+        The TraitTypes returned don't know anything about the values that the
         various HasTrait's instances are holding.
 
-        This follows the same algorithm as traits does and does not allow for 
-        any simple way of specifying merely that a metadata name exists, but 
-        has any value.  This is because get_metadata returns None if a metadata 
+        This follows the same algorithm as traits does and does not allow for
+        any simple way of specifying merely that a metadata name exists, but
+        has any value.  This is because get_metadata returns None if a metadata
         key doesn't exist.
         '''
         traits = self._traits
@@ -792,21 +812,25 @@ class HasTraits(ResetMixin):
     def traits_sync(self, **kw):
         '''synchronize traits with current instance property values'''
         cur = self._sync.current
-        self.trait_set(**{k:cur[k] for k in self.trait_names(**kw)})
+        self.trait_set(**{k: cur[k] for k in self.trait_names(**kw)})
 
     def traits_update(self, **kw):
         if self._sync.changed:
             self._sync.current.update(self._sync.changed.copy())
         else:
             self.traits_sync(**kw)
-            
+
     def traits_validate(self):
         '''validate model data'''
         for k, v in self._sync.current.iteritems():
             if not self.trait_validate(k, v):
                 return False
         return True
-    
+
+    def traits_commit(self):
+        self._sync.commit()
+        self.traits_sync()
+
     class Meta:
         pass
 
@@ -841,7 +865,7 @@ class Type(ClassBasedTraitType):
 
     '''A trait whose value must be a subclass of a specified class.'''
 
-    def __init__ (self, default_value=None, klass=None, allow_none=True, **md):
+    def __init__(self, default_value=None, klass=None, allow_none=True, **md):
         '''
         A Type trait specifies that its values must be subclasses of
         a particular class.
@@ -854,12 +878,12 @@ class Type(ClassBasedTraitType):
         default_value : class, str or None
             The default value must be a subclass of klass.  If an str,
             the str must be a fully specified class name, like 'foo.bar.Bah'.
-            The string is resolved into real class, when the parent 
+            The string is resolved into real class, when the parent
             :class:`HasTraits` class is instantiated.
         klass : class, str, None
             Values of this trait must be a subclass of klass.  The klass
             may be specified in a string like: 'foo.bar.MyClass'.
-            The string is resolved into real class, when the parent 
+            The string is resolved into real class, when the parent
             :class:`HasTraits` class is instantiated.
         allow_none : boolean
             Indicates whether None is allowed as an assignable value. Even if
@@ -927,7 +951,7 @@ class Instance(ClassBasedTraitType):
 
     '''
     A trait whose value must be an instance of a specified class.
-    
+
     The value can also be an instance of a subclass of the specified class.
     '''
 
@@ -935,9 +959,9 @@ class Instance(ClassBasedTraitType):
         '''
         Construct an Instance trait.
 
-        This trait allows values that are instances of a particular class or its 
-        subclasses.  Our implementation is quite different from that of 
-        enthough.traits as we don't allow instances to be used for klass and we 
+        This trait allows values that are instances of a particular class or
+        its subclasses.  Our implementation is quite different from that of
+        enthough.traits as we don't allow instances to be used for klass and we
         handle the ``args`` and ``kw`` arguments differently.
 
         Parameters
@@ -955,9 +979,9 @@ class Instance(ClassBasedTraitType):
         Default Value
         -------------
         If both ``args`` and ``kw`` are None, then the default value is None.
-        If ``args`` is a tuple and ``kw`` is a dict, then the default is created 
-        as ``klass(*args, **kw)``.  If either ``args`` or ``kw`` is not (but not 
-        both), None is replace by ``()`` or ``{}``.
+        If ``args`` is a tuple and ``kw`` is a dict, then the default is
+        created as ``klass(*args, **kw)``.  If either ``args`` or ``kw`` is not
+        (but not both), None is replace by ``()`` or ``{}``.
         '''
         self._allow_none = allow_none
         if any([
@@ -992,7 +1016,7 @@ class Instance(ClassBasedTraitType):
     def get_default_value(self):
         '''
         Instantiate a default value instance.
-        
+
         This is called when the containing HasTraits classes'
         :meth:`__new__` method is called to ensure that a unique instance
         is created for each HasTraits instance.
@@ -1032,8 +1056,8 @@ class This(ClassBasedTraitType):
     '''
     A trait for instances of the class containing this trait.
 
-    Because how how and when class bodies are executed, the ``This`` trait can 
-    only have a default value of None.  This, and because we always validate 
+    Because how how and when class bodies are executed, the ``This`` trait can
+    only have a default value of None.  This, and because we always validate
     default values, ``allow_none`` is *always* true.
     '''
 
@@ -1156,7 +1180,7 @@ class CComplex(Complex):
 
     '''A casting version of the complex number trait.'''
 
-    def validate (self, this, value):
+    def validate(self, this, value):
         try:
             return complex(value)
         except:
@@ -1214,13 +1238,13 @@ class CUnicode(Unicode):
             return unicode(value)
         except:
             self.error(this, value)
-            
-            
+
+
 class CheckedUnicode(Unicode):
-    
-    ''' 
+
+    '''
     Defines a trait whose value must be a Python string whose length is
-    optionally in a specified range, and which optionally matches a specified 
+    optionally in a specified range, and which optionally matches a specified
     regular expression.
     '''
 
@@ -1252,7 +1276,7 @@ class CheckedUnicode(Unicode):
             self._validate = 'validate_str'
         else:
             self._validate = 'validate_len'
-            
+
     def info(self):
         '''Returns a description of the trait.'''
         msg = ''
@@ -1276,8 +1300,8 @@ class CheckedUnicode(Unicode):
 
     def validate_all(self, name, value):
         '''
-        Validates that the value is a valid string in the specified length range 
-        which matches the specified regular expression.
+        Validates that the value is a valid string in the specified length
+        range which matches the specified regular expression.
         '''
         try:
             value = super(CheckedUnicode, self).validate(value)
@@ -1291,8 +1315,9 @@ class CheckedUnicode(Unicode):
         self.error(name, value)
 
     def validate_len(self, name, value):
-        ''' 
-        Validates that the value is a valid string in the specified length range
+        '''
+        Validates that the value is a valid string in the specified length
+        range
         '''
         try:
             value = super(CheckedUnicode, self).validate(value)
@@ -1303,8 +1328,8 @@ class CheckedUnicode(Unicode):
         self.error(name, value)
 
     def validate_regex(self, name, value):
-        ''' 
-        Validates that the value is a valid string which matches the specified 
+        '''
+        Validates that the value is a valid string which matches the specified
         regular expression.
         '''
         try:
@@ -1314,7 +1339,7 @@ class CheckedUnicode(Unicode):
         except:
             pass
         self.error(name, value)
-        
+
     def validate_str(self, name, value):
         '''Validates that the value is a valid string'''
         try:
@@ -1328,7 +1353,7 @@ class ObjectName(TraitType):
 
     '''
     A string holding a valid object name in this version of Python.
-    
+
     This does not check that the name exists in any scope.
     '''
 

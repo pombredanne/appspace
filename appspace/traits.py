@@ -494,6 +494,7 @@ class HasTraits(ResetMixin):
     def __new__(cls, *args, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts
         # the cls argument.
+        cls._metas = [b.Meta for b in inspect.getmro(cls) if hasattr(b, 'Meta')]
         new_meth = super(HasTraits, cls).__new__
         if new_meth is object.__new__:
             inst = new_meth(cls)
@@ -515,17 +516,6 @@ class HasTraits(ResetMixin):
             else:
                 if isinstance(value, TraitType):
                     value.instance_init(inst)
-        bases = list(i for i in reversed(inspect.getmro(cls)))
-        metas = [getattr(b, 'Meta') for b in bases if hasattr(b, 'Meta')]
-        base = vars(cls).get('Meta')
-        cls.c = cls.Meta()
-        if base is not None:
-            metas.append(base)
-        for meta in metas:
-            for k, v in vars(meta).iteritems():
-                if not k.startswith('_'):
-                    setattr(cls.c, k, v)
-        cls.c.name = cls.__name__.lower()
         return inst
 
     def __init__(self, original, **kw):
@@ -538,7 +528,7 @@ class HasTraits(ResetMixin):
         return self.__unicode__()
 
     def __unicode__(self):
-        return unicode(dict(i for i in self._sync.current.iteritems()))
+        return unicode(dict(i for i in self._sync.public.iteritems()))
 
     __str__ = __unicode__
 

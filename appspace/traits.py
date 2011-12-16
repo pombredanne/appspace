@@ -47,7 +47,7 @@ import types
 import inspect
 from types import InstanceType, ClassType, FunctionType, ListType, TupleType
 
-from .util import ResetMixin, class_name, deferred_import, either, lazy
+from .util import ResetMixin, class_name, lazy_import, either, lazy
 
 ClassTypes = (ClassType, type)
 SequenceTypes = (ListType, TupleType, set, frozenset)
@@ -892,9 +892,9 @@ class Type(ClassBasedTraitType):
 
     def _resolve_classes(self):
         if isinstance(self.klass, basestring):
-            self.klass = deferred_import(self.klass)
+            self.klass = lazy_import(self.klass)
         if isinstance(self.default_value, basestring):
-            self.default_value = deferred_import(self.default_value)
+            self.default_value = lazy_import(self.default_value)
 
     def get_default_value(self):
         return self.default_value
@@ -1001,7 +1001,7 @@ class Instance(ClassBasedTraitType):
 
     def _resolve_classes(self):
         if isinstance(self.klass, basestring):
-            self.klass = deferred_import(self.klass)
+            self.klass = lazy_import(self.klass)
 
     def get_default_value(self):
         '''

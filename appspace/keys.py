@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=w0232,f0401,e0213
+## pylint: disable-msg=w0232,f0401,e0213,e0211
 '''appspace keys'''
 
 from __future__ import absolute_import
@@ -24,6 +24,10 @@ class ALazyApp(AApp):
 class AAppspaceManager(AppspaceKey):
 
     '''AppspaceManager key'''
+
+    settings = Attribute('settings for an appspace')
+    queue = Attribute('queue for an appspace')
+    cache = Attribute('cache for an appspace')
 
     def get(label):  # @NoSelf
         '''Get an component'''
@@ -52,3 +56,27 @@ class AAppspace(AppspaceKey):
 
     def __getitem__(label):  # @NoSelf
         pass
+
+
+class AAppSettings(AppspaceKey):
+
+    '''settings'''
+
+    frozen = Attribute('frozen settings')
+
+
+class AAppQueue(AppspaceKey):
+
+    '''queue'''
+
+    def add_left(value):  # @NoSelf
+        '''add item to left side of queue'''
+
+    def pop_left():  # @NoSelf
+        '''pop leftmost item in queue'''
+
+    def add_right(value):  # @NoSelf
+        '''add item to left side of queue'''
+
+    def pop_right():  # @NoSelf
+        '''pop leftmost item in queue'''

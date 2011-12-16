@@ -6,10 +6,20 @@ from __future__ import absolute_import
 from types import MethodType
 from functools import partial, wraps
 
-from appspace.util import deferred_import, object_name, ResetMixin
+from appspace.util import ResetMixin, lazy_import, setter, getter
 
 
-def delegate(**fkw):
+def appspacer(appspace):
+    Appspaced.appspace = appspace
+    return Appspaced
+
+
+def delegater(appspace):
+    Delegated.appspace = appspace
+    return Appspaced
+
+
+def delegatable(**fkw):
     '''
     delegated method marking decorator
 
@@ -27,88 +37,88 @@ def delegate(**fkw):
     return wrapped
 
 
-def instance_component(this, label, appspace_label=None, appspace=None):
-    '''
-    inject appspaced component as instance attribute
-
-    @param label: component label
-    @param appspace_label: branch appspace label (default: None)
-    @param appspace: appspace (default: None)
-    '''
-    if appspace is None:
-        appspace = deferred_import('appspace.builder.app')
-    # get configuration attribute label
-    this_name = object.__getattribute__(this, label)
-    if appspace_label is not None:
-        # get configuration appspace label if set
-        comp = appspace[
-            object.__getattribute__(this, appspace_label)
-        ][this_name]
-    else:
-        comp = appspace[this_name]
-    object.__setattr__(this, label, comp)
-    return comp
-
-
-class class_component(object):
+class component(object):
 
     '''lazily set appspaced component as class attribute on first access'''
 
-    def __init__(self, label, appspace_label=None, appspace=None):
+    def __init__(self, setting, appspace_label):
         '''
+        @param label: component label
+        @param appspace: appspace (default: None)
+        '''
+        self.setting = setting
+
+    def __get__(self, instance, owner):
+        appspace = getter(instance, 'appspace', getter(owner, 'appspace'))
+        if appspace is None:
+            appspace = instance.appspace = lazy_import(
+                'appspace.builder.app'
+            )
+        # get configuration attribute label
+        if self.appspace_label is not None:
+            # get configuration appspace label if set
+            comp = appspace[self.appspace_label][self.label]
+        else:
+            comp = appspace[self.label]
+        setter(owner, self.label, component)
+        return component
+
+    def _get_appspace(self, instance, owner):
+        appspace = getter(instance, 'appspace', getter(owner, 'appspace'))
+        if appspace is None:
+            appspace = instance.appspace = lazy_import('appspace.builder.app')
+        return appspace
+
+
+class delegate(object):
+
+    '''delegates attribute to appspaced components'''
+
+    def __init__(self, setting):
+        '''
+        @param setting: setting
+        '''
+        self.setting = setting
+
+    def __get__(self, instance, owner):
+        appspace = getter(instance, 'appspace', getter(owner, 'appspace'))
+        if appspace is None:
+            appspace = instance.appspace = lazy_import(
+                'appspace.builder.app'
+            )
+        # get configuration attribute label
+        if self.appspace_label is not None:
+            # get configuration appspace label if set
+            return appspace[self.appspace_label][self.label]
+        return appspace[self.label]
+
+
+class Appspaced(ResetMixin):
+
+    appspace = None
+    _descriptor_class = component
+
+    def _instance_component(self, label, appspace_label=None):
+        '''
+        inject appspaced component as instance attribute
+
         @param label: component label
         @param appspace_label: branch appspace label (default: None)
         @param appspace: appspace (default: None)
         '''
-        if appspace is None:
-            appspace = deferred_import('appspace.builder.app')
-        # configuration attribute label on class
-        self.label = label
-        # configuration attribute label on class
-        self.appspace_label = appspace_label
-        self.appspace = appspace
-
-    def __get__(self, instance, owner):
+        if self.appspace is None:
+            appspace = self.appspace = lazy_import('appspace.builder.app')
         # get configuration attribute label
-        label = getattr(owner, self.label)
-        if self.appspace_label is not None:
-            # get configuration appspace label if set
-            return self.appspace[getattr(owner, self.appspace_label)][label]
-        # setting the attribute on the class does bad things. DO NOT ATTEMPT!
-        return self.appspace[label]
-
-
-class delegated(object):
-
-    '''delegates attribute to injected appspaced components'''
-
-    def __init__(self, method, appspace=None):
-        '''
-        @param label: component label
-        @param appspace: appspace (default: None)
-        '''
-        if appspace is None:
-            appspace = deferred_import('appspace.builder.app')
-        self.appspace = appspace
-        self.method = method
-        try:
-            self.__doc__ = method.__doc__
-            self.__module__ = method.__module__
-            self.__name__ = object_name(method)
-        except:
-            pass
-
-    def __get__(self, instance, owner):
-        label, appspace_label = self.method(instance)
-        # get configuration attribute label
-        label = getattr(owner, label)
         if appspace_label is not None:
             # get configuration appspace label if set
-            return self.appspace[getattr(owner, appspace_label)][label]
-        return self.appspace[label]
+            comp = appspace[appspace_label][label]
+        else:
+            comp = appspace[label]
+        setter(self, label, comp)
+        return comp
 
 
-class Delegated(ResetMixin):
+class Delegated(Appspaced):
 
     '''
     class where attributes and methods can be delegated to appspaced components
@@ -116,7 +126,7 @@ class Delegated(ResetMixin):
 
     # list of delegates
     _delegates = {}
-    _descriptor_class = delegated
+    _descriptor_class = delegatable
 
     def __getattr__(self, key):
         try:

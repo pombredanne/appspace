@@ -154,5 +154,67 @@ class Appspace(object):
         return self.appspace.__repr__()
 
 
+class Patterns(object):
+
+    label = ''
+    compiler = patterns
+
+    @classmethod
+    def build(cls):
+        build = {}
+        for k, v in vars(cls):
+            if not k.startswith('_'):
+                if isinstance(v, Include):
+                    build[k] = include(v)
+                else:
+                    build[k] = v
+        return patterns(cls.label, *tuple(i for i in build.iteritems()))
+
+
+class Include(object):
+
+    @classmethod
+    def build(cls):
+        build = {}
+        for k, v  in vars(cls):
+            if not k.startswith('_'):
+                if isinstance(v, Include):
+                    build[k] = v.build()
+                else:
+                    build[k] = v
+        return build
+
+
+class DefaultSettings(Include):
+
+    appspace = None
+
+    @classmethod
+    def build(cls):
+        return cls.appspace.settings.update_internal(
+            super(DefaultSettings, cls).build()
+        )
+
+
+class InternalSettings(Include):
+
+    appspace = None
+
+    @classmethod
+    def build(cls):
+        return cls.appspace.settings.update_internal(
+            super(InternalSettings, cls).build()
+        )
+
+
+class Settings(Include):
+
+    appspace = None
+
+    @classmethod
+    def build(cls):
+        return cls.appspace.settings.update(super(Settings, cls).build())
+
+
 # Global appspace shortcut
 app = Appspace(global_appspace)

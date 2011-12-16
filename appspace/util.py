@@ -3,16 +3,19 @@
 '''appspace utilities'''
 
 from __future__ import absolute_import
+import inspect
 from importlib import import_module
-from functools import wraps, update_wrapper
 from collections import Sequence, Mapping
+from functools import wraps, update_wrapper
+
+
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
 
 
-def deferred_import(module_path, attribute=None):
+def lazy_import(module_path, attribute=None):
     '''
     deferred module loader
 
@@ -23,14 +26,14 @@ def deferred_import(module_path, attribute=None):
         try:
             dot = module_path.rindex('.')
             # import module
-            module_path = getattr(
+            module_path = getter(
                 import_module(module_path[:dot]), module_path[dot + 1:]
             )
         # If nothing but module name, import the module
         except AttributeError:
             module_path = import_module(module_path)
         if attribute:
-            module_path = getattr(module_path, attribute)
+            module_path = getter(module_path, attribute)
     return module_path
 
 
@@ -83,6 +86,30 @@ def object_name(this):
     return this.__name__
 
 
+def getter(this, key, default=None):
+    '''get an attribute'''
+    if inspect.isclass(this):
+        return getattr(this, key, default)
+    else:
+        return object.__getattribute__(this, key, default)
+
+
+def setter(this, key, value):
+    '''set an attribute'''
+    if inspect.isclass(this):
+        setattr(this, key, value)
+    else:
+        object.__setattr__(this, key, value)
+
+
+def deleter(this, key):
+    '''delete an attribute'''
+    if inspect.isclass(this):
+        delattr(this, key)
+    else:
+        object.__delattr__(this, key)
+
+
 def object_walk(obj, path=()):
     if isinstance(obj, Mapping):
         for key, value in obj.iteritems():
@@ -105,7 +132,7 @@ class lazy_base(object):
         try:
             self.__doc__ = method.__doc__
             self.__module__ = method.__module__
-            self.__name__ = object_name(method)
+            self.__name__ = self.name = object_name(method)
         except:
             pass
 
@@ -118,7 +145,7 @@ class lazy(lazy_base):
         if instance is None:
             return self
         value = self.method(instance)
-        setattr(instance, self.__name__, value)
+        setter(instance, self.name, value)
         return value
 
 
@@ -157,10 +184,10 @@ class either(both):
     def __get__(self, instance, owner):
         if instance is None:
             value = self.expr(owner)
-            setattr(owner, self.__name__, value)
+            setter(owner, self.name, value)
             return value
         value = self.method(instance)
-        setattr(instance, self.__name__, value)
+        setter(instance, self.name, value)
         return value
 
 
@@ -170,7 +197,7 @@ class lazy_class(lazy_base):
 
     def __get__(self, instance, owner):
         value = self.method(owner)
-        setattr(owner, self.__name__, value)
+        setter(owner, self.name, value)
         return value
 
 
@@ -193,7 +220,7 @@ class ResetMixin(object):
 
     def reset(self):
         '''reset accessed lazy attributes'''
-        instdict = self.__dict__
+        instdict = vars(self)
         classdict = self.__class__.__dict__
         desc = self._descriptor_class
         # To reset them, we simply remove them from the instance dict. At that
@@ -202,4 +229,4 @@ class ResetMixin(object):
         # because that's how the python descriptor protocol works.
         for key, value in classdict.iteritems():
             if key in instdict and isinstance(value, desc):
-                delattr(self, key)
+                deleter(self, key)

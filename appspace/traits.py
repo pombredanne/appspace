@@ -47,7 +47,7 @@ import types
 import inspect
 from types import InstanceType, ClassType, FunctionType, ListType, TupleType
 
-from stuf.util import class_name, either
+from stuf.utils import class_name, either
 
 from .utils import ResetMixin, lazy_import, lazy
 
@@ -408,7 +408,7 @@ class Sync(ResetMixin):
         return dict((k, v) for k, v in self.current.iteritems())
 
     @lazy
-    def main(self):
+    def public(self):
         return dict(
             (k, v) for k, v in self.current.iteritems()
             if not k.startswith('_')

@@ -8,10 +8,14 @@ from collections import deque
 from stuf import frozenstuf
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
+from stuf.utils import object_lookup, lazy_set, lazy
 
 from .error import AppLookupError
-from .utils import ResetMixin, object_lookup, lazy_import, lazy
-from .keys import AAppspaceManager, AAppSettings, AAppQueue, AApp, ALazyApp
+from .utils import ResetMixin, lazy_import, object_walk
+from .keys import (
+    AAppspaceManager, ASettings, AQueue, AApp, ALazyApp, AInternalSettings,
+    ADefaultSettings,
+)
 
 
 class LazyApp(object):
@@ -49,9 +53,9 @@ class AppspaceManager(AdapterRegistry):
         self._queue = kw.pop('queue', 'default')
         self._settings = kw.pop('settings', 'default')
         self.register(
-            [AAppSettings], AAppSettings, 'default', AppspaceSettings
+            [ASettings], ASettings, 'default', AppspaceSettings
         )
-        self.register([AAppQueue], AAppQueue, 'default', AppspaceQueue)
+        self.register([AQueue], AQueue, 'default', AppspaceQueue)
 
     def __contains__(self, label):
         return label in self.names((), AApp)
@@ -62,12 +66,16 @@ class AppspaceManager(AdapterRegistry):
     @lazy
     def queue(self):
         '''appspace queue'''
-        return self.lookup1(AAppQueue, AAppQueue, self._queue)
+        return self.lookup1(AQueue, AQueue, self._queue)
+
+    @lazy
+    def s(self):
+        return self.settings
 
     @lazy
     def settings(self):
         '''appspace settings'''
-        return self.lookup1(AAppSettings, AAppSettings, self._settings)
+        return self.lookup1(ASettings, ASettings, self._settings)
 
     def _component(self, label, module_path):
         '''
@@ -95,7 +103,7 @@ class AppspaceManager(AdapterRegistry):
         component = self.lookup1(AApp, AApp, label)
         if component is None:
             raise AppLookupError(component, label)
-        if isinstance(component, LazyApp):
+        if ALazyApp.providedBy(component):
             component = self._component(label, component.path)
         return component
 
@@ -115,7 +123,7 @@ class AppspaceSettings(ResetMixin):
 
     '''appspace settings'''
 
-    appifies(AAppSettings)
+    appifies(ASettings)
 
     def __init__(self, **kw):
         super(AppspaceSettings, self).__init__()
@@ -123,19 +131,45 @@ class AppspaceSettings(ResetMixin):
         self._default = {}
         self._internal = {}
 
-    @lazy
+    @lazy_set
     def default(self):
-        '''transform dict into named tuple'''
+        '''get default settings separately'''
         return frozenstuf(self._default)
 
-    @lazy
+    @default.setter
+    def default(self, value):
+        '''
+        set default settings separately
+
+        @param value: default settings
+        '''
+        if ADefaultSettings.implementedBy(value):
+            self._default.clear()
+            self.update_default(value)
+        else:
+            raise TypeError('invalid DefaultSettings')
+
+    @lazy_set
     def internal(self):
-        '''transform dict into named tuple'''
+        '''get internal settings separately'''
         return frozenstuf(self._default)
+
+    @internal.setter
+    def internal(self, value):
+        '''
+        set internal settings separately
+
+        @param value: internal settings
+        '''
+        if AInternalSettings.implementedBy(value):
+            self._internal.clear()
+            self.update_internal(value)
+        else:
+            raise TypeError('invalid InternalSettings')
 
     @lazy
     def main(self):
-        '''transform dict into named tuple'''
+        '''get main settings separately'''
         main = self._default.copy()
         main.update(self._main.copy())
         main.update(self._internal.copy())
@@ -147,9 +181,6 @@ class AppspaceSettings(ResetMixin):
         if namespace:
             return self._main.get(namespace, {}).get(key, default)
         return self._main.get(key, default)
-
-    def get_internal(self, key):
-        return self._default.get(key)
 
     def set(self, key, value, namespace=None):
         if namespace is not None:
@@ -165,19 +196,21 @@ class AppspaceSettings(ResetMixin):
             pass
         return object_lookup(setting, self.main)
 
-    def set_default(self, key, value):
-        self._default[key] = value
+    def update_default(self, settings):
+        if ADefaultSettings.implementedBy(settings):
+            self.reset()
+            self._default.update(object_walk(settings))
+        else:
+            raise TypeError('invalid DefaultSettings')
 
-    def set_internal(self, key, value):
-        self._internal[key] = value
+    def update_internal(self, settings):
+        if AInternalSettings.implementedBy(settings):
+            self.reset()
+            self._internal.update(object_walk(settings))
+        else:
+            raise TypeError('invalid InternalSettings')
 
-    def update_default(self, *args, **kw):
-        self._default.update(*args, **kw)
-
-    def update_internal(self, *args, **kw):
-        self._internal.update(*args, **kw)
-
-    def update_settings(self, *args, **kw):
+    def update(self, *args, **kw):
         self._main.update(*args, **kw)
 
 

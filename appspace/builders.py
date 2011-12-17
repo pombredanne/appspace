@@ -3,10 +3,12 @@
 
 from __future__ import absolute_import
 
-from .keys import AAppspace
-from .utils import lazy, lru_cache
+from stuf.utils import lazy
+
+from .utils import lru_cache
 from .error import AppLookupError, NoAppError
 from .states import AppspaceManager, appifies, global_appspace
+from .keys import AAppspace, ADefaultSettings, AInternalSettings
 
 
 def add_app(appspace, label, component, branch='', use_global=False):
@@ -185,35 +187,14 @@ class Include(object):
         return build
 
 
-class DefaultSettings(Include):
+class DefaultSettings(object):
 
-    appspace = None
-
-    @classmethod
-    def build(cls):
-        return cls.appspace.settings.update_internal(
-            super(DefaultSettings, cls).build()
-        )
+    appifies(ADefaultSettings)
 
 
-class InternalSettings(Include):
+class InternalSettings(object):
 
-    appspace = None
-
-    @classmethod
-    def build(cls):
-        return cls.appspace.settings.update_internal(
-            super(InternalSettings, cls).build()
-        )
-
-
-class Settings(Include):
-
-    appspace = None
-
-    @classmethod
-    def build(cls):
-        return cls.appspace.settings.update(super(Settings, cls).build())
+    appifies(AInternalSettings)
 
 
 # Global appspace shortcut

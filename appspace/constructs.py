@@ -17,7 +17,8 @@ def appspacer(appspace):
 
     @param appspace: appspace to add
     '''
-    Appspaced.appspace = appspace
+    Appspaced.appspace = Appspaced.a = appspace
+    Appspaced.settings = Appspaced.s = appspace.settings
     return Appspaced
 
 
@@ -27,21 +28,9 @@ def delegater(appspace):
 
     @param appspace: appspace to add
     '''
-    Delegated.appspace = appspace
-    return Appspaced
-
-
-def get_appspace(this, owner):
-    '''
-    get the appspace attached to a class
-
-    @param this: an instance
-    @param owner: the instance's class
-    '''
-    appspace = instance_or_class('appspace', this, owner)
-    if appspace is None:
-        appspace = this.appspace = lazy_import('appspace.builder.app')
-    return appspace
+    Delegated.appspace = Delegated.a = appspace
+    Delegated.settings = Delegated.s = appspace.settings
+    return Delegated
 
 
 def delegatable(**fkw):
@@ -60,6 +49,19 @@ def delegatable(**fkw):
             return func(*args, **kw)
         return wrapper
     return wrapped
+
+
+def get_appspace(this, owner):
+    '''
+    get the appspace attached to a class
+
+    @param this: an instance
+    @param owner: the instance's class
+    '''
+    appspace = instance_or_class('appspace', this, owner)
+    if appspace is None:
+        appspace = this.appspace = lazy_import('appspace.builder.app')
+    return appspace
 
 
 class component(object):

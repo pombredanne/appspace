@@ -534,7 +534,7 @@ class HasTraits(ResetMixin):
         return self.__unicode__()
 
     def __unicode__(self):
-        return unicode(dict(i for i in self._sync.main.iteritems()))
+        return unicode(dict(i for i in self._sync.public.iteritems()))
 
     __str__ = __unicode__
 

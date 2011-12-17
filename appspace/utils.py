@@ -3,9 +3,10 @@
 
 from __future__ import absolute_import
 from functools import wraps
+from inspect import isclass
 from importlib import import_module
 
-from stuf.utils import OrderedDict, deleter, getter, lazy
+from stuf.utils import OrderedDict, deleter, getter, lazybase
 
 
 def lazy_import(module_path, attribute=None):
@@ -61,10 +62,26 @@ def lru_cache(maxsize=100):
     return wrapped
 
 
+def object_walk(this):
+    '''
+    transform classes within an object to a dictionary
+
+    @param this: object
+    '''
+    this_dict = dict()
+    for k, v in vars(this).iteritems():
+        if not k.startswith('__'):
+            if isclass(v):
+                this_dict[k] = object_walk(v)
+            else:
+                this_dict[k] = v
+    return this_dict
+
+
 class ResetMixin(object):
 
     '''
-    mixin to add a ".reset()" method to methods decorated with "lazy"
+    mixin to add a ".reset()" method to methods decorated with "lazybase"
 
     By default, lazy attributes, once computed, are static. If they happen to
     depend on other parts of an object and those parts change, their values may
@@ -76,7 +93,7 @@ class ResetMixin(object):
     functions can be triggered again.
     '''
 
-    _descriptor_class = lazy
+    _descriptor_class = lazybase
 
     def reset(self):
         '''reset accessed lazy attributes'''

@@ -3,8 +3,8 @@
 
 from __future__ import absolute_import
 
-from .util import ResetMixin, lazy, lazy_class, both
-from .builder import (
+from .utils import ResetMixin
+from .builders import (
     Patterns, Settings, InternalSettings, DefaultSettings, Include, include,
     patterns, add_app, add_branch, app,
 )

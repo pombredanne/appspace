@@ -58,14 +58,22 @@ class AAppspace(AppspaceKey):
         pass
 
 
-class AAppSettings(AppspaceKey):
+class ASettings(AppspaceKey):
 
     '''settings'''
 
-    frozen = Attribute('frozen settings')
+
+class AInternalSettings(ASettings):
+
+    '''internal settings'''
 
 
-class AAppQueue(AppspaceKey):
+class ADefaultSettings(ASettings):
+
+    '''default settings key'''
+
+
+class AQueue(AppspaceKey):
 
     '''queue'''
 

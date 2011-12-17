@@ -3,13 +3,14 @@
 '''appspace state management'''
 
 from __future__ import absolute_import
-from collections import deque, namedtuple
+from collections import deque
 
+from stuf import frozenstuf
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
 
 from .error import AppLookupError
-from .util import lazy_import, lazy
+from .utils import ResetMixin, object_lookup, lazy_import, lazy
 from .keys import AAppspaceManager, AAppSettings, AAppQueue, AApp, ALazyApp
 
 
@@ -110,38 +111,35 @@ class AppspaceManager(AdapterRegistry):
         self.register([AApp], AApp, label, component)
 
 
-class AppspaceSettings(object):
+class AppspaceSettings(ResetMixin):
 
     '''appspace settings'''
 
     appifies(AAppSettings)
 
     def __init__(self, **kw):
+        super(AppspaceSettings, self).__init__()
         self._main = dict(**kw)
         self._default = {}
         self._internal = {}
 
-    @property
+    @lazy
     def default(self):
         '''transform dict into named tuple'''
-        return self.freeze('default', self._default)
+        return frozenstuf(self._default)
 
-    @property
+    @lazy
     def internal(self):
         '''transform dict into named tuple'''
-        return self.freeze('internal', self._default)
+        return frozenstuf(self._default)
 
-    @property
-    def public(self):
+    @lazy
+    def main(self):
         '''transform dict into named tuple'''
         main = self._default.copy()
         main.update(self._main.copy())
-        return self.freeze('public', main)
-
-    def freeze(self, name, settings):
-        '''transform dict into named tuple'''
-        frozen = namedtuple(name, settings.keys(), rename=True)
-        return frozen(**settings.items())
+        main.update(self._internal.copy())
+        return frozenstuf(main)
 
     def get(self, key, default=None, namespace=None):
         if default is None:
@@ -160,6 +158,13 @@ class AppspaceSettings(object):
         else:
             self._main[key] = value
 
+    def lookup(self, setting):
+        try:
+            setting = setting.split('.')
+        except AttributeError:
+            pass
+        return object_lookup(setting, self.main)
+
     def set_default(self, key, value):
         self._default[key] = value
 
@@ -176,7 +181,7 @@ class AppspaceSettings(object):
         self._main.update(*args, **kw)
 
 
-class AppspaceQueue():
+class AppspaceQueue(object):
 
     def __init__(self):
         self._queue = deque()

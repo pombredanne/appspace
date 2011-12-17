@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-'''appspace builder'''
+'''appspace builders'''
 
 from __future__ import absolute_import
 
 from .keys import AAppspace
-from .util import lru_cache, lazy
+from .utils import lazy, lru_cache
 from .error import AppLookupError, NoAppError
-from .state import AppspaceManager, appifies, global_appspace
+from .states import AppspaceManager, appifies, global_appspace
 
 
 def add_app(appspace, label, component, branch='', use_global=False):

@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=w0702
 '''appspace utilities'''
 
 from __future__ import absolute_import
-import inspect
+from functools import wraps
 from importlib import import_module
-from collections import Sequence, Mapping
-from functools import wraps, update_wrapper
+from collections import Mapping, Sequence
+
+from stuf.util import OrderedDict, deleter, getter, lazy
 
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+def instance_or_class(key, instance, owner):
+    '''
+    get attribute of an instance or class
+
+    @param key: name of attribute to look for
+    @param instance: instance to check for attribute
+    @param owner: class to check for attribute
+    '''
+    return getter(instance, key, getter(owner, key))
 
 
 def lazy_import(module_path, attribute=None):
@@ -68,137 +73,40 @@ def lru_cache(maxsize=100):
     return wrapped
 
 
-def class_name(this):
+def object_lookup(path, this):
     '''
-    get class name
+    look up an attribute on an object or its child objects
 
-    @param this: object
+    @param path: path in object
+    @param this: object to lookup on
     '''
-    return this.__class__.__name__
+    for part in path:
+        result = getter(this, part)
+        if result is not None:
+            this = result
+        else:
+            return result
 
 
-def object_name(this):
+def object_walk(this, path=None):
     '''
-    get object name
+    look up an attribute on an object and return its paths
 
-    @param this: object
+    @param this: object to lookup on
+    @param path: path in object (default: None)
     '''
-    return this.__name__
-
-
-def getter(this, key, default=None):
-    '''get an attribute'''
-    if inspect.isclass(this):
-        return getattr(this, key, default)
-    else:
-        return object.__getattribute__(this, key, default)
-
-
-def setter(this, key, value):
-    '''set an attribute'''
-    if inspect.isclass(this):
-        setattr(this, key, value)
-    else:
-        object.__setattr__(this, key, value)
-
-
-def deleter(this, key):
-    '''delete an attribute'''
-    if inspect.isclass(this):
-        delattr(this, key)
-    else:
-        object.__delattr__(this, key)
-
-
-def object_walk(obj, path=()):
-    if isinstance(obj, Mapping):
-        for key, value in obj.iteritems():
+    if path is None:
+        path = ()
+    if isinstance(this, Mapping):
+        for key, value in this.iteritems():
             for child in object_walk(value, path + (key,)):
                 yield child
-    elif isinstance(obj, Sequence) and not isinstance(obj, basestring):
-        for index, value in enumerate(obj):
+    elif isinstance(this, Sequence) and not isinstance(this, basestring):
+        for index, value in enumerate(this):
             for child in object_walk(value, path + (index,)):
                 yield child
     else:
-        yield path, obj
-
-
-class lazy_base(object):
-
-    '''lazy base'''
-
-    def __init__(self, method):
-        self.method = method
-        try:
-            self.__doc__ = method.__doc__
-            self.__module__ = method.__module__
-            self.__name__ = self.name = object_name(method)
-        except:
-            pass
-
-
-class lazy(lazy_base):
-
-    '''lazily assign attributes on an instance on first access'''
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-        value = self.method(instance)
-        setter(instance, self.name, value)
-        return value
-
-
-class both(lazy):
-
-    '''
-    decorator which allows definition of a Python descriptor with both
-    instance-level and class-level behavior
-    '''
-
-    def __init__(self, method, expr=None):
-        super(both, self).__init__(method)
-        self.expr = expr or method
-        update_wrapper(self, method)
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self.expr(owner)
-        return super(both, self).__get__(instance, owner)
-
-    def expression(self, expr):
-        '''
-        a modifying decorator that defines a general method
-        '''
-        self.expr = expr
-        return self
-
-
-class either(both):
-
-    '''
-    decorator which allows definition of a Python descriptor with both
-    instance-level and class-level behavior
-    '''
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            value = self.expr(owner)
-            setter(owner, self.name, value)
-            return value
-        value = self.method(instance)
-        setter(instance, self.name, value)
-        return value
-
-
-class lazy_class(lazy_base):
-
-    '''lazily assign attributes on a class on first use'''
-
-    def __get__(self, instance, owner):
-        value = self.method(owner)
-        setter(owner, self.name, value)
-        return value
+        yield path, this
 
 
 class ResetMixin(object):

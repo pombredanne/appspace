@@ -70,9 +70,9 @@ class TestDouble(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from appspace.builder import Patterns
+        from appspace.builders import patterns
         app = self._make_multiple()
-        self.assertIsInstance(app.helpers, Patterns)
+        self.assertIsInstance(app.helpers, patterns)
 
     def test_identity_multiple(self):
         from math import sqrt
@@ -129,9 +129,9 @@ class TestQuintuple(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from appspace.builder import Patterns
+        from appspace.builders import patterns
         app = self._make_multiple()
-        self.assertIsInstance(app.helpers, Patterns)
+        self.assertIsInstance(app.helpers, patterns)
 
     def test_identity_multiple(self):
         from re import match
@@ -212,9 +212,9 @@ class TestGlobal(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from appspace.builder import Patterns
+        from appspace.builders import patterns
         app = self._make_multiple()
-        self.assertIsInstance(app.helpers, Patterns)
+        self.assertIsInstance(app.helpers, patterns)
 
     def test_identity_multiple(self):
         from UserDict import UserDict
@@ -289,9 +289,9 @@ class TestAppconf(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from appspace.builder import Patterns
+        from appspace.builders import patterns
         app = self._make_multiple()
-        self.assertIsInstance(app.helpers, Patterns)
+        self.assertIsInstance(app.helpers, patterns)
 
     def test_identity_multiple(self):
         from re import match
@@ -361,10 +361,10 @@ class TestBuildFunctions(unittest.TestCase):
         )
 
     def test_identity_namespace(self):
-        from appspace.builder import Patterns
+        from appspace.builders import patterns
         plug = self._make_multiple()
-        self.assertIsInstance(plug.helpers, Patterns)
-        self.assertIsInstance(plug.branch, Patterns)
+        self.assertIsInstance(plug.helpers, patterns)
+        self.assertIsInstance(plug.branch, patterns)
 
     def test_identity_multiple(self):
         from math import sqrt, fabs

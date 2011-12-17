@@ -47,7 +47,9 @@ import types
 import inspect
 from types import InstanceType, ClassType, FunctionType, ListType, TupleType
 
-from .util import ResetMixin, class_name, lazy_import, either, lazy
+from stuf.util import class_name, either
+
+from .utils import ResetMixin, lazy_import, lazy
 
 ClassTypes = (ClassType, type)
 SequenceTypes = (ListType, TupleType, set, frozenset)
@@ -406,7 +408,7 @@ class Sync(ResetMixin):
         return dict((k, v) for k, v in self.current.iteritems())
 
     @lazy
-    def public(self):
+    def main(self):
         return dict(
             (k, v) for k, v in self.current.iteritems()
             if not k.startswith('_')
@@ -494,7 +496,11 @@ class HasTraits(ResetMixin):
     def __new__(cls, *args, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts
         # the cls argument.
-        cls._metas = [b.Meta for b in inspect.getmro(cls) if hasattr(b, 'Meta')]
+        # pylint: disable-msg=e1101
+        cls._metas = [
+            b.Meta for b in inspect.getmro(cls) if hasattr(b, 'Meta')
+        ]
+        # pylint: enable-msg=e1101
         new_meth = super(HasTraits, cls).__new__
         if new_meth is object.__new__:
             inst = new_meth(cls)
@@ -528,7 +534,7 @@ class HasTraits(ResetMixin):
         return self.__unicode__()
 
     def __unicode__(self):
-        return unicode(dict(i for i in self._sync.public.iteritems()))
+        return unicode(dict(i for i in self._sync.main.iteritems()))
 
     __str__ = __unicode__
 

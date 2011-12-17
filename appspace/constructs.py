@@ -6,7 +6,9 @@ from __future__ import absolute_import
 from types import MethodType
 from functools import partial, wraps
 
-from .utils import ResetMixin, instance_or_class, lazy_import, object_lookup
+from stuf.utils import setter, instance_or_class, inverse_lookup, object_lookup
+
+from .utils import ResetMixin, lazy_import
 
 
 def appspacer(appspace):
@@ -69,14 +71,14 @@ class component(object):
         @param setting: a component setting
         '''
         self.setting = tuple(reversed(setting))
-        self.comp = None
 
     def __get__(self, instance, owner):
-        if self.comp is None:
-            appspace = get_appspace(instance, owner)
-            self.setting = setting = appspace.settings.lookup(self.setting)
-            self.comp = object_lookup(setting, appspace)
-        return self.comp
+        appspace = get_appspace(instance, owner)
+        return setter(
+            owner,
+            inverse_lookup(self, owner),
+            object_lookup(appspace.settings.lookup(self.setting), appspace),
+        )
 
 
 class delegate(component):
@@ -89,16 +91,19 @@ class Appspaced(ResetMixin):
     appspace = None
     _descriptor_class = component
 
-    def _instance_component(self, *setting):
+    def _instance_component(self, label, *setting):
         '''
         inject appspaced component as instance attribute
 
+        @param label: instance attribute label
         @param setting: a component setting
         '''
         appspace = get_appspace(self, self.__class__)
-        setting = appspace.settings.lookup(setting)
-        comp = object_lookup(setting, appspace)
-        return comp
+        return setter(
+            self,
+            label,
+            object_lookup(appspace.settings.lookup(setting), appspace),
+        )
 
 
 class Delegated(Appspaced):

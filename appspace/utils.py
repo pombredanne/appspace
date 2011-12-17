@@ -4,20 +4,8 @@
 from __future__ import absolute_import
 from functools import wraps
 from importlib import import_module
-from collections import Mapping, Sequence
 
-from stuf.util import OrderedDict, deleter, getter, lazy
-
-
-def instance_or_class(key, instance, owner):
-    '''
-    get attribute of an instance or class
-
-    @param key: name of attribute to look for
-    @param instance: instance to check for attribute
-    @param owner: class to check for attribute
-    '''
-    return getter(instance, key, getter(owner, key))
+from stuf.utils import OrderedDict, deleter, getter, lazy
 
 
 def lazy_import(module_path, attribute=None):
@@ -73,42 +61,6 @@ def lru_cache(maxsize=100):
     return wrapped
 
 
-def object_lookup(path, this):
-    '''
-    look up an attribute on an object or its child objects
-
-    @param path: path in object
-    @param this: object to lookup on
-    '''
-    for part in path:
-        result = getter(this, part)
-        if result is not None:
-            this = result
-        else:
-            return result
-
-
-def object_walk(this, path=None):
-    '''
-    look up an attribute on an object and return its paths
-
-    @param this: object to lookup on
-    @param path: path in object (default: None)
-    '''
-    if path is None:
-        path = ()
-    if isinstance(this, Mapping):
-        for key, value in this.iteritems():
-            for child in object_walk(value, path + (key,)):
-                yield child
-    elif isinstance(this, Sequence) and not isinstance(this, basestring):
-        for index, value in enumerate(this):
-            for child in object_walk(value, path + (index,)):
-                yield child
-    else:
-        yield path, this
-
-
 class ResetMixin(object):
 
     '''
@@ -129,7 +81,7 @@ class ResetMixin(object):
     def reset(self):
         '''reset accessed lazy attributes'''
         instdict = vars(self)
-        classdict = self.__class__.__dict__
+        classdict = vars(self.__class__)
         desc = self._descriptor_class
         # To reset them, we simply remove them from the instance dict. At that
         # point, it's as if they had never been computed. On the next access,

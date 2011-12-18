@@ -175,7 +175,7 @@ class AppspaceSettings(ResetMixin):
         main.update(self._internal.copy())
         return frozenstuf(main)
 
-    def get(self, key, default=None, namespace=None):
+    def get(self, key, namespace=None, appspace=None, default=None):
         if default is None:
             default = self._default.get(key)
         if namespace:

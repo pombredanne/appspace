@@ -3,10 +3,12 @@
 '''appspace component constructs'''
 
 from __future__ import absolute_import
-from types import MethodType
+from inspect import ismethod
 from functools import partial, wraps
 
-from stuf.utils import setter, instance_or_class, inverse_lookup, object_lookup
+from stuf.utils import (
+    getter, instance_or_class, inverse_lookup, object_lookup, setter,
+)
 
 from .utils import ResetMixin, lazy_import
 
@@ -68,18 +70,16 @@ class component(object):
 
     '''lazily set appspaced component as class attribute on first access'''
 
-    def __init__(self, *setting):
+    def __init__(self, setting):
         '''
         @param setting: a component setting
         '''
-        self.setting = tuple(reversed(setting))
+        self.setting = setting
 
     def __get__(self, instance, owner):
         appspace = get_appspace(instance, owner)
         return setter(
-            owner,
-            inverse_lookup(self, owner),
-            object_lookup(appspace.settings.lookup(self.setting), appspace),
+            owner, inverse_lookup(self, owner), appspace[self.setting]
         )
 
 
@@ -125,14 +125,14 @@ class Delegated(Appspaced):
             for comp in vars(self).itervalues():
                 if getattr(comp, '_delegatable', False):
                     try:
-                        this = object.__getattribute__(comp, key)
-                        if isinstance(this, MethodType):
+                        this = getter(comp, key)
+                        if ismethod(this):
                             pkwds = {}
                             for k, v in self._delegates:
                                 if hasattr(this, k):
-                                    pkwds[k] = object.__getattribute__(self, v)
+                                    pkwds[k] = getter(self, v)
                                 this = partial(this, **pkwds)
-                        setattr(self.__class__, key, this)
+                        setter(self.__class__, key, this)
                         return this
                     except AttributeError:
                         pass

@@ -2,13 +2,16 @@
 '''appspace builders'''
 
 from __future__ import absolute_import
+from operator import getitem
 
-from stuf.utils import lazy
+from stuf.utils import getter, lazy, object_name
 
 from .utils import lru_cache
 from .error import AppLookupError, NoAppError
 from .states import AppspaceManager, appifies, global_appspace
-from .keys import AAppspace, ADefaultSettings, AInternalSettings
+from .keys import (
+    AAppspace, ABranch, ANamespace, ADefaultSettings, AInternalSettings,
+)
 
 
 def add_app(appspace, label, component, branch='', use_global=False):
@@ -64,7 +67,7 @@ def patterns(label, *args, **kw):
 
 class AppspaceFactory(object):
 
-    '''Appspace factory'''
+    '''appspace factory'''
 
     def __init__(self, label, *args, **kw):
         '''
@@ -114,21 +117,6 @@ class Appspace(object):
         '''
         self.appspace = appspace
 
-    def __call__(self, label, *args, **kw):
-        '''
-        pass arguments to component in appspace
-
-        @param label: label of component in appspace
-        '''
-        result = self.__getitem__(label)
-        try:
-            return result(*args, **kw)
-        except TypeError:
-            return result
-
-    def __contains__(self, label):
-        return label in self.appspace
-
     def __getattribute__(self, label):
         '''
         access component in appspace
@@ -136,9 +124,9 @@ class Appspace(object):
         @param label: label of component in appspace
         '''
         try:
-            return object.__getattribute__(self, label)
+            return getter(self, label)
         except AttributeError:
-            return self.__getitem__(label)
+            return getitem(self, label)
 
     @lru_cache()
     def __getitem__(self, label):
@@ -152,50 +140,90 @@ class Appspace(object):
         except AppLookupError:
             raise NoAppError('%s' % label)
 
+    def __call__(self, label, *args, **kw):
+        '''
+        pass arguments to component in appspace
+
+        @param label: label of component in appspace
+        '''
+        result = getitem(self, label)
+        try:
+            return result(*args, **kw)
+        except TypeError:
+            return result
+
+    def __contains__(self, label):
+        return label in self.appspace
+
     def __repr__(self):
         return self.appspace.__repr__()
 
 
 class Patterns(object):
 
-    label = ''
+    '''pattern configuration class'''
+
     compiler = patterns
 
     @classmethod
-    def build(cls):
-        build = {}
-        for k, v in vars(cls):
-            if not k.startswith('_'):
-                if isinstance(v, Include):
-                    build[k] = include(v)
-                else:
-                    build[k] = v
-        return patterns(cls.label, *tuple(i for i in build.iteritems()))
-
-
-class Include(object):
+    def _pack(cls, this, that):
+        return (':'.join([object_name(cls), this]), that)
 
     @classmethod
     def build(cls):
-        build = {}
-        for k, v  in vars(cls):
+        this = list()
+        tappend = this.append
+        textend = this.extend
+        # pylint: disable-msg=e1101
+        anamespace = ANamespace.implementedBy
+        branch = ABranch.implementedBy
+        pack = cls._pack
+        # pylint: enable-msg=e1101
+        for k, v in vars(cls).iteritems():
             if not k.startswith('_'):
-                if isinstance(v, Include):
-                    build[k] = v.build()
+                if anamespace(v):
+                    textend([pack(*i) for i in v.build()])
+                elif branch(v):
+                    textend(v.build())
                 else:
-                    build[k] = v
-        return build
+                    tappend(pack(k, v))
+        return patterns(object_name(cls), *tuple(this))
+
+
+class Branch(object):
+
+    '''branch configuration class'''
+
+    appifies(ABranch)
+
+    @classmethod
+    def build(cls):
+        return [
+            (k, include(v)) for k, v in vars(cls).iteritems()
+            if all([not k.startswith('_'), isinstance(v, basestring)])
+        ]
+
+
+class Namespace(object):
+
+    '''configuration namespace'''
+
+    appifies(ANamespace)
 
 
 class DefaultSettings(object):
+
+    '''default settings class'''
 
     appifies(ADefaultSettings)
 
 
 class InternalSettings(object):
 
+    '''internal settings class'''
+
     appifies(AInternalSettings)
 
 
-# Global appspace shortcut
+# global appspace shortcut
 app = Appspace(global_appspace)

@@ -105,5 +105,5 @@ class ResetMixin(object):
         # the accessor function from the parent class will be called, simply
         # because that's how the python descriptor protocol works.
         for key, value in classdict.iteritems():
-            if key in instdict and isinstance(value, desc):
+            if all([key in instdict, isinstance(value, desc)]):
                 deleter(self, key)

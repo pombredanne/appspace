@@ -11,23 +11,16 @@ AppspaceKey = Appspacer('AppspaceKey')
 
 class AApp(AppspaceKey):
 
-    '''App key'''
-
-
-class ALazyApp(AApp):
-
-    '''App lazy key'''
-
-    path = Attribute('module import path')
+    '''app key'''
 
 
 class AAppspaceManager(AppspaceKey):
 
-    '''AppspaceManager key'''
+    '''appspace manager key'''
 
+    s = Attribute('settings shortcut')
     settings = Attribute('settings for an appspace')
     queue = Attribute('queue for an appspace')
-    cache = Attribute('cache for an appspace')
 
     def get(label):  # @NoSelf
         '''Get an component'''
@@ -38,7 +31,7 @@ class AAppspaceManager(AppspaceKey):
 
 class AAppspace(AppspaceKey):
 
-    '''Appspace key'''
+    '''appspace key'''
 
     appspace = Attribute('appspace manager')
 
@@ -58,24 +51,29 @@ class AAppspace(AppspaceKey):
         pass
 
 
-class ASettings(AppspaceKey):
+class ABranch(AppspaceKey):
 
-    '''settings'''
+    '''branch key'''
 
-
-class AInternalSettings(ASettings):
-
-    '''internal settings'''
+    def build():  # @NoSelf
+        pass
 
 
-class ADefaultSettings(ASettings):
+class ALazyApp(AApp):
 
-    '''default settings key'''
+    '''lazy app key'''
+
+    path = Attribute('module import path')
+
+
+class ANamespace(AppspaceKey):
+
+    '''namespace key'''
 
 
 class AQueue(AppspaceKey):
 
-    '''queue'''
+    '''queue key'''
 
     def add_left(value):  # @NoSelf
         '''add item to left side of queue'''
@@ -88,3 +86,18 @@ class AQueue(AppspaceKey):
 
     def pop_right():  # @NoSelf
         '''pop leftmost item in queue'''
+
+
+class ASettings(AppspaceKey):
+
+    '''settings'''
+
+
+class ADefaultSettings(ASettings):
+
+    '''default settings key'''
+
+
+class AInternalSettings(ASettings):
+
+    '''internal settings'''

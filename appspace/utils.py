@@ -4,10 +4,50 @@
 from __future__ import absolute_import
 from functools import wraps
 from inspect import isclass
+from types import InstanceType
 from importlib import import_module
 
 from stuf import stuf
-from stuf.utils import OrderedDict, deleter, getter, lazybase
+from stuf.utils import OrderedDict, clsname, deleter, getter, lazybase
+
+
+def add_article(name):
+    '''
+    Returns a string containing the correct indefinite article ('a' or 'an')
+    prefixed to the specified string.
+    '''
+    return 'an ' + name if name[:1].lower() in 'aeiou' else 'a ' + name
+
+
+def class_of(this):
+    '''
+    Returns a string containing the class name of an object with the correct
+    indefinite article ('a' or 'an') preceding it.
+    '''
+    if isinstance(this, basestring):
+        return add_article(this)
+    return add_article(clsname(this))
+
+
+def get_members(this, predicate=None):
+    '''
+    A safe version of inspect.getmembers that handles missing attributes.
+
+    This is useful when there are descriptor based attributes that for some
+    reason raise AttributeError even though they exist.  This happens in
+    zope.inteface with the __provides__ attribute.
+    '''
+    results = []
+    for key in dir(this):
+        try:
+            value = getattr(this, key)
+        except AttributeError:
+            pass
+        else:
+            if not predicate or predicate(value):
+                results.append((key, value))
+    results.sort()
+    return results
 
 
 def lazy_import(module_path, attribute=None):
@@ -77,6 +117,42 @@ def object_walk(this):
             else:
                 this_stuf[k] = v
     return this_stuf
+
+
+def parse_notifier_name(name):
+    '''
+    convert the name argument to a list of names.
+
+    Examples
+    --------
+
+    >>> parse_notifier_name('a')
+    ['a']
+    >>> parse_notifier_name(['a','b'])
+    ['a', 'b']
+    >>> parse_notifier_name(None)
+    ['anytrait']
+    '''
+    if isinstance(name, str):
+        return [name]
+    elif name is None:
+        return ['anytrait']
+    elif isinstance(name, (list, tuple)):
+        for n in name:
+            assert isinstance(n, str), 'names must be strings'
+        return name
+
+
+def repr_type(this):
+    '''
+    return a string representation of a value and its type for readable error
+    messages.
+    '''
+    the_type = type(this)
+    if the_type is InstanceType:
+        # Old-style class.
+        the_type = this.__class__
+    return '%r %r' % (this, the_type)
 
 
 class ResetMixin(object):

@@ -38,3 +38,11 @@ Authors:
 Distributed under the terms of the BSD License. The full license is in
 the file COPYING, distributed as part of this software.
 '''
+
+from .support import Meta
+from .base import HasTraits
+from .error import TraitError
+from .trait_types.base import TraitType
+from .trait_types.properties import (
+    StringField, IntegerField, TextField, CharField, BooleanField, FloatField,
+)

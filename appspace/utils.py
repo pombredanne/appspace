@@ -6,6 +6,7 @@ from functools import wraps
 from inspect import isclass
 from importlib import import_module
 
+from stuf import stuf
 from stuf.utils import OrderedDict, deleter, getter, lazybase
 
 
@@ -68,14 +69,14 @@ def object_walk(this):
 
     @param this: object
     '''
-    this_dict = dict()
+    this_stuf = stuf()
     for k, v in vars(this).iteritems():
-        if not k.startswith('__'):
+        if not k.startswith('_'):
             if isclass(v):
-                this_dict[k] = object_walk(v)
+                this_stuf[k] = object_walk(v)
             else:
-                this_dict[k] = v
-    return this_dict
+                this_stuf[k] = v
+    return this_stuf
 
 
 class ResetMixin(object):

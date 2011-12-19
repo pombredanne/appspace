@@ -2,6 +2,7 @@
 # pylint: disable-msg=f0401
 '''services'''
 
+from __future__ import absolute_import
 from collections import deque
 
 from zope.interface import implements as appifies

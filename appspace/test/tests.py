@@ -213,8 +213,7 @@ class TestGlobal(unittest.TestCase):
 
     def test_identity_namespace(self):
         from appspace.builders import patterns
-        app = self._make_multiple()
-        self.assertIsInstance(app.helpers, patterns)
+        self.assertIsInstance(self._make_multiple().helpers, patterns)
 
     def test_identity_multiple(self):
         from UserDict import UserDict

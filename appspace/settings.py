@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-'''settings'''
 # pylint: disable-msg=f0401
+'''settings'''
 
-from stuf import frozenstuf
-from stuf.utils import lazy_set, lazy
+from __future__ import absolute_import
+
+from stuf import frozenstuf, stuf
+from stuf.utils import deepget, lazy_set, lazy, setter
 
 from zope.interface import implements as appifies
 
 from .utils import ResetMixin, object_walk
-from .keys import ASettings, ADefaultSettings, AInternalSettings, ANamespace
+from .keys import ASettings, ADefaultSettings, AInternalSettings
 
 
 class AppspaceSettings(ResetMixin):
@@ -19,9 +21,9 @@ class AppspaceSettings(ResetMixin):
 
     def __init__(self, **kw):
         super(AppspaceSettings, self).__init__()
-        self._main = dict(**kw)
-        self._default = {}
-        self._internal = {}
+        self._main = stuf(**kw)
+        self._default = stuf()
+        self._internal = stuf()
 
     @lazy_set
     def default(self):
@@ -68,12 +70,36 @@ class AppspaceSettings(ResetMixin):
         return frozenstuf(main)
 
     def get(self, key, default=None):
-        if default is None:
-            default = self._default.get(key)
-        return self._main.get(key, default)
+        '''
+        get value from settings
+
+        @param key: key in settings
+        @param default: default value
+        '''
+        default = deepget(self._default, key, default)
+        return deepget(key, self._main, default)
 
     def set(self, key, value):
-        self._main[key] = value
+        '''
+        set internal settings separately
+
+        @param key: key in settings
+        @param value: value to put in settings
+        '''
+        try:
+            path, key = key.rsplit('.', 1)
+            try:
+                setter(deepget(self._main, key), value)
+            except AttributeError:
+                paths = path.spit('.')
+                this = self._main
+                for part in paths:
+                    new = stuf()
+                    this[part] = new
+                    this = new
+                this[key] = value
+        except ValueError:
+            self._main[key] = value
 
     def update_default(self, settings):
         if ADefaultSettings.implementedBy(settings):
@@ -105,10 +131,3 @@ class InternalSettings(object):
     '''internal settings class'''
 
     appifies(AInternalSettings)
-
-
-class Namespace(object):
-
-    '''configuration namespace'''
-
-    appifies(ANamespace)

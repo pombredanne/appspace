@@ -64,36 +64,6 @@ def patterns(label, *args, **kw):
     return AppspaceFactory(label, *args, **kw)()
 
 
-class AppspaceFactory(object):
-
-    '''appspace factory'''
-
-    def __init__(self, label, *args, **kw):
-        '''
-        init
-
-        @param label: label of appspace
-        @param *args: tuple of module paths or component inclusions
-        '''
-        # whether to use global appspace instead of local appspace
-        self._glob = kw.get('use_global', False)
-        # appspace label
-        self._label = label
-        # register apps in appspace
-        apper = self._appspace.set
-        starmap(apper, args)
-        apper(label, Appspace(self._appspace))
-
-    def __call__(self):
-        '''instantiate appspace interface'''
-        return Appspace(self._appspace)
-
-    @lazy
-    def _appspace(self):
-        '''provide appspace'''
-        return global_appspace if self._glob else AppspaceManager(self._label)
-
-
 class Appspace(object):
 
     '''appspace interface'''
@@ -152,6 +122,35 @@ class Appspace(object):
         return self.appspace.__repr__()
 
 
+class AppspaceFactory(object):
+
+    '''appspace factory'''
+
+    def __init__(self, label, *args, **kw):
+        '''
+        init
+
+        @param label: label of appspace
+        @param *args: tuple of module paths or component inclusions
+        '''
+        # whether to use global appspace instead of local appspace
+        self._glob = kw.get('use_global', False)
+        # appspace label
+        self._label = label
+        # register apps in appspace
+        starmap(self._appspace.set, args)
+        self._appspace.set(label, Appspace(self._appspace))
+
+    def __call__(self):
+        '''instantiate appspace interface'''
+        return Appspace(self._appspace)
+
+    @lazy
+    def _appspace(self):
+        '''provide appspace'''
+        return global_appspace if self._glob else AppspaceManager(self._label)
+
+
 class Patterns(object):
 
     '''pattern class settings'''
@@ -165,11 +164,9 @@ class Patterns(object):
         this = list()
         tappend = this.append
         textend = this.extend
-        # pylint: disable-msg=e1101
         anamespace = ANamespace.implementedBy
         branch = ABranch.implementedBy
         pack = cls._pack
-        # pylint: enable-msg=e1101
         for k, v in vars(cls).iteritems():
             if not k.startswith('_'):
                 if anamespace(v):
@@ -193,6 +190,13 @@ class Branch(object):
             (k, include(v)) for k, v in vars(cls).iteritems()
             if all([not k.startswith('_'), isinstance(v, basestring)])
         ]
+
+
+class Namespace(object):
+
+    '''configuration namespace'''
+
+    appifies(ANamespace)
 
 
 # global appspace shortcut

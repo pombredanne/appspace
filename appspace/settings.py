@@ -10,7 +10,7 @@ from stuf.utils import deepget, lazy_set, lazy, setter
 from zope.interface import implements as appifies
 
 from .utils import ResetMixin, object_walk
-from .keys import ASettings, ADefaultSettings, AInternalSettings
+from .keys import ASettings, ADefaultSettings, ARequiredSettings
 
 
 class AppspaceSettings(ResetMixin):
@@ -21,9 +21,9 @@ class AppspaceSettings(ResetMixin):
 
     def __init__(self, **kw):
         super(AppspaceSettings, self).__init__()
-        self._main = stuf(**kw)
+        self._final = stuf(**kw)
         self._default = stuf()
-        self._internal = stuf()
+        self._required = stuf()
 
     @lazy_set
     def default(self):
@@ -44,30 +44,30 @@ class AppspaceSettings(ResetMixin):
             raise TypeError('invalid DefaultSettings')
 
     @lazy_set
-    def internal(self):
-        '''get internal settings separately'''
+    def required(self):
+        '''get required settings separately'''
         return frozenstuf(self._default)
 
-    @internal.setter
-    def internal(self, value):
+    @required.setter
+    def required(self, value):
         '''
-        set internal settings separately
+        set required settings separately
 
-        @param value: internal settings
+        @param value: required settings
         '''
-        if AInternalSettings.implementedBy(value):
-            self._internal.clear()
-            self.update_internal(value)
+        if ARequiredSettings.implementedBy(value):
+            self._required.clear()
+            self.update_required(value)
         else:
-            raise TypeError('invalid InternalSettings')
+            raise TypeError('invalid RequiredSettings')
 
     @lazy
-    def main(self):
-        '''get main settings separately'''
-        main = self._default.copy()
-        main.update(self._main.copy())
-        main.update(self._internal.copy())
-        return frozenstuf(main)
+    def final(self):
+        '''get final settings separately'''
+        final = self._default.copy()
+        final.update(self._final.copy())
+        final.update(self._required.copy())
+        return frozenstuf(final)
 
     def get(self, key, default=None):
         '''
@@ -77,11 +77,11 @@ class AppspaceSettings(ResetMixin):
         @param default: default value
         '''
         default = deepget(self._default, key, default)
-        return deepget(key, self._main, default)
+        return deepget(key, self._final, default)
 
     def set(self, key, value):
         '''
-        set internal settings separately
+        set required settings separately
 
         @param key: key in settings
         @param value: value to put in settings
@@ -89,17 +89,17 @@ class AppspaceSettings(ResetMixin):
         try:
             path, key = key.rsplit('.', 1)
             try:
-                setter(deepget(self._main, key), value)
+                setter(deepget(self._final, key), value)
             except AttributeError:
                 paths = path.spit('.')
-                this = self._main
+                this = self._final
                 for part in paths:
                     new = stuf()
                     this[part] = new
                     this = new
                 this[key] = value
         except ValueError:
-            self._main[key] = value
+            self._final[key] = value
 
     def update_default(self, settings):
         if ADefaultSettings.implementedBy(settings):
@@ -108,15 +108,15 @@ class AppspaceSettings(ResetMixin):
         else:
             raise TypeError('invalid DefaultSettings')
 
-    def update_internal(self, settings):
-        if AInternalSettings.implementedBy(settings):
+    def update_required(self, settings):
+        if ARequiredSettings.implementedBy(settings):
             self.reset()
-            self._internal.update(object_walk(settings))
+            self._required.update(object_walk(settings))
         else:
-            raise TypeError('invalid InternalSettings')
+            raise TypeError('invalid RequiredSettings')
 
     def update(self, *args, **kw):
-        self._main.update(*args, **kw)
+        self._final.update(*args, **kw)
 
 
 class DefaultSettings(object):
@@ -126,8 +126,8 @@ class DefaultSettings(object):
     appifies(ADefaultSettings)
 
 
-class InternalSettings(object):
+class RequiredSettings(object):
 
-    '''internal settings class'''
+    '''required settings class'''
 
-    appifies(AInternalSettings)
+    appifies(ARequiredSettings)

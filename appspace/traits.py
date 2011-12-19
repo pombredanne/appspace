@@ -1,4 +1,4 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
 # pylint: disable-msg=w0212,w0702,w0211,w0232
 '''
 A lightweight Traits like module.
@@ -1103,6 +1103,28 @@ class CInt(Int):
             return int(value)
         except:
             self.error(this, value)
+
+
+class Integer(TraitType):
+
+    '''
+    An integer trait.
+
+    Longs that are unnecessary (<= sys.maxint) are cast to ints.
+    '''
+
+    default_value = 0
+    info_text = 'an integer'
+
+    def validate(self, obj, value):
+        if isinstance(value, int):
+            return value
+        elif isinstance(value, long):
+            # downcast longs that fit in int:
+            # note that int(n > sys.maxint) returns a long, so
+            # we don't need a condition on this cast
+            return int(value)
+        self.error(obj, value)
 
 
 class Long(TraitType):

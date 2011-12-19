@@ -98,6 +98,6 @@ class ADefaultSettings(ASettings):
     '''default settings key'''
 
 
-class AInternalSettings(ASettings):
+class ARequiredSettings(ASettings):
 
     '''internal settings'''

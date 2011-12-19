@@ -1,46 +1,26 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=w0232,e1002,f0401,e1101,e1001
-'''appspace state management'''
+# pylint: disable-msg=e1001,e1002,f0401
+'''state management'''
 
 from __future__ import absolute_import
-from collections import deque
+from operator import contains
 
-from stuf import frozenstuf
+from stuf.utils import lazy
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
-from stuf.utils import object_lookup, lazy_set, lazy
 
+from .utils import lazy_import
 from .error import AppLookupError
-from .utils import ResetMixin, lazy_import, object_walk
-from .keys import (
-    AAppspaceManager, ASettings, AQueue, AApp, ALazyApp, AInternalSettings,
-    ADefaultSettings,
-)
-
-
-class LazyApp(object):
-
-    '''lazy component loader'''
-
-    __slots__ = ['path']
-
-    appifies(ALazyApp)
-
-    def __init__(self, path):
-        '''
-        @param path: path to component module
-        '''
-        self.path = path
-
-    def __repr__(self):
-        return 'App@{path}'.format(path=self.path)
+from .settings import AppspaceSettings
+from .services import AppspaceQueue, LazyApp
+from .keys import AAppspaceManager, ASettings, AQueue, AApp, ALazyApp
 
 
 class AppspaceManager(AdapterRegistry):
 
     '''appspace state manager'''
 
-    __slots__ = ['_label', 'settings', '_settings', 'queue', '_queue']
+    __slots__ = ['label', 'settings', '_settings', 'queue', '_queue']
 
     appifies(AAppspaceManager)
 
@@ -52,13 +32,11 @@ class AppspaceManager(AdapterRegistry):
         self._label = label
         self._queue = kw.pop('queue', 'default')
         self._settings = kw.pop('settings', 'default')
-        self.register(
-            [ASettings], ASettings, 'default', AppspaceSettings
-        )
+        self.register([ASettings], ASettings, 'default', AppspaceSettings)
         self.register([AQueue], AQueue, 'default', AppspaceQueue)
 
     def __contains__(self, label):
-        return label in self.names((), AApp)
+        return contains(self.names((), AApp), label)
 
     def __repr__(self):
         return str(self.lookupAll((), AApp))
@@ -67,10 +45,6 @@ class AppspaceManager(AdapterRegistry):
     def queue(self):
         '''appspace queue'''
         return self.lookup1(AQueue, AQueue, self._queue)
-
-    @lazy
-    def s(self):
-        return self.settings
 
     @lazy
     def settings(self):
@@ -119,125 +93,7 @@ class AppspaceManager(AdapterRegistry):
         self.register([AApp], AApp, label, component)
 
 
-class AppspaceSettings(ResetMixin):
-
-    '''appspace settings'''
-
-    appifies(ASettings)
-
-    def __init__(self, **kw):
-        super(AppspaceSettings, self).__init__()
-        self._main = dict(**kw)
-        self._default = {}
-        self._internal = {}
-
-    @lazy_set
-    def default(self):
-        '''get default settings separately'''
-        return frozenstuf(self._default)
-
-    @default.setter
-    def default(self, value):
-        '''
-        set default settings separately
-
-        @param value: default settings
-        '''
-        if ADefaultSettings.implementedBy(value):
-            self._default.clear()
-            self.update_default(value)
-        else:
-            raise TypeError('invalid DefaultSettings')
-
-    @lazy_set
-    def internal(self):
-        '''get internal settings separately'''
-        return frozenstuf(self._default)
-
-    @internal.setter
-    def internal(self, value):
-        '''
-        set internal settings separately
-
-        @param value: internal settings
-        '''
-        if AInternalSettings.implementedBy(value):
-            self._internal.clear()
-            self.update_internal(value)
-        else:
-            raise TypeError('invalid InternalSettings')
-
-    @lazy
-    def main(self):
-        '''get main settings separately'''
-        main = self._default.copy()
-        main.update(self._main.copy())
-        main.update(self._internal.copy())
-        return frozenstuf(main)
-
-    def get(self, key, namespace=None, appspace=None, default=None):
-        if default is None:
-            default = self._default.get(key)
-        if namespace:
-            return self._main.get(namespace, {}).get(key, default)
-        return self._main.get(key, default)
-
-    def set(self, key, value, namespace=None):
-        if namespace is not None:
-            nspace = self._main.setdefault(namespace, dict(key=value))
-            nspace[key] = value
-        else:
-            self._main[key] = value
-
-    def lookup(self, setting):
-        try:
-            setting = setting.split('.')
-        except AttributeError:
-            pass
-        return object_lookup(setting, self.main)
-
-    def update_default(self, settings):
-        if ADefaultSettings.implementedBy(settings):
-            self.reset()
-            self._default.update(object_walk(settings))
-        else:
-            raise TypeError('invalid DefaultSettings')
-
-    def update_internal(self, settings):
-        if AInternalSettings.implementedBy(settings):
-            self.reset()
-            self._internal.update(object_walk(settings))
-        else:
-            raise TypeError('invalid InternalSettings')
-
-    def update(self, *args, **kw):
-        self._main.update(*args, **kw)
-
-
-class AppspaceQueue(object):
-
-    def __init__(self):
-        self._queue = deque()
-
-    def add_left(self, value):
-        '''add item to left side of queue'''
-        self._queue.appendleft(value)
-
-    def pop_left(self):
-        '''pop leftmost item in queue'''
-        return self._queue.popleft()
-
-    def add_right(self, value):
-        '''add item to left side of queue'''
-        self._queue.append(value)
-
-    def pop_right(self):
-        '''pop leftmost item in queue'''
-        return self._queue.pop()
-
-
 # global appspace
 global_appspace = AppspaceManager()
-
 # global settings
 global_settings = global_appspace.settings

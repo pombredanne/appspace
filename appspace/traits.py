@@ -47,9 +47,9 @@ import types
 import inspect
 from types import InstanceType, ClassType, FunctionType, ListType, TupleType
 
-from stuf.utils import class_name, either
+from stuf.utils import clsname, either, lazy
 
-from .utils import ResetMixin, lazy_import, lazy
+from .utils import ResetMixin, lazy_import
 
 ClassTypes = (ClassType, type)
 SequenceTypes = (ListType, TupleType, set, frozenset)
@@ -74,7 +74,7 @@ def class_of(this):
     '''
     if isinstance(this, basestring):
         return add_article(this)
-    return add_article(class_name(this))
+    return add_article(clsname(this))
 
 
 def get_members(this, predicate=None):
@@ -684,7 +684,7 @@ class HasTraits(ResetMixin):
             trait = getattr(self.__class__, traitname)
         except AttributeError:
             raise TraitError('Class %s does not have a trait named %s' % (
-                class_name(self), traitname
+                clsname(self), traitname
             ))
         else:
             return trait.get_metadata(key)
@@ -843,7 +843,7 @@ class ClassBasedTraitType(TraitType):
     def error(self, this, value):
         kind = type(value)
         if kind is InstanceType:
-            msg = 'class %s' % class_name(value)
+            msg = 'class %s' % clsname(value)
         else:
             msg = '%s (i.e. %s)' % (str(kind)[1:-1], repr(value))
         if this is not None:
@@ -1514,7 +1514,7 @@ class Container(Instance):
             args = (default_value,)
         else:
             raise TypeError('default value of %s was %s' % (
-                class_name(self), default_value)
+                clsname(self), default_value)
             )
         if istrait(trait):
             self._trait = trait()
@@ -1689,7 +1689,7 @@ class Tuple(Container):
             args = (default_value,)
         else:
             raise TypeError('default value of %s was %s' % (
-                class_name(self), default_value
+                clsname(self), default_value
             ))
         self._traits = []
         for trait in traits:

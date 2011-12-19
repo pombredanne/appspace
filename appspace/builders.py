@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-'''appspace builders'''
+'''builders'''
 
 from __future__ import absolute_import
-from operator import getitem
+from itertools import starmap
+from operator import getitem, contains
 
-from stuf.utils import getter, lazy, object_name
+from stuf.utils import getter, lazy, selfname
 
 from .utils import lru_cache
 from .error import AppLookupError, NoAppError
+from .keys import AAppspace, ABranch, ANamespace
 from .states import AppspaceManager, appifies, global_appspace
-from .keys import (
-    AAppspace, ABranch, ANamespace, ADefaultSettings, AInternalSettings,
-)
 
 
 def add_app(appspace, label, component, branch='', use_global=False):
@@ -71,21 +70,19 @@ class AppspaceFactory(object):
 
     def __init__(self, label, *args, **kw):
         '''
+        init
+
         @param label: label of appspace
         @param *args: tuple of module paths or component inclusions
         '''
-        # label of appspace in branch appspace module e.g. someapp.apps.label
-        self._label = kw.get('label', 'apps')
         # whether to use global appspace instead of local appspace
-        self._global = kw.get('use_global', False)
+        self._glob = kw.get('use_global', False)
         # appspace label
         self._label = label
         # register apps in appspace
         apper = self._appspace.set
-        for arg in args:
-            apper(*arg)
-        if label:
-            apper(label, Appspace(self._appspace))
+        starmap(apper, args)
+        apper(label, Appspace(self._appspace))
 
     def __call__(self):
         '''instantiate appspace interface'''
@@ -94,11 +91,7 @@ class AppspaceFactory(object):
     @lazy
     def _appspace(self):
         '''provide appspace'''
-        # using global appspace
-        if self._global:
-            return global_appspace
-        # using local appspace
-        return AppspaceManager(self._label)
+        return global_appspace if self._glob else AppspaceManager(self._label)
 
 
 class Appspace(object):
@@ -153,7 +146,7 @@ class Appspace(object):
             return result
 
     def __contains__(self, label):
-        return label in self.appspace
+        return contains(self.appspace, label)
 
     def __repr__(self):
         return self.appspace.__repr__()
@@ -161,13 +154,11 @@ class Appspace(object):
 
 class Patterns(object):
 
-    '''pattern configuration class'''
-
-    compiler = patterns
+    '''pattern class settings'''
 
     @classmethod
     def _pack(cls, this, that):
-        return (':'.join([object_name(cls), this]), that)
+        return ('.'.join([selfname(cls), this]), that)
 
     @classmethod
     def build(cls):
@@ -187,7 +178,7 @@ class Patterns(object):
                     textend(v.build())
                 else:
                     tappend(pack(k, v))
-        return patterns(object_name(cls), *tuple(this))
+        return patterns(selfname(cls), *tuple(this))
 
 
 class Branch(object):
@@ -202,27 +193,6 @@ class Branch(object):
             (k, include(v)) for k, v in vars(cls).iteritems()
             if all([not k.startswith('_'), isinstance(v, basestring)])
         ]
-
-
-class Namespace(object):
-
-    '''configuration namespace'''
-
-    appifies(ANamespace)
-
-
-class DefaultSettings(object):
-
-    '''default settings class'''
-
-    appifies(ADefaultSettings)
-
-
-class InternalSettings(object):
-
-    '''internal settings class'''
-
-    appifies(AInternalSettings)
 
 
 # global appspace shortcut

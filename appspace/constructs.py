@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=e1103
-'''appspace component constructs'''
+'''constructs'''
 
 from __future__ import absolute_import
 from inspect import ismethod
 from functools import partial, wraps
 
-from stuf.utils import (
-    getter, instance_or_class, inverse_lookup, object_lookup, setter,
-)
+from stuf.utils import getter, instance_or_class, inverse_lookup, setter
 
 from .utils import ResetMixin, lazy_import
 
@@ -20,7 +17,10 @@ def appspacer(appspace):
     @param appspace: appspace to add
     '''
     Appspaced.appspace = Appspaced.a = appspace
-    Appspaced.settings = Appspaced.s = appspace.settings
+    Appspaced.settings = appspace.settings
+    Appspaced.s = appspace.settings.main
+    Appspaced.i = appspace.settings.internal
+    Appspaced.d = appspace.settings.default
     return Appspaced
 
 
@@ -31,7 +31,10 @@ def delegater(appspace):
     @param appspace: appspace to add
     '''
     Delegated.appspace = Delegated.a = appspace
-    Delegated.settings = Delegated.s = appspace.settings
+    Delegated.settings = appspace.settings
+    Delegated.s = appspace.settings.main
+    Delegated.i = appspace.settings.internal
+    Delegated.d = appspace.settings.default
     return Delegated
 
 
@@ -66,20 +69,34 @@ def get_appspace(this, owner):
     return appspace
 
 
+def get_component(appspace, label, branch=None):
+    '''
+    get component from appspace
+
+    @param appspace: appspace
+    @param label: component label
+    @param branch: component branch (default: None)
+    '''
+    return appspace[branch][label] if branch is None else appspace[label]
+
+
 class component(object):
 
     '''lazily set appspaced component as class attribute on first access'''
 
-    def __init__(self, setting):
+    def __init__(self, label, branch=None):
         '''
         @param setting: a component setting
         '''
-        self.setting = setting
+        self._label = label
+        self._branch = branch
 
     def __get__(self, instance, owner):
         appspace = get_appspace(instance, owner)
         return setter(
-            owner, inverse_lookup(self, owner), appspace[self.setting]
+            owner,
+            inverse_lookup(self, owner),
+            get_component(appspace, self._label, self._branch)
         )
 
 
@@ -90,21 +107,24 @@ class delegate(component):
 
 class Appspaced(ResetMixin):
 
+    '''class with appspace attached'''
+
     appspace = None
     _descriptor_class = component
 
-    def _instance_component(self, label, *setting):
+    def _instance_component(self, name, label, branch=None):
         '''
         inject appspaced component as instance attribute
 
-        @param label: instance attribute label
-        @param setting: a component setting
+        @param name: instance attribute label
+        @param label: component label
+        @param setting: component branch (default: None)
         '''
         appspace = get_appspace(self, self.__class__)
         return setter(
             self,
-            label,
-            object_lookup(appspace.settings.lookup(setting), appspace),
+            name,
+            get_component(appspace, label, branch),
         )
 
 
@@ -123,7 +143,7 @@ class Delegated(Appspaced):
             return object.__getattribute__(self, key)
         except AttributeError:
             for comp in vars(self).itervalues():
-                if getattr(comp, '_delegatable', False):
+                if getter(comp, '_delegatable', False):
                     try:
                         this = getter(comp, key)
                         if ismethod(this):

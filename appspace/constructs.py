@@ -19,7 +19,7 @@ def appspacer(appspace):
     Appspaced.appspace = Appspaced.a = appspace
     Appspaced.settings = appspace.settings
     Appspaced.f = appspace.settings.final
-    Appspaced.r = appspace.settings.required
+    Appspaced.q = appspace.settings.required
     Appspaced.d = appspace.settings.default
     return Appspaced
 
@@ -33,7 +33,7 @@ def delegater(appspace):
     Delegated.appspace = Delegated.a = appspace
     Delegated.settings = appspace.settings
     Delegated.f = appspace.settings.final
-    Delegated.r = appspace.settings.required
+    Delegated.q = appspace.settings.required
     Delegated.d = appspace.settings.default
     return Delegated
 

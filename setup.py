@@ -19,7 +19,10 @@ setup(
     author_email='lcrees@gmail.com',
     license='MIT',
     url='https://bitbucket.org/lcrees/appspace',
-    packages=['appspace', 'appspace.test'],
+    packages=[
+        'appspace', 'appspace.tests', 'appspace.traits', 'appspace.traits',
+        'appspace.traits.trait_types',
+    ],
     test_suite='appspace.test',
     zip_safe=False,
     keywords='component injection aspect-oriented programming',

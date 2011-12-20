@@ -73,7 +73,7 @@ def get_component(appspace, label, branch=None):
     @param label: component label
     @param branch: component branch (default: None)
     '''
-    return appspace[branch][label] if branch is None else appspace[label]
+    return appspace[branch][label] if branch is not None else appspace[label]
 
 
 class component(object):

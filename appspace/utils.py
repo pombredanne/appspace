@@ -62,7 +62,7 @@ def lazy_import(module_path, attribute=None):
             dot = module_path.rindex('.')
             # import module
             module_path = getter(
-                import_module(module_path[:dot]), module_path[dot + 1:]
+                import_module(module_path[:dot]), module_path[dot+1:]
             )
         # If nothing but module name, import the module
         except AttributeError:

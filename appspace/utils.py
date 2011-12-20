@@ -4,33 +4,11 @@
 from __future__ import absolute_import
 from functools import wraps
 from inspect import isclass
-from operator import getitem
 from types import InstanceType
 from importlib import import_module
 
 from stuf import stuf
-from stuf.utils import OrderedDict, clsname, deleter, lazybase
-
-
-def getter(this, key):
-    '''
-    get an attribute
-
-    @param this: object
-    @param key: key to lookup
-    @param default: default value returned if key not found (default: None)
-    '''
-    try:
-        return object.__getattribute__(this, key)
-    except TypeError:
-        return getattr(this, key)
-
-
-def attr_or_item(this, key):
-    try:
-        return getter(this, key)
-    except AttributeError:
-        return getitem(this, key)
+from stuf.utils import OrderedDict, clsname, deleter, getter, lazybase
 
 
 def add_article(name):

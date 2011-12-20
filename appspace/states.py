@@ -13,12 +13,12 @@ from .utils import lazy_import
 from .error import AppLookupError
 from .settings import AppspaceSettings
 from .services import AppspaceQueue, LazyApp
-from .keys import AAppspaceManager, ASettings, AQueue, AApp, ALazyApp
+from .keys import AApp, AAppspaceManager, ALazyApp, AQueue, ASettings
 
 
 class AppspaceManager(AdapterRegistry):
 
-    '''appspace state manager'''
+    '''state manager'''
 
     __slots__ = ['label', 'settings', '_settings', 'queue', '_queue']
 
@@ -44,12 +44,12 @@ class AppspaceManager(AdapterRegistry):
     @lazy
     def queue(self):
         '''appspace queue'''
-        return self.lookup1(AQueue, AQueue, self._queue)
+        return self.lookup1(AQueue, AQueue, self._queue)()
 
     @lazy
     def settings(self):
         '''appspace settings'''
-        return self.lookup1(ASettings, ASettings, self._settings)
+        return self.lookup1(ASettings, ASettings, self._settings)()
 
     def _component(self, label, module_path):
         '''

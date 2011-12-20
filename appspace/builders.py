@@ -4,9 +4,9 @@
 from __future__ import absolute_import
 from operator import getitem, contains
 
-from stuf.utils import lazy, selfname
+from stuf.utils import attr_or_item, lazy, selfname
 
-from .utils import attr_or_item, lru_cache
+from .utils import lru_cache
 from .error import AppLookupError, NoAppError
 from .keys import AAppspace, ABranch, ANamespace
 from .states import AppspaceManager, appifies, global_appspace
@@ -79,7 +79,7 @@ class Appspace(object):
         '''
         self.appspace = appspace
 
-    def __getattribute__(self, label):
+    def __getattr__(self, label):
         '''
         access component in appspace
 
@@ -176,11 +176,7 @@ class Patterns(object):
         return patterns(selfname(cls), *tuple(this))
 
 
-class Branch(object):
-
-    '''branch configuration class'''
-
-    appifies(ABranch)
+class Mark(object):
 
     @classmethod
     def build(cls):
@@ -190,7 +186,14 @@ class Branch(object):
         ]
 
 
-class Namespace(object):
+class Branch(Mark):
+
+    '''branch configuration class'''
+
+    appifies(ABranch)
+
+
+class Namespace(Mark):
 
     '''configuration namespace'''
 

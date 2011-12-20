@@ -5,7 +5,9 @@ from __future__ import absolute_import
 from inspect import ismethod
 from functools import partial, wraps
 
-from stuf.utils import getter, instance_or_class, inverse_lookup, setter
+from stuf.utils import (
+    getter, instance_or_class, inverse_lookup, setter, get_or_default,
+)
 
 from .utils import ResetMixin, lazy_import
 
@@ -16,11 +18,8 @@ def appspacer(appspace):
 
     @param appspace: appspace to add
     '''
-    Appspaced.appspace = Appspaced.a = appspace
-    Appspaced.settings = appspace.settings
-    Appspaced.f = appspace.settings.final
-    Appspaced.q = appspace.settings.required
-    Appspaced.d = appspace.settings.default
+    Appspaced.a = appspace
+    Appspaced.s = appspace.appspace.settings
     return Appspaced
 
 
@@ -30,11 +29,11 @@ def delegater(appspace):
 
     @param appspace: appspace to add
     '''
-    Delegated.appspace = Delegated.a = appspace
-    Delegated.settings = appspace.settings
-    Delegated.f = appspace.settings.final
-    Delegated.q = appspace.settings.required
-    Delegated.d = appspace.settings.default
+    Delegated.a = appspace
+    Delegated.settings = appspace.appspace.settings
+    Delegated.r = appspace.appspace.settings.required
+    Delegated.d = appspace.appspace.settings.defaults
+    Delegated.f = appspace.appspace.settings.final
     return Delegated
 
 
@@ -109,7 +108,6 @@ class Appspaced(ResetMixin):
 
     '''class with appspace attached'''
 
-    appspace = None
     _descriptor_class = component
 
     def _instance_component(self, name, label, branch=None):
@@ -143,7 +141,7 @@ class Delegated(Appspaced):
             return object.__getattribute__(self, key)
         except AttributeError:
             for comp in vars(self).itervalues():
-                if getter(comp, '_delegatable', False):
+                if get_or_default(comp, '_delegatable', False):
                     try:
                         this = getter(comp, key)
                         if ismethod(this):

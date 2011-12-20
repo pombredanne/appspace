@@ -5,7 +5,7 @@
 from __future__ import absolute_import
 
 from stuf import frozenstuf, stuf
-from stuf.utils import deepget, lazy_set, lazy, setter
+from stuf.utils import deepget, lazy, lazy_set, setter
 
 from zope.interface import implements as appifies
 
@@ -25,13 +25,17 @@ class AppspaceSettings(ResetMixin):
         self._default = stuf()
         self._required = stuf()
 
+    @lazy
+    def d(self):
+        return self.defaults
+
     @lazy_set
-    def default(self):
+    def defaults(self):
         '''get default settings separately'''
         return frozenstuf(self._default)
 
-    @default.setter
-    def default(self, value):
+    @defaults.setter
+    def defaults(self, value):
         '''
         set default settings separately
 
@@ -42,6 +46,10 @@ class AppspaceSettings(ResetMixin):
             self.update_default(value)
         else:
             raise TypeError('invalid DefaultSettings')
+
+    @lazy
+    def r(self):
+        return self.required
 
     @lazy_set
     def required(self):
@@ -60,6 +68,10 @@ class AppspaceSettings(ResetMixin):
             self.update_required(value)
         else:
             raise TypeError('invalid RequiredSettings')
+
+    @lazy
+    def f(self):
+        return self.final
 
     @lazy
     def final(self):
@@ -89,9 +101,9 @@ class AppspaceSettings(ResetMixin):
         try:
             path, key = key.rsplit('.', 1)
             try:
-                setter(deepget(self._final, key), value)
+                setter(deepget(self._final, key), key, value)
             except AttributeError:
-                paths = path.spit('.')
+                paths = path.split('.')
                 this = self._final
                 for part in paths:
                     new = stuf()

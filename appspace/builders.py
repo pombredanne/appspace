@@ -149,34 +149,9 @@ class AppspaceFactory(object):
         return global_appspace if self._glob else AppspaceManager(self._label)
 
 
-class Patterns(object):
-
-    '''pattern class settings'''
-
-    @classmethod
-    def _pack(cls, this, that):
-        return ('.'.join([selfname(cls), this]), that)
-
-    @classmethod
-    def build(cls):
-        this = list()
-        tappend = this.append
-        textend = this.extend
-        anamespace = ANamespace.implementedBy
-        branch = ABranch.implementedBy
-        pack = cls._pack
-        for k, v in vars(cls).iteritems():
-            if not k.startswith('_'):
-                if anamespace(v):
-                    textend([pack(*i) for i in v.build()])
-                elif branch(v):
-                    textend(v.build())
-                else:
-                    tappend(pack(k, v))
-        return patterns(selfname(cls), *tuple(this))
-
-
 class Mark(object):
+
+    '''mark base'''
 
     @classmethod
     def build(cls):
@@ -198,6 +173,33 @@ class Namespace(Mark):
     '''configuration namespace'''
 
     appifies(ANamespace)
+
+
+class Patterns(object):
+
+    '''pattern class settings'''
+
+    @classmethod
+    def _pack(cls, this, that):
+        return (this, that)
+
+    @classmethod
+    def build(cls):
+        this = list()
+        tappend = this.append
+        textend = this.extend
+        anamespace = ANamespace.implementedBy
+        branch = ABranch.implementedBy
+        pack = cls._pack
+        for k, v in vars(cls).iteritems():
+            if not k.startswith('_'):
+                if anamespace(v):
+                    textend([pack(*i) for i in v.build()])
+                elif branch(v):
+                    textend(v.build())
+                else:
+                    tappend(pack(k, v))
+        return patterns(selfname(cls), *tuple(this))
 
 
 # global appspace shortcut

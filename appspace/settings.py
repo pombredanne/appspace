@@ -55,7 +55,7 @@ class AppspaceSettings(ResetMixin):
     @lazy_set
     def required(self):
         '''get required settings separately'''
-        return frozenstuf(self._default)
+        return frozenstuf(self._required)
 
     @required.setter
     def required(self, value):

@@ -30,10 +30,7 @@ def delegater(appspace):
     @param appspace: appspace to add
     '''
     Delegated.a = appspace
-    Delegated.settings = appspace.appspace.settings
-    Delegated.r = appspace.appspace.settings.required
-    Delegated.d = appspace.appspace.settings.defaults
-    Delegated.f = appspace.appspace.settings.final
+    Delegated.s = appspace.appspace.settings
     return Delegated
 
 
@@ -62,7 +59,7 @@ def get_appspace(this, owner):
     @param this: an instance
     @param owner: the instance's class
     '''
-    appspace = instance_or_class('appspace', this, owner)
+    appspace = instance_or_class('a', this, owner)
     if appspace is None:
         appspace = this.appspace = lazy_import('appspace.builder.app')
     return appspace

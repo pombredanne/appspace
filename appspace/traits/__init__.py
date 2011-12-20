@@ -40,7 +40,7 @@ the file COPYING, distributed as part of this software.
 '''
 
 from .support import Meta
-from .base import HasTraits
+from .base import HasTraitsMixin, SynchedMixin
 from .error import TraitError
 from .trait_types.base import TraitType
 from .trait_types.properties import (

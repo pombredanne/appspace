@@ -9,11 +9,28 @@ from types import FunctionType
 
 from stuf.utils import clsname, either
 
-from appspace.utils import ResetMixin, get_members, parse_notifier_name
+from appspace.utils import get_members, parse_notifier_name
 
 from .error import TraitError
 from .support import Sync, _SimpleTest
 from .trait_types.base import TraitType
+
+
+class SynchedMixin(object):
+
+    def __init__(self, original, **kw):
+        # Allow trait values to be set using keyword arguments. We need to use
+        # setattr for this to trigger validation and notifications.
+        super(SynchedMixin, self).__init__()
+        self._sync = Sync(original, **kw)
+
+    def __repr__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return unicode(dict(i for i in self._sync.public.iteritems()))
+
+    __str__ = __unicode__
 
 
 class MetaHasTraits(type):
@@ -53,7 +70,7 @@ class MetaHasTraits(type):
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
 
-class HasTraits(ResetMixin):
+class HasTraitsMixin(SynchedMixin):
 
     __metaclass__ = MetaHasTraits
     _descriptor_class = TraitType
@@ -67,7 +84,7 @@ class HasTraits(ResetMixin):
             b.Meta for b in inspect.getmro(cls) if hasattr(b, 'Meta')
         ]
         # pylint: enable-msg=e1101
-        new_meth = super(HasTraits, cls).__new__
+        new_meth = super(HasTraitsMixin, cls).__new__
         if new_meth is object.__new__:
             inst = new_meth(cls)
         else:
@@ -89,20 +106,6 @@ class HasTraits(ResetMixin):
                 if isinstance(value, TraitType):
                     value.instance_init(inst)
         return inst
-
-    def __init__(self, original, **kw):
-        # Allow trait values to be set using keyword arguments. We need to use
-        # setattr for this to trigger validation and notifications.
-        super(HasTraits, self).__init__()
-        self._sync = Sync(original, **kw)
-
-    def __repr__(self):
-        return self.__unicode__()
-
-    def __unicode__(self):
-        return unicode(dict(i for i in self._sync.public.iteritems()))
-
-    __str__ = __unicode__
 
     def _add_notifiers(self, handler, name):
         if not name in self._trait_notifiers:

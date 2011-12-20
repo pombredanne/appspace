@@ -20,13 +20,13 @@ class AppspaceManager(AdapterRegistry):
 
     '''state manager'''
 
-    __slots__ = ['label', 'settings', '_settings', 'queue', '_queue']
+    __slots__ = ['_label', 'queue', '_queue', 'settings', '_settings']
 
     appifies(AAppspaceManager)
 
     def __init__(self, label='appconf', bases=(), **kw):
         '''
-        @param label: label for application module name
+        @param label: label for application configuration module
         '''
         super(AppspaceManager, self).__init__(bases)
         self._label = label
@@ -51,11 +51,24 @@ class AppspaceManager(AdapterRegistry):
         '''appspace settings'''
         return self.lookup1(ASettings, ASettings, self._settings)()
 
-    def _component(self, label, module_path):
+    def get(self, label):
         '''
-        register branch appspaces or apps in appspace
+        component fetcher
 
-        @param label: component or branch appspace
+        @param label: component or branch label
+        '''
+        component = self.lookup1(AApp, AApp, label)
+        if component is None:
+            raise AppLookupError(component, label)
+        if ALazyApp.providedBy(component):
+            component = self.load(label, component.path)
+        return component
+
+    def load(self, label, module_path):
+        '''
+        load branch or component from appspace
+
+        @param label: component or branch label
         @param module_path: Python module path
         '''
         # register branch appspace from included module
@@ -67,26 +80,12 @@ class AppspaceManager(AdapterRegistry):
         self.set(label, component)
         return component
 
-    def get(self, label):
-        '''
-        component fetcher
-
-        @param appkey: application key
-        @param label: component or branch appspace name
-        '''
-        component = self.lookup1(AApp, AApp, label)
-        if component is None:
-            raise AppLookupError(component, label)
-        if ALazyApp.providedBy(component):
-            component = self._component(label, component.path)
-        return component
-
     def set(self, label, component):
         '''
-        register component
+        register branches or components in appspace
 
+        @param label: appspace label
         @param component: component to add to appspace
-        @param label: appspace name
         '''
         if isinstance(component, (basestring, tuple)):
             component = LazyApp(component)

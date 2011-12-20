@@ -19,9 +19,9 @@ class AppspaceSettings(ResetMixin):
 
     appifies(ASettings)
 
-    def __init__(self, **kw):
+    def __init__(self):
         super(AppspaceSettings, self).__init__()
-        self._final = stuf(**kw)
+        self._final = stuf()
         self._default = stuf()
         self._required = stuf()
 
@@ -49,6 +49,7 @@ class AppspaceSettings(ResetMixin):
 
     @lazy
     def r(self):
+        '''required settings'''
         return self.required
 
     @lazy_set
@@ -71,11 +72,12 @@ class AppspaceSettings(ResetMixin):
 
     @lazy
     def f(self):
+        '''finalized settings'''
         return self.final
 
     @lazy
     def final(self):
-        '''get final settings separately'''
+        '''finalized settings'''
         final = self._default.copy()
         final.update(self._final.copy())
         final.update(self._required.copy())
@@ -86,10 +88,9 @@ class AppspaceSettings(ResetMixin):
         get value from settings
 
         @param key: key in settings
-        @param default: default value
+        @param default: default value (default: None)
         '''
-        default = deepget(self._default, key, default)
-        return deepget(key, self._final, default)
+        return deepget(key, self._final, deepget(self._default, key, default))
 
     def set(self, key, value):
         '''
@@ -112,8 +113,14 @@ class AppspaceSettings(ResetMixin):
                 this[key] = value
         except ValueError:
             self._final[key] = value
+        self.reset()
 
     def update_default(self, settings):
+        '''
+        update default settings
+
+        @param settings: new settings
+        '''
         if ADefaultSettings.implementedBy(settings):
             self.reset()
             self._default.update(object_walk(settings))
@@ -121,6 +128,11 @@ class AppspaceSettings(ResetMixin):
             raise TypeError('invalid DefaultSettings')
 
     def update_required(self, settings):
+        '''
+        update required settings
+
+        @param settings: new settings
+        '''
         if ARequiredSettings.implementedBy(settings):
             self.reset()
             self._required.update(object_walk(settings))
@@ -128,7 +140,11 @@ class AppspaceSettings(ResetMixin):
             raise TypeError('invalid RequiredSettings')
 
     def update(self, *args, **kw):
+        '''
+        update final setting
+        '''
         self._final.update(*args, **kw)
+        self.reset()
 
 
 class DefaultSettings(object):

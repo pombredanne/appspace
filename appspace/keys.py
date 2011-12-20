@@ -18,7 +18,6 @@ class AAppspaceManager(AppspaceKey):
 
     '''appspace manager key'''
 
-    s = Attribute('settings shortcut')
     settings = Attribute('settings for an appspace')
     queue = Attribute('queue for an appspace')
 

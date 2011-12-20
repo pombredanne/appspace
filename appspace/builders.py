@@ -2,12 +2,11 @@
 '''builders'''
 
 from __future__ import absolute_import
-from itertools import starmap
 from operator import getitem, contains
 
-from stuf.utils import getter, lazy, selfname
+from stuf.utils import lazy, selfname
 
-from .utils import lru_cache
+from .utils import attr_or_item, lru_cache
 from .error import AppLookupError, NoAppError
 from .keys import AAppspace, ABranch, ANamespace
 from .states import AppspaceManager, appifies, global_appspace
@@ -86,10 +85,7 @@ class Appspace(object):
 
         @param label: label of component in appspace
         '''
-        try:
-            return getter(self, label)
-        except AttributeError:
-            return getitem(self, label)
+        return attr_or_item(self, label)
 
     @lru_cache()
     def __getitem__(self, label):
@@ -138,8 +134,10 @@ class AppspaceFactory(object):
         # appspace label
         self._label = label
         # register apps in appspace
-        starmap(self._appspace.set, args)
-        self._appspace.set(label, Appspace(self._appspace))
+        apper = self._appspace.set
+        for arg in args:
+            apper(*arg)
+        apper(label, Appspace(self._appspace))
 
     def __call__(self):
         '''instantiate appspace interface'''

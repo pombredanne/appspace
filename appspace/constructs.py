@@ -3,10 +3,10 @@
 
 from __future__ import absolute_import
 from inspect import ismethod
-from functools import partial, wraps
+from functools import partial, update_wrapper
 
 from stuf.utils import (
-    getter, instance_or_class, inverse_lookup, setter, get_or_default,
+    getter, instance_or_class, inverse_lookup, setter, get_or_default, selfname
 )
 
 from .utils import ResetMixin, lazy_import
@@ -34,21 +34,14 @@ def delegater(appspace):
     return Delegated
 
 
-def delegatable(**fkw):
+def delegatable(**kw):
     '''
     marks method as being able to be delegated
 
     @param **fkw: attributes to set on decorated method
     '''
     def wrapped(func):
-        func.delegated = True
-        for k, v in fkw.iteritems():
-            setattr(func, k, v)
-
-        @wraps(func)
-        def wrapper(*args, **kw):
-            return func(*args, **kw)
-        return wrapper
+        return Delegatable(func, **kw)
     return wrapped
 
 
@@ -153,3 +146,23 @@ class Delegated(Appspaced):
                         pass
             else:
                 raise AttributeError('"{key}" not found'.format(key=key))
+
+
+class Delegatable(object):
+
+    delegated = True
+
+    def __init__(self, method, **kw):
+        self.method = method
+        self.kw = kw
+        self.name = selfname(method)
+        update_wrapper(self, method)
+
+    def __get__(self, this, that):
+        pkwds = {}
+        for k, v in that._delegates:
+            if hasattr(that, k):
+                pkwds[k] = getter(this, v)
+        method = partial(this, (self), **pkwds)
+        setter(self, self.name, method)
+        return method

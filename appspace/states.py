@@ -51,6 +51,14 @@ class AppspaceManager(AdapterRegistry):
         '''appspace settings'''
         return self.lookup1(ASettings, ASettings, self._settings)()
 
+    def bind(self, event, this):
+        first, second = self.get(event)()
+        self.subscribe(first, second, this)
+
+    def react(self, event):
+        first, second = self.get(event)()
+        return self.subscribers(first, second)
+
     def get(self, label):
         '''
         component fetcher

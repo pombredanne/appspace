@@ -58,6 +58,78 @@ class ABranch(AppspaceKey):
         pass
 
 
+class AEvent(AApp):
+
+    '''event key'''
+
+    def __init__(*args, **kw):  # @NoSelf
+        pass
+
+    def __call__():  # @NoSelf
+        pass
+
+
+class AEventCall(AApp):
+
+    def __call__():  # @NoSelf
+        pass
+
+# pylint: disable-msg=e0602
+
+
+class AZeroethCall(AEventCall):
+
+    __call__.priority = 0  # @UndefinedVariable
+
+
+class AFirstCall(AEventCall):
+
+    __call__.priority = 1  # @UndefinedVariable
+
+
+class ASecondCall(AEventCall):
+
+    __call__.priority = 2  # @UndefinedVariable
+
+
+class AThirdCall(AEventCall):
+
+    __call__.priority = 3  # @UndefinedVariable
+
+
+class AFourthCall(AEventCall):
+
+    __call__.priority = 4  # @UndefinedVariable
+
+
+class AFifthCall(AEventCall):
+
+    __call__.priority = 5  # @UndefinedVariable
+
+
+class ASixthCall(AEventCall):
+
+    __call__.priority = 6  # @UndefinedVariable
+
+
+class ASeventhCall(AEventCall):
+
+    __call__.priority = 7  # @UndefinedVariable
+
+
+class AEighthCall(AEventCall):
+
+    __call__.priority = 8  # @UndefinedVariable
+
+
+class ANinethCall(AEventCall):
+
+    __call__.priority = 9  # @UndefinedVariable
+
+
+# pylint: enable-msg=e0602
+
+
 class ALazyApp(AApp):
 
     '''lazy app key'''

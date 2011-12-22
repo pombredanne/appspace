@@ -194,7 +194,7 @@ class Patterns(object):
     '''pattern class settings'''
 
     @classmethod
-    def build(cls):
+    def build(cls, required, defaults):
         this = list()
         tappend = this.append
         textend = this.extend
@@ -208,7 +208,10 @@ class Patterns(object):
                     textend(v.build())
                 else:
                     tappend((k, v))
-        return patterns(selfname(cls), *tuple(this))
+        appconf = patterns(selfname(cls), *tuple(this))
+        appconf.appspace.settings.required = required
+        appconf.appspace.settings.defaults = defaults
+        return appconf
 
 
 # global appspace shortcut

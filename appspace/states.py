@@ -52,10 +52,21 @@ class AppspaceManager(AdapterRegistry):
         return self.lookup1(ASettings, ASettings, self._settings)()
 
     def bind(self, event, this):
+        '''
+        event binder
+
+        @param event: event name
+        @param this: object to bind to event
+        '''
         first, second = self.get(event)()
         self.subscribe(first, second, this)
 
     def react(self, event):
+        '''
+        returs objects bound to an event
+
+        @param event: event name
+        '''
         first, second = self.get(event)()
         return self.subscribers(first, second)
 

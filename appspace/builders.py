@@ -2,6 +2,7 @@
 '''builders'''
 
 from __future__ import absolute_import
+
 from operator import getitem, contains
 
 from stuf.utils import attr_or_item, lazy, selfname

@@ -3,6 +3,7 @@
 '''base Trait classes'''
 
 from __future__ import absolute_import
+
 import types
 import inspect
 from types import FunctionType

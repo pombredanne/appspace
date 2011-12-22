@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+'''trait container types'''
+
+from __future__ import absolute_import
 
 import sys
 from types import ListType, TupleType

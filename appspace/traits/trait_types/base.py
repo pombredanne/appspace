@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 '''traits types base'''
 
+from __future__ import absolute_import
+
 from appspace.traits.error import TraitError
 from appspace.utils import class_of, repr_type
 

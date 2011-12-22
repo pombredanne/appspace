@@ -3,6 +3,7 @@
 '''state management'''
 
 from __future__ import absolute_import
+
 from operator import contains
 
 from stuf.utils import lazy

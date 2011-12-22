@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+'''python language trait types'''
+
+from __future__ import absolute_import
 
 import re
 import sys

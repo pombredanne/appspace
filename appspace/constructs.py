@@ -2,6 +2,7 @@
 '''constructs'''
 
 from __future__ import absolute_import
+
 from inspect import ismethod
 from functools import partial, update_wrapper
 
@@ -106,7 +107,7 @@ class Appspaced(ResetMixin):
 
         @param name: instance attribute label
         @param label: component label
-        @param setting: component branch (default: None)
+        @param branch: component branch (default: None)
         '''
         appspace = get_appspace(self, self.__class__)
         return setter(
@@ -118,11 +119,8 @@ class Appspaced(ResetMixin):
 
 class Delegated(Appspaced):
 
-    '''
-    class where attributes and methods can be delegated to appspaced components
-    '''
+    '''attributes and methods can be delegated to appspaced components'''
 
-    # list of delegates
     _delegates = {}
     _descriptor_class = delegatable
 

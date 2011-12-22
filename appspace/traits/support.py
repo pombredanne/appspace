@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-'''traits support classes'''
+'''trait support classes'''
+
+from __future__ import absolute_import
 
 from stuf.utils import lazy
 

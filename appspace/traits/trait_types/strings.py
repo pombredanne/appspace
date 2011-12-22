@@ -6,6 +6,8 @@ for Python 3 conversion and for reliable unicode behaviour on Python 2. So
 we don't have a Str type.
 '''
 
+from __future__ import absolute_import
+
 import re
 import sys
 

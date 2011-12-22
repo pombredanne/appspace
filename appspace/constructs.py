@@ -6,7 +6,7 @@ from inspect import ismethod
 from functools import partial, update_wrapper
 
 from stuf.utils import (
-    getter, instance_or_class, inverse_lookup, setter, get_or_default, selfname
+    getter, get_or_default, instance_or_class, inverse_lookup, setter, selfname
 )
 
 from .utils import ResetMixin, lazy_import
@@ -77,15 +77,15 @@ class component(object):
         '''
         @param setting: a component setting
         '''
-        self._label = label
-        self._branch = branch
+        self.label = label
+        self.branch = branch
 
     def __get__(self, instance, owner):
         appspace = get_appspace(instance, owner)
         return setter(
             owner,
             inverse_lookup(self, owner),
-            get_component(appspace, self._label, self._branch)
+            get_component(appspace, self.label, self.branch)
         )
 
 
@@ -159,10 +159,13 @@ class Delegatable(object):
         update_wrapper(self, method)
 
     def __get__(self, this, that):
-        pkwds = {}
-        for k, v in that._delegates:
-            if hasattr(that, k):
-                pkwds[k] = getter(this, v)
-        method = partial(this, (self), **pkwds)
-        setter(self, self.name, method)
-        return method
+        method = self.method
+        delegates = that._delegates
+        if delegates:
+            kw = dict(
+                (k, getter(that, v)) for k, v in delegates.iteritems()
+                if hasattr(that, k)
+            )
+            if kw:
+                method = partial(method, **kw)
+        return setter(that, self.name, method)

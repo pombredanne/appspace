@@ -4,11 +4,9 @@
 
 from __future__ import absolute_import
 
-from collections import deque
-
 from zope.interface import implements as appifies
 
-from .keys import AQueue, ALazyApp
+from .keys import ALazyApp
 
 
 class LazyApp(object):
@@ -28,27 +26,3 @@ class LazyApp(object):
 
     def __repr__(self):
         return 'component@{path}'.format(path=self.path)
-
-
-class AppspaceQueue(object):
-
-    appifies(AQueue)
-
-    def __init__(self):
-        self._queue = deque()
-
-    def add_left(self, value):
-        '''add item to left side of queue'''
-        self._queue.appendleft(value)
-
-    def pop_left(self):
-        '''pop leftmost item in queue'''
-        return self._queue.popleft()
-
-    def add_right(self, value):
-        '''add item to left side of queue'''
-        self._queue.append(value)
-
-    def pop_right(self):
-        '''pop leftmost item in queue'''
-        return self._queue.pop()

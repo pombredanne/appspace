@@ -14,20 +14,6 @@ class AApp(AppspaceKey):
     '''app key'''
 
 
-class AAppspaceManager(AppspaceKey):
-
-    '''appspace manager key'''
-
-    settings = Attribute('settings for an appspace')
-    queue = Attribute('queue for an appspace')
-
-    def get(label):  # @NoSelf
-        '''Get an component'''
-
-    def set(label, component):  # @NoSelf
-        '''App registration'''
-
-
 class AAppspace(AppspaceKey):
 
     '''appspace key'''
@@ -43,11 +29,68 @@ class AAppspace(AppspaceKey):
     def __contains__(label):  # @NoSelf
         '''membership check'''
 
-    def __getattribute__(label):  # @NoSelf
+    def __getattr__(label):  # @NoSelf
         pass
 
     def __getitem__(label):  # @NoSelf
         pass
+
+
+class AAppspaceManager(AppspaceKey):
+
+    '''appspace manager key'''
+
+    events = Attribute('event handler')
+    settings = Attribute('settings for an appspace')
+
+    def __contains__(label):  # @NoSelf
+        '''membership check'''
+
+    def bind(label, component):  # @NoSelf
+        '''
+        bind component to event
+
+        @param event: event label
+        @param component: object to bind to event
+        '''
+
+    def event(label, priority=1):  # @NoSelf
+        '''
+        create new event
+
+        @param event: event label
+        @param priority: priority of event (default: 1)
+        '''
+
+    def get(label):  # @NoSelf
+        '''
+        fetch component
+
+        @param label: component or branch label
+        '''
+
+    def load(label, module_path):  # @NoSelf
+        '''
+        load branch or component from appspace
+
+        @param label: component or branch label
+        @param module_path: Python module path
+        '''
+
+    def react(event):  # @NoSelf
+        '''
+        returns objects bound to an event
+
+        @param label: event label
+        '''
+
+    def set(label, component):  # @NoSelf
+        '''
+        register branches or components in appspace
+
+        @param label: appspace label
+        @param component: component to add to appspace
+        '''
 
 
 class ABranch(AppspaceKey):
@@ -56,6 +99,32 @@ class ABranch(AppspaceKey):
 
     def build():  # @NoSelf
         pass
+
+
+class AEvent(AppspaceKey):
+
+    '''event key'''
+
+    priority = Attribute('priority of event')
+
+
+class AEventManager(AppspaceKey):
+
+    def bind(label, component):  # @NoSelf
+        '''
+        bind component to event
+
+        @param label: event label
+        @param component: object to bind to event
+        '''
+
+    def register(label, priority=1, **kw):  # @NoSelf
+        '''
+        create new event
+
+        @param event: event label
+        @param priority: priority of event (default: 1)
+        '''
 
 
 class ALazyApp(AApp):
@@ -70,26 +139,9 @@ class ANamespace(AppspaceKey):
     '''namespace key'''
 
 
-class AQueue(AppspaceKey):
-
-    '''queue key'''
-
-    def add_left(value):  # @NoSelf
-        '''add item to left side of queue'''
-
-    def pop_left():  # @NoSelf
-        '''pop leftmost item in queue'''
-
-    def add_right(value):  # @NoSelf
-        '''add item to left side of queue'''
-
-    def pop_right():  # @NoSelf
-        '''pop leftmost item in queue'''
-
-
 class ASettings(AppspaceKey):
 
-    '''settings'''
+    '''settings key'''
 
 
 class ADefaultSettings(ASettings):
@@ -99,4 +151,4 @@ class ADefaultSettings(ASettings):
 
 class ARequiredSettings(ASettings):
 
-    '''internal settings'''
+    '''required settings key'''

@@ -4,88 +4,80 @@
 
 from __future__ import absolute_import
 
-from zope.interface import implements as appifies
+from operator import getitem
 
-from .keys import AppspaceKey, AApp
+from stuf.utils import setter
+from zope.interface import (
+    implements as appifies, directlyProvides as cls_appify, providedBy
+)
 
-
-class AEventHandler(AApp):
-
-    '''holds events'''
-
-
-class AEvent(AppspaceKey):
-
-    '''event key'''
+from .keys import AEventManager, AEvent
 
 
-class APostCall(AEvent):
+class Event(object):
 
-    '''call after another call'''
-
-
-class APreCall(AEvent):
-
-    '''call before another call'''
-
-
-class AFirstPriority(AEvent):
-
-    priority = 1
+    def __init__(self, label, priority=1, **kw):
+        self.priority = priority
+        self.label = label
+        for k, v in kw.iteritems():
+            setter(self, k, v)
 
 
-class ASecondPriority(AEvent):
+class EventManager(object):
 
-    priority = 2
+    appifies(AEventManager)
 
+    def __init__(self, appspace):
+        self.appspace = appspace
 
-class AThirdPriority(AEvent):
+    def bind(self, label, component):
+        '''
+        bind component to event
 
-    priority = 3
+        @param label: event label
+        @param component: object to bind to event
+        '''
+        self.appspace.subscribe(AEvent, self.appspace.get(label), component)
 
+    def fire(self, event, *args, **kw):
+        '''
+        fire event, passing arbitrary positional arguments and keywords
 
-class AFourthPriority(AEvent):
+        @param appspace: existing appspace
+        @param event: event label
+        '''
+        for handler in self.appspace.react(event):
+            handler(*args, **kw)
 
-    priority = 4
+    def get(self, label):
+        '''
+        returns event
 
+        @param label: event label
+        '''
+        return getitem(providedBy(self.appspace.easy_lookup(AEvent, label)), 0)
 
-class AFifthPriority(AEvent):
+    def react(self, label):
+        '''
+        returns objects bound to an event
 
-    priority = 5
+        @param label: event label
+        '''
+        return self.appspace.subscribers(AEvent, self.get(label))
 
+    def register(self, label, priority=1, **kw):
+        '''
+        create new event
 
-class ASixthPriority(AEvent):
+        @param event: event label
+        @param priority: priority of event (default: 1)
+        '''
+        class ANewEvent(AEvent):
+            '''new event key'''
 
-    priority = 6
+        class NewEvent(Event):
+            '''event'''
 
-
-class ASeventhPriority(AEvent):
-
-    priority = 7
-
-
-class AEighthPriority(AEvent):
-
-    priority = 8
-
-
-class ANinthPriority(AEvent):
-
-    priority = 9
-
-
-class EventHandler(object):
-
-    appifies(AEventHandler)
-
-    precall = APreCall
-    postcall = APostCall
-    first = AFirstPriority
-    second = ASecondPriority
-    third = AThirdPriority
-    fourth = AFourthPriority
-    fifth = AFifthPriority
-    sixth = ASixthPriority
-    seventh = ASeventhPriority
-    eighth = AEighthPriority
-    ninth = ANinthPriority
+        new_event = NewEvent(priority, **kw)
+        cls_appify(NewEvent, ANewEvent)
+        self.appspace.easy_register(AEvent, label, new_event)

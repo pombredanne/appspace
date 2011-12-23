@@ -5,6 +5,8 @@ from __future__ import absolute_import
 
 from functools import wraps
 from inspect import isclass
+from operator import getitem
+from collections import deque
 from types import InstanceType
 from importlib import import_module
 
@@ -63,7 +65,7 @@ def lazy_import(module_path, attribute=None):
             dot = module_path.rindex('.')
             # import module
             module_path = getter(
-                import_module(module_path[:dot]), module_path[dot+1:]
+                import_module(module_path[:dot]), module_path[dot + 1:]
             )
         # If nothing but module name, import the module
         except AttributeError:
@@ -73,13 +75,13 @@ def lazy_import(module_path, attribute=None):
     return module_path
 
 
-def lru_cache(maxsize=100):
+def lru_cache(max_length=100):
     '''
     least-recently-used cache decorator from Raymond Hettinger
 
     arguments to the cached function must be hashable.
 
-    @param maxsize: maximum number of results in LRU cache (default: 100)
+    @param max_length: maximum number of results in LRU cache (default: 100)
     '''
     def wrapped(this):
         # order: least recent to most recent
@@ -95,7 +97,7 @@ def lru_cache(maxsize=100):
             except KeyError:
                 result = this(*args, **kw)
                 # purge least recently used cache entry
-                if len(cache) >= maxsize:
+                if len(cache) >= max_length:
                     cache.popitem(0)
             # record recent use of this key
             cache[key] = result
@@ -167,6 +169,151 @@ def tern(condition, first, second):
     @param second: second expression to return if condition is false
     '''
     return first if condition else second
+
+
+class NamedQueue(object):
+
+    '''named queue'''
+
+    def __init__(self, max_length=None):
+        self._queue = deque(max_length) if max_length is not None else deque()
+
+    def __getitem__(self, key):
+        for k, v in self:
+            if k == key:
+                return v
+        else:
+            raise KeyError('{key} not found'.format(key=key))
+
+    def __iter__(self):
+        for k, v in self._queue:
+            yield [k, v]
+
+    def add_args_left(self, key, *args, **kw):
+        '''
+        add arguments to left side of queue
+
+        @param key: key in queue
+        '''
+        self._queue.appendleft([key, (args, kw)])
+
+    def add_args_right(self, key, *args, **kw):
+        '''
+        add arguments to right side of queue
+
+        @param key: key in queue
+        '''
+        self._queue.append([key, (args, kw)])
+
+    def add_left(self, key, value):
+        '''
+        dd item to left side of queue
+
+        @param key: key in queue
+        @param value: value to put in queue
+        '''
+        self._queue.appendleft([key, value])
+
+    def add_right(self, key, value):
+        '''
+        add item to right side of queue
+
+        @param key: key in queue
+        @param value: value to put in queue
+        '''
+        self._queue.append([key, value])
+
+    def clear(self):
+        '''clear queue'''
+        self._queue.clear()
+
+    def get_left(self, key, default=None):
+        '''
+        get item by key from left side of queue
+
+        @param key: key in queue
+        @param default: default value (default: None)
+        '''
+        try:
+            return getitem(self, key)
+        except KeyError:
+            return default
+
+    def get_right(self, key, default=None):
+        '''
+        get item from right side of queue
+
+        @param key: key in queue
+        @param default: default vaue (default: None)
+        '''
+        self.reverse()
+        try:
+            value = getitem(self, key)
+        except KeyError:
+            value = default
+        self.reverse()
+        return value
+
+    def pop_left(self):
+        '''pop leftmost item in queue'''
+        return self._queue.popleft()
+
+    def pop_right(self):
+        '''pop leftmost item in queue'''
+        return self._queue.pop()
+
+    def remove_left(self, key):
+        '''
+        remove item from left side of queue
+
+        @param key: key in queue
+        '''
+        value = getitem(self, key)
+        self._queue.remove(value)
+
+    def remove_right(self, key):
+        '''
+        remove item from right side of queue
+
+        @param key: key in queue
+        '''
+        self.reverse()
+        value = getitem(self, key)
+        self._queue.remove(value)
+        self.reverse()
+
+    def reverse(self):
+        '''reverse queue order'''
+        self._queue.reverse()
+
+    def update_left(self, key, value):
+        '''
+        get item by key from left side of queue
+
+        @param key: key in queue
+        @param value: value to put in queue
+        '''
+        for k in self._queue:
+            if k[0] == key:
+                key[1] = value
+        else:
+            raise KeyError('{key} not found'.format(key=key))
+
+    def update_right(self, key, value):
+        '''
+        get item from right side of queue
+
+        @param key: key in queue
+        @param value: value to put in queue
+        '''
+        self.reverse()
+        for k in self._queue:
+            if k[0] == key:
+                key[1] = value
+        else:
+            self.reverse()
+            raise KeyError('{key} not found'.format(key=key))
+        self.reverse()
 
 
 class ResetMixin(object):

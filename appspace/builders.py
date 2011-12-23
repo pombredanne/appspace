@@ -45,24 +45,13 @@ def add_branch(appspace, label, use_global=False):
     return appspace
 
 
-def fire(appspace, event, *args, **kw):
-    '''
-    fire event, passing arbitrary positional arguments and keywords
-
-    @param appspace: existing appspace
-    @param event: event label
-    '''
-    for handler in appspace.react(event):
-        handler(*args, **kw)
-
-
-def include(module_path):
+def include(module):
     '''
     load a branch appspace
 
     @param module_path: module import path
     '''
-    return ('include', module_path)
+    return ('include', module)
 
 
 def patterns(label, *args, **kw):

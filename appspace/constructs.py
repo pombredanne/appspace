@@ -82,11 +82,8 @@ class component(object):
         self.branch = branch
 
     def __get__(self, instance, owner):
-        appspace = get_appspace(instance, owner)
-        return setter(
-            owner,
-            inverse_lookup(self, owner),
-            get_component(appspace, self.label, self.branch)
+        return get_component(
+            get_appspace(instance, owner), self.label, self.branch,
         )
 
 
@@ -123,6 +120,8 @@ class Delegated(Appspaced):
 
     _delegates = {}
     _descriptor_class = delegatable
+    a = None
+    s = None
 
     def __getattr__(self, key):
         try:

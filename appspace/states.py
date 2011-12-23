@@ -6,39 +6,38 @@ from __future__ import absolute_import
 
 from operator import contains
 
-from stuf.utils import lazy, getter, setter
+from stuf.utils import lazy
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
 
+from .services import LazyApp
+from .utils import lazy_import
+from .events import EventManager
 from .error import AppLookupError
-from .utils import lazy_import, tern
 from .settings import AppspaceSettings
-from .services import AppspaceQueue, LazyApp
-from .events import AEvent, AEventHandler, EventHandler
-from .keys import AApp, AAppspaceManager, ALazyApp, AQueue, ASettings
+from .keys import AApp, AAppspaceManager, AEventManager, ALazyApp, ASettings
 
 
 class AppspaceManager(AdapterRegistry):
 
     '''state manager'''
 
-    __slots__ = ['_label', 'settings', '_settings']
+    __slots__ = ['_label', '_settings']
 
     appifies(AAppspaceManager)
 
-    def __init__(self, label='appconf', **kw):
+    def __init__(self, label='appconf', ns='default'):
         '''
-        @param label: label for application configuration module
+        init
+
+        @param label: label for application configuration object
+        @param ns: label for settings
         '''
         super(AppspaceManager, self).__init__(())
         self._label = label
-        self._queue = kw.pop('queue', 'default')
-        self._settings = kw.pop('settings', 'default')
-        self.register([ASettings], ASettings, 'default', AppspaceSettings)
-        self.register([AQueue], AQueue, 'default', AppspaceQueue)
-        self.register(
-            [AEventHandler], AEventHandler, 'handler', EventHandler
-        )
+        self._settings = ns
+        self.easy_register(ASettings, 'default', AppspaceSettings)
+        self.easy_register(AEventManager, 'default', EventManager)
 
     def __contains__(self, label):
         return contains(self.names(((), AApp), label))
@@ -47,30 +46,19 @@ class AppspaceManager(AdapterRegistry):
         return str(self.lookupAll((), AApp))
 
     @lazy
+    def events(self):
+        return self.easy_lookup(AEventManager, self._settings)(self)
+
+    @lazy
     def settings(self):
         '''get settings'''
-        return self.lookup1(ASettings, ASettings, self._settings)()
+        return self.easy_lookup(ASettings, self._settings)()
 
-    def bind(self, label, component):
-        '''
-        bind component to event
+    def easy_lookup(self, key, label):
+        return self.lookup1(key, key, label)
 
-        @param event: event label
-        @param component: object to bind to event
-        '''
-        self.subscribe([AApp], getter(self.get('handler'), label), component)
-
-    def event(self, event):
-        '''
-        create new event
-
-        @param event: event label
-        '''
-        class NewEvent(AEvent):
-            '''event'''
-
-        handler = self.get('handler')
-        setter(handler, event, NewEvent)
+    def easy_register(self, key, label, component):
+        self.register([key], key, label, component)
 
     def get(self, label):
         '''
@@ -78,41 +66,28 @@ class AppspaceManager(AdapterRegistry):
 
         @param label: component or branch label
         '''
-        component = self.lookup1(AApp, AApp, label)
+        component = self.easy_lookup(AApp, label)
         if component is None:
             raise AppLookupError(component, label)
         if ALazyApp.providedBy(component):
             component = self.load(label, component.path)
         return component
 
-    def load(self, label, module_path):
+    def load(self, label, module):
         '''
         load branch or component from appspace
 
         @param label: component or branch label
-        @param module_path: Python module path
+        @param module: Python module path
         '''
-        component = tern(
-            isinstance(module_path, tuple),
-            # register branch appspace from include
-            lazy_import(module_path[-1], self._label),
-            # register component
-            lazy_import(module_path),
-        )
+        # register branch appspace from include
+        if isinstance(module, tuple):
+            component = lazy_import(module[-1], self._label)
+        # register component
+        else:
+            component = lazy_import(module)
         self.set(label, component)
         return component
-
-    def queue(self):
-        '''queue'''
-        return self.lookup1(AQueue, AQueue, self._queue)
-
-    def react(self, label):
-        '''
-        returns objects bound to an event
-
-        @param event: event label
-        '''
-        return self.subscribers(AApp, getter(self.get('handler'), label))
 
     def set(self, label, component):
         '''

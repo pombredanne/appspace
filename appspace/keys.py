@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ## pylint: disable-msg=w0232,f0401,e0213,e0211
-'''appspace keys'''
+'''keys'''
 
 from __future__ import absolute_import
 
@@ -56,13 +56,6 @@ class ABranch(AppspaceKey):
 
     def build():  # @NoSelf
         pass
-
-
-class AEvent(AApp):
-
-    '''event key'''
-
-    priority = Attribute('application priority')
 
 
 class ALazyApp(AApp):

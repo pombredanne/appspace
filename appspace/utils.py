@@ -147,13 +147,26 @@ def parse_notifier_name(name):
 def repr_type(this):
     '''
     return a string representation of a value and its type for readable error
-    messages.
+    messages
+
+    @param this: value to probe
     '''
     the_type = type(this)
     if the_type is InstanceType:
         # Old-style class.
         the_type = this.__class__
     return '%r %r' % (this, the_type)
+
+
+def tern(condition, first, second):
+    '''
+    ternary shortcut
+
+    @param condition: condition that must be true for first choice
+    @param first: first expression to return if condition is true
+    @param second: second expression to return if condition is false
+    '''
+    return first if condition else second
 
 
 class ResetMixin(object):

@@ -1,69 +1,91 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=f0401
-'''appspace keys'''
+## pylint: disable-msg=f0401,w0232
+'''appspace events'''
 
 from __future__ import absolute_import
 
 from zope.interface import implements as appifies
 
-from .keys import AEvent
+from .keys import AppspaceKey, AApp
 
 
-class Event(object):
+class AEventHandler(AApp):
 
-    appifies(AEvent)
-
-    priority = 5
+    '''holds events'''
 
 
-class PreCall(Event):
-    pass
+class AEvent(AppspaceKey):
+
+    '''event key'''
 
 
-class PostCall(Event):
-    pass
+class APostCall(AEvent):
+
+    '''call after another call'''
 
 
-class FirstPriority(Event):
+class APreCall(AEvent):
+
+    '''call before another call'''
+
+
+class AFirstPriority(AEvent):
 
     priority = 1
 
 
-class SecondPriority(Event):
+class ASecondPriority(AEvent):
 
     priority = 2
 
 
-class ThirdPriority(Event):
+class AThirdPriority(AEvent):
 
     priority = 3
 
 
-class FourthPriority(Event):
+class AFourthPriority(AEvent):
 
     priority = 4
 
 
-class FifthPriority(Event):
+class AFifthPriority(AEvent):
 
     priority = 5
 
 
-class SixthPriority(Event):
+class ASixthPriority(AEvent):
 
     priority = 6
 
 
-class SeventhPriority(Event):
+class ASeventhPriority(AEvent):
 
     priority = 7
 
 
-class EighthPriority(Event):
+class AEighthPriority(AEvent):
 
     priority = 8
 
 
-class NinthPriority(Event):
+class ANinthPriority(AEvent):
 
     priority = 9
+
+
+class EventHandler(object):
+
+    appifies(AEventHandler)
+
+    precall = APreCall
+    postcall = APostCall
+    first = AFirstPriority
+    second = ASecondPriority
+    third = AThirdPriority
+    fourth = AFourthPriority
+    fifth = AFifthPriority
+    sixth = ASixthPriority
+    seventh = ASeventhPriority
+    eighth = AEighthPriority
+    ninth = ANinthPriority

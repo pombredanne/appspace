@@ -15,18 +15,22 @@ from .keys import ASettings, ADefaultSettings, ARequiredSettings
 
 class AppspaceSettings(ResetMixin):
 
-    '''appspace settings'''
+    '''settings manager'''
 
     appifies(ASettings)
 
     def __init__(self):
         super(AppspaceSettings, self).__init__()
+        # final settings
         self._final = stuf()
+        # default settings
         self._default = stuf()
+        # required settings
         self._required = stuf()
 
     @lazy
     def d(self):
+        '''get default settings separately'''
         return self.defaults
 
     @lazy_set
@@ -49,7 +53,7 @@ class AppspaceSettings(ResetMixin):
 
     @lazy
     def r(self):
-        '''required settings'''
+        '''get required settings separately'''
         return self.required
 
     @lazy_set
@@ -115,6 +119,13 @@ class AppspaceSettings(ResetMixin):
             self._final[key] = value
         self.reset()
 
+    def update(self, *args, **kw):
+        '''
+        update final setting
+        '''
+        self._final.update(*args, **kw)
+        self.reset()
+
     def update_default(self, settings):
         '''
         update default settings
@@ -138,13 +149,6 @@ class AppspaceSettings(ResetMixin):
             self._required.update(object_walk(settings))
         else:
             raise TypeError('invalid RequiredSettings')
-
-    def update(self, *args, **kw):
-        '''
-        update final setting
-        '''
-        self._final.update(*args, **kw)
-        self.reset()
 
 
 class DefaultSettings(object):

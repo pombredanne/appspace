@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=e1001,e1002,f0401
+# pylint: disable-msg=w0232,e1001,e1002,f0401
 '''state management'''
 
 from __future__ import absolute_import
 
 from operator import contains
 
-from stuf.utils import lazy
+from stuf.utils import lazy, getter, setter
 from zope.interface import implements as appifies
 from zope.interface.adapter import AdapterRegistry
 
-from .utils import lazy_import
 from .error import AppLookupError
+from .utils import lazy_import, tern
 from .settings import AppspaceSettings
 from .services import AppspaceQueue, LazyApp
+from .events import AEvent, AEventHandler, EventHandler
 from .keys import AApp, AAppspaceManager, ALazyApp, AQueue, ASettings
 
 
@@ -21,59 +22,59 @@ class AppspaceManager(AdapterRegistry):
 
     '''state manager'''
 
-    __slots__ = ['_label', 'queue', '_queue', 'settings', '_settings']
+    __slots__ = ['_label', 'settings', '_settings']
 
     appifies(AAppspaceManager)
 
-    def __init__(self, label='appconf', bases=(), **kw):
+    def __init__(self, label='appconf', **kw):
         '''
         @param label: label for application configuration module
         '''
-        super(AppspaceManager, self).__init__(bases)
+        super(AppspaceManager, self).__init__(())
         self._label = label
         self._queue = kw.pop('queue', 'default')
         self._settings = kw.pop('settings', 'default')
         self.register([ASettings], ASettings, 'default', AppspaceSettings)
         self.register([AQueue], AQueue, 'default', AppspaceQueue)
+        self.register(
+            [AEventHandler], AEventHandler, 'handler', EventHandler
+        )
 
     def __contains__(self, label):
-        return contains(self.names((), AApp), label)
+        return contains(self.names(((), AApp), label))
 
     def __repr__(self):
         return str(self.lookupAll((), AApp))
 
     @lazy
-    def queue(self):
-        '''appspace queue'''
-        return self.lookup1(AQueue, AQueue, self._queue)()
-
-    @lazy
     def settings(self):
-        '''appspace settings'''
+        '''get settings'''
         return self.lookup1(ASettings, ASettings, self._settings)()
 
-    def bind(self, event, this):
+    def bind(self, label, component):
         '''
-        event binder
+        bind component to event
 
-        @param event: event name
-        @param this: object to bind to event
+        @param event: event label
+        @param component: object to bind to event
         '''
-        first, second = self.get(event)()
-        self.subscribe(first, second, this)
+        self.subscribe([AApp], getter(self.get('handler'), label), component)
 
-    def react(self, event):
+    def event(self, event):
         '''
-        returs objects bound to an event
+        create new event
 
-        @param event: event name
+        @param event: event label
         '''
-        first, second = self.get(event)()
-        return self.subscribers(first, second)
+        class NewEvent(AEvent):
+            '''event'''
+
+        handler = self.get('handler')
+        setter(handler, event, NewEvent)
 
     def get(self, label):
         '''
-        component fetcher
+        fetch component
 
         @param label: component or branch label
         '''
@@ -91,14 +92,27 @@ class AppspaceManager(AdapterRegistry):
         @param label: component or branch label
         @param module_path: Python module path
         '''
-        # register branch appspace from included module
-        if isinstance(module_path, tuple):
-            component = lazy_import(module_path[-1], self._label)
-        # register component
-        else:
-            component = lazy_import(module_path)
+        component = tern(
+            isinstance(module_path, tuple),
+            # register branch appspace from include
+            lazy_import(module_path[-1], self._label),
+            # register component
+            lazy_import(module_path),
+        )
         self.set(label, component)
         return component
+
+    def queue(self):
+        '''queue'''
+        return self.lookup1(AQueue, AQueue, self._queue)
+
+    def react(self, label):
+        '''
+        returns objects bound to an event
+
+        @param event: event label
+        '''
+        return self.subscribers(AApp, getter(self.get('handler'), label))
 
     def set(self, label, component):
         '''

@@ -11,9 +11,9 @@ from types import InstanceType, ClassType
 
 from stuf.utils import clsname
 
-from .base import TraitType
+from .core import TraitType
 from ..error import TraitError
-from ...utils import lazy_import, class_of
+from ..utils import lazy_import, class_of
 
 
 ClassTypes = (ClassType, type)

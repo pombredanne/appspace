@@ -14,8 +14,7 @@ from .error import AppLookupError
 from .settings import AppspaceSettings
 from .core import (
     AppStore, AApp, AAppspaceManager, AEventManager, ALazyApp, ASettings,
-    appifies,
-)
+    appifies)
 
 
 class AppspaceManager(AppStore):

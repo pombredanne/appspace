@@ -11,7 +11,7 @@ from __future__ import absolute_import
 import re
 import sys
 
-from .base import TraitType
+from .core import TraitType
 
 
 class Bytes(TraitType):

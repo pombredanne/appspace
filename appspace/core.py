@@ -4,15 +4,12 @@
 
 from __future__ import absolute_import
 
+from zope.interface import (
+    implements as appifies, directlyProvides as apped,  # @UnusedImport
+    providedBy as get_apps)  # @UnusedImport
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.adapter import AdapterRegistry as AppStore  # @UnusedImport
 from zope.interface.interface import InterfaceClass as Appspacer, Attribute
-
-
-from zope.interface import (
-    implements as appifies, directlyProvides as apped,  # @UnusedImport
-    providedBy as get_apps,  # @UnusedImport
-)
 
 
 AppspaceKey = Appspacer('AppspaceKey')

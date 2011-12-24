@@ -23,8 +23,7 @@ from appspace.traits import HasTraitsMixin, MetaHasTraits
 from appspace.properties import (
    TraitType, List, Any, CBytes, Int, Long, Integer, Float, Complex, Bytes,
    Unicode, Undefined, Type, This,  Instance, Tuple, ObjectName,
-   DottedObjectName,
-)
+   DottedObjectName)
 
 
 # Helper classes for testing

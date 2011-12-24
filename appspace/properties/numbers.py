@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from .base import TraitType
+from .core import TraitType
 
 
 class Bool(TraitType):

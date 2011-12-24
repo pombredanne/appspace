@@ -8,16 +8,12 @@ from types import FunctionType, MethodType
 from inspect import isclass, ismethod, getargspec, getmro
 
 from stuf.utils import (
-    clsname, either, getter, get_or_default, setter,
-)
-
+    clsname, either, getter, get_or_default, setter, deleter)
 
 from .error import TraitError
 from .properties.core import TraitType
 from .collections import ResetMixin, Sync
-from .utils import (
-    get_appspace, component, get_component, get_members,
-)
+from .utils import get_appspace, component, get_component, get_members
 
 
 def delegater(appspace):
@@ -342,7 +338,7 @@ class HasTraitsMixin(SynchedMixin):
             traits = self.trait_names(**metadata)
         for name in traits:
             try:
-                delattr(self, name)
+                deleter(self, name)
             except (AttributeError, TraitError):
                 unresetable.append(name)
         return unresetable

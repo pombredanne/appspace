@@ -44,6 +44,15 @@ def get_appspace(this, owner):
     return appspace
 
 
+def getcls(this):
+    '''
+    get class
+
+    @param this: object
+    '''
+    return getter(this, '__class__')
+
+
 def get_component(appspace, label, branch=None):
     '''
     get component from appspace
@@ -64,38 +73,37 @@ def get_members(this, predicate=None):
     zope.inteface with the __provides__ attribute.
     '''
     results = []
+    rappend = results.append
     for key in dir(this):
         try:
-            value = getattr(this, key)
+            value = getter(this, key)
         except AttributeError:
             pass
         else:
             if not predicate or predicate(value):
-                results.append((key, value))
+                rappend((key, value))
     results.sort()
     return results
 
 
-def lazy_import(module_path, attribute=None):
+def lazy_import(path, attribute=None):
     '''
     deferred module loader
 
-    @param module_path: something to load
+    @param path: something to load
     @param attribute: attributed on loaded module to return
     '''
-    if isinstance(module_path, str):
+    if isinstance(path, str):
         try:
-            dot = module_path.rindex('.')
+            dot = path.rindex('.')
             # import module
-            module_path = getter(
-                import_module(module_path[:dot]), module_path[dot + 1:]
-            )
+            path = getter(import_module(path[:dot]), path[dot + 1:])
         # If nothing but module name, import the module
         except AttributeError:
-            module_path = import_module(module_path)
+            path = import_module(path)
         if attribute:
-            module_path = getter(module_path, attribute)
-    return module_path
+            path = getter(path, attribute)
+    return path
 
 
 def lru_cache(max_length=100):
@@ -155,7 +163,7 @@ def repr_type(this):
     the_type = type(this)
     if the_type is InstanceType:
         # Old-style class.
-        the_type = this.__class__
+        the_type = getcls(this)
     return '%r %r' % (this, the_type)
 
 

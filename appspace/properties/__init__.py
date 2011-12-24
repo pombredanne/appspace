@@ -28,6 +28,20 @@ We choose to create this module because we need these capabilities, but we need
 them to be pure Python so they work in all Python implementations, including
 Jython and IronPython.
 
+Notes
+-----
+Our implementation of traits is based on Python's descriptor prototol. This
+class is the base class for all such descriptors. The only magic we use is
+a custom metaclass for the main :class:`HasTraits` class that does the
+following:
+
+1. Sets the :attr:`name` attribute of every :class:`TraitType` instance in
+   the class dict to the name of the attribute.
+2. Sets the :attr:`this_class` attribute of every :class:`TraitType`
+   instance in the class dict to the *class* that declared the trait. This
+   is used by the :class:`This` trait to allow subclasses to accept
+   superclasses for :class:`This` values.
+
 Authors:
 
 * Brian Granger

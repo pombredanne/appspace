@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''traits types base'''
+'''traits types'''
 
 from __future__ import absolute_import
 
@@ -26,20 +26,6 @@ class TraitType(object):
 
     '''
     base class for all trait descriptors.
-
-    Notes
-    -----
-    Our implementation of traits is based on Python's descriptor prototol. This
-    class is the base class for all such descriptors. The only magic we use is
-    a custom metaclass for the main :class:`HasTraits` class that does the
-    following:
-
-    1. Sets the :attr:`name` attribute of every :class:`TraitType` instance in
-       the class dict to the name of the attribute.
-    2. Sets the :attr:`this_class` attribute of every :class:`TraitType`
-       instance in the class dict to the *class* that declared the trait. This
-       is used by the :class:`This` trait to allow subclasses to accept
-       superclasses for :class:`This` values.
     '''
 
     appifies(ATraitType)
@@ -66,10 +52,10 @@ class TraitType(object):
         '''
         get the value of the trait by self.name for the instance.
 
-        default values are instantiated when :meth:`HasTraits.__new__`
-        is called. Thus by the time this method gets called either the
-        default value or a user defined value (they called :meth:`__set__`)
-        is in the :class:`HasTraits` instance.
+        Default values are instantiated when `HasTraits.__new__` is called.
+        Thus by the time this method gets called either the default value or
+        a user defined value (they called `__set__`) in the `HasTraits`
+        instance.
         '''
         if this is None:
             return self
@@ -85,16 +71,12 @@ class TraitType(object):
                     return value
                 else:
                     raise TraitError(
-                        'unexpected error in TraitType: both default value '
-                        'and dynamic initializer are absent'
+                        'default value and dynamic initializer are absent'
                     )
             except Exception:
                 # HasTraits should call set_default_value to populate
                 # this.  So this should never be reached.
-                raise TraitError(
-                    'unexpected error in TraitType: default value not set '
-                    'properly'
-                )
+                raise TraitError('default value not set properly')
             else:
                 return value
 
@@ -110,47 +92,12 @@ class TraitType(object):
         if hasattr(self, 'validate'):
             return self.validate(this, value)
         elif hasattr(self, 'is_valid_for'):
-            valid = self.is_valid_for(value)
-            if valid:
+            if self.is_valid_for(value):
                 return value
             raise TraitError('invalid value for type: %r' % value)
         elif hasattr(self, 'value_for'):
             return self.value_for(value)
         return value
-
-    def get_default_value(self):
-        '''create a new instance of the default value'''
-        return self.default_value
-
-    def info(self):
-        return self.info_text
-
-    @classmethod
-    def subclass(self, value):
-        return issubclass(value, TraitType)
-
-    @classmethod
-    def instance(self, value):
-        return isinstance(value, TraitType)
-
-    def instance_init(self, this):
-        '''
-        this is called by :meth:`HasTraits.__new__` to finish init'ing.
-
-        Some stages of initialization must be delayed until the parent
-        :class:`HasTraits` instance has been created.  This method is called in
-        :meth:`HasTraits.__new__` after the instance has been created.
-
-        This method trigger the creation and validation of default values and
-        also things like the resolution of str given class names in
-        :class:`Type` and :class`Instance`.
-
-        Parameters
-        ----------
-        this : :class:`HasTraits` instance
-            The parent :class:`HasTraits` instance that has just been created.
-        '''
-        self.set_default_value(this)
 
     def error(self, this, value):
         if this is not None:
@@ -162,6 +109,35 @@ class TraitType(object):
                 self.name, self.info(), repr_type(value)
             )
         raise TraitError(e)
+
+    def get_default_value(self):
+        '''create a new instance of the default value'''
+        return self.default_value
+
+    def info(self):
+        return self.info_text
+
+    @staticmethod
+    def instance(value):
+        return isinstance(value, TraitType)
+
+    def instance_init(self, this):
+        '''
+        called by `HasTraits.__new__` to finish init'ing.
+
+        Some stages of initialization must be delayed until the parent
+        `HasTraits` instance has been created.  This method is called in
+        `HasTraits.__new__` after the instance has been created.
+
+        This method trigger the creation and validation of default values and
+        also things like the resolution of str given class names in the
+        `Type` or `Instance` class.
+
+        =====================================================================
+
+        @param this: newly create parent `HasTraits` instance
+        '''
+        self.set_default_value(this)
 
     def get_metadata(self, key):
         return getattr(self, '_metadata', {}).get(key, None)
@@ -194,6 +170,10 @@ class TraitType(object):
 
     def set_metadata(self, key, value):
         getattr(self, '_metadata', {})[key] = value
+
+    @staticmethod
+    def subclass(value):
+        return issubclass(value, TraitType)
 
 
 ttinstance = TraitType.instance

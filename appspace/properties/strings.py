@@ -16,7 +16,7 @@ from .core import TraitType
 
 class Bytes(TraitType):
 
-    '''A trait for strings.'''
+    '''trait for strings.'''
 
     default_value = ''
     info_text = 'a string'
@@ -29,7 +29,7 @@ class Bytes(TraitType):
 
 class CBytes(Bytes):
 
-    '''A casting version of the string trait.'''
+    '''casting version of string trait.'''
 
     def validate(self, this, value):
         try:
@@ -94,9 +94,9 @@ class CheckedUnicode(Unicode):
         self._validate = 'validate_all'
         if self.regex != '':
             self.match = re.compile(self.regex).match
-            if (self.minlen == 0) and (self.maxlen == sys.maxint):
+            if self.minlen == 0 and self.maxlen == sys.maxint:
                 self._validate = 'validate_regex'
-        elif (self.minlen == 0) and (self.maxlen == sys.maxint):
+        elif self.minlen == 0 and self.maxlen == sys.maxint:
             self._validate = 'validate_str'
         else:
             self._validate = 'validate_len'
@@ -104,7 +104,7 @@ class CheckedUnicode(Unicode):
     def info(self):
         '''Returns a description of the trait.'''
         msg = ''
-        if (self.minlen != 0) and (self.maxlen != sys.maxint):
+        if self.minlen != 0 and self.maxlen != sys.maxint:
             msg = ' between %d and %d characters long' % (
                 self.minlen, self.maxlen
             )

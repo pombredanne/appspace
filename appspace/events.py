@@ -148,35 +148,36 @@ class EventManager(object):
         self.appspace.easy_register(AEvent, label, new_event)
 
     def trait(self, name, old_value, new_value):
-        # First dynamic ones
-        callables = self.react(name)
-        # Call them all now
-        for c in callables:
-            # Traits catches and logs errors here.  I allow them to raise
-            if callable(c):
-                argspec = getargspec(c)
-                nargs = len(argspec[0])
-                # Bound methods have an additional 'self' argument
-                # I don't know how to treat unbound methods, but they
-                # can't really be used for callbacks.
-                if ismethod(c):
-                    offset = -1
+        if self.enabled:
+            # First dynamic ones
+            callables = self.react(name)
+            # Call them all now
+            for c in callables:
+                # Traits catches and logs errors here.  I allow them to raise
+                if callable(c):
+                    argspec = getargspec(c)
+                    nargs = len(argspec[0])
+                    # Bound methods have an additional 'self' argument
+                    # I don't know how to treat unbound methods, but they
+                    # can't really be used for callbacks.
+                    if ismethod(c):
+                        offset = -1
+                    else:
+                        offset = 0
+                    if nargs + offset == 0:
+                        c()
+                    elif nargs + offset == 1:
+                        c(name)
+                    elif nargs + offset == 2:
+                        c(name, new_value)
+                    elif nargs + offset == 3:
+                        c(name, old_value, new_value)
+                    else:
+                        raise TraitError(
+                            'trait changed callback must have 0-3 arguments'
+                        )
                 else:
-                    offset = 0
-                if nargs + offset == 0:
-                    c()
-                elif nargs + offset == 1:
-                    c(name)
-                elif nargs + offset == 2:
-                    c(name, new_value)
-                elif nargs + offset == 3:
-                    c(name, old_value, new_value)
-                else:
-                    raise TraitError(
-                        'trait changed callback must have 0-3 arguments'
-                    )
-            else:
-                raise TraitError('trait changed callback must be callable')
+                    raise TraitError('trait changed callback must be callable')
 
     def unbind(self, label, component):
         '''

@@ -7,6 +7,8 @@ from functools import partial, update_wrapper
 
 from stuf.utils import deleter, lazy, lazybase, selfname, getter, setter
 
+from .utils import getcls
+
 
 def delegatable(**kw):
     '''
@@ -229,7 +231,7 @@ class ResetMixin(object):
     def reset(self):
         '''reset accessed lazy attributes'''
         instdict = vars(self)
-        classdict = vars(self.__class__)
+        classdict = vars(getcls(self))
         desc = self._descriptor_class
         # To reset them, we simply remove them from the instance dict. At that
         # point, it's as if they had never been computed. On the next access,

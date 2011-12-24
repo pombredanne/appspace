@@ -9,7 +9,7 @@ import sys
 import inspect
 from types import InstanceType, ClassType
 
-from stuf.utils import clsname
+from stuf.utils import clsname, selfname
 
 from .core import TraitType
 from ..error import TraitError
@@ -93,7 +93,7 @@ class Type(ClassBasedTraitType):
         if isinstance(self.klass, basestring):
             klass = self.klass
         else:
-            klass = self.klass.__name__
+            klass = selfname(self.klass)
         result = 'a subclass of ' + klass
         if self._allow_none:
             return result + ' or None'
@@ -209,7 +209,7 @@ class Instance(ClassBasedTraitType):
         if isinstance(self.klass, basestring):
             klass = self.klass
         else:
-            klass = self.klass.__name__
+            klass = selfname(self.klass)
         result = class_of(klass)
         if self._allow_none:
             return result + ' or None'
@@ -233,7 +233,7 @@ class Instance(ClassBasedTraitType):
 class This(ClassBasedTraitType):
 
     '''
-    A trait for instances of the class containing this trait.
+    trait for instances of the class containing this trait.
 
     Because how how and when class bodies are executed, the ``This`` trait can
     only have a default value of None.  This, and because we always validate

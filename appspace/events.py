@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=f0401,w0232
+## pylint: disable-msg=w0232
 '''events'''
 
 from __future__ import absolute_import
@@ -9,10 +9,9 @@ from functools import update_wrapper
 from operator import attrgetter, getitem
 
 from stuf.utils import setter
-from zope.interface import implements, directlyProvides, providedBy
 
 from .utils import get_appspace
-from .keys import AEventManager, AEvent
+from .keys import AEventManager, AEvent, appifies, get_apps, apped
 
 
 def on(*events):
@@ -46,11 +45,16 @@ class Event(object):
 
 class EventManager(object):
 
-    implements(AEventManager)
+    appifies(AEventManager)
 
     __slots__ = ['a']
 
     def __init__(self, appspace):
+        '''
+        init
+
+        @param appspace: appspace to store events in
+        '''
         self.a = appspace
 
     def bind(self, label, component):
@@ -95,7 +99,9 @@ class EventManager(object):
         subs = self.appspace.react(event)
         slen = len(subs)
         spop = subs.pop
-        return [spop()(*args, **kw) for i in xrange(slen)]
+        ## pylint: disable-msg=w0612
+        return [spop()(*args, **kw) for i in xrange(slen)]  # @UnusedVariable
+        ## pylint: enable-msg=w0612
 
     def get(self, label):
         '''
@@ -103,7 +109,7 @@ class EventManager(object):
 
         @param label: event label
         '''
-        return getitem(providedBy(self.appspace.easy_lookup(AEvent, label)), 0)
+        return getitem(get_apps(self.appspace.easy_lookup(AEvent, label)), 0)
 
     def react(self, label):
         '''
@@ -130,7 +136,7 @@ class EventManager(object):
         class NewEvent(Event):
             '''event'''
         new_event = NewEvent(priority, **kw)
-        directlyProvides(NewEvent, ANewEvent)
+        apped(NewEvent, ANewEvent)
         self.appspace.easy_register(AEvent, label, new_event)
 
     def unbind(self, label, component):

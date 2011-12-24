@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=w0232,e1001,e1002,f0401
+# pylint: disable-msg=e1001,e1002
 '''state management'''
 
 from __future__ import absolute_import
@@ -7,18 +7,18 @@ from __future__ import absolute_import
 from operator import contains
 
 from stuf.utils import lazy
-from zope.interface import implements as appifies
-from zope.interface.adapter import AdapterRegistry
 
-from .services import LazyApp
 from .utils import lazy_import
 from .events import EventManager
 from .error import AppLookupError
 from .settings import AppspaceSettings
-from .keys import AApp, AAppspaceManager, AEventManager, ALazyApp, ASettings
+from .keys import (
+    AppStore, AApp, AAppspaceManager, AEventManager, ALazyApp, ASettings,
+    appifies,
+)
 
 
-class AppspaceManager(AdapterRegistry):
+class AppspaceManager(AppStore):
 
     '''state manager'''
 
@@ -122,6 +122,27 @@ class AppspaceManager(AdapterRegistry):
         if isinstance(component, (basestring, tuple)):
             component = LazyApp(component)
         self.register([AApp], AApp, label, component)
+
+
+class LazyApp(object):
+
+    '''lazy component loader'''
+
+    __slots__ = ['path']
+
+    appifies(ALazyApp)
+
+    def __init__(self, path):
+        '''
+        init
+
+        @param path: path to component module
+        '''
+        self.path = path
+
+    def __repr__(self):
+        return 'component@{path}'.format(path=self.path)
+
 
 
 # global appspace

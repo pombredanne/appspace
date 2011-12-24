@@ -349,26 +349,3 @@ class CaselessStrEnum(Enum):
             if v.lower() == value.lower():
                 return v
         self.error(this, value)
-
-
-class TCPAddress(TraitType):
-
-    '''
-    trait for an (ip, port) tuple.
-
-    This allows for both IPv4 IP addresses as well as hostnames.
-    '''
-
-    default_value = ('127.0.0.1', 0)
-    info_text = 'an (ip, port) tuple'
-
-    def validate(self, this, value):
-        if isinstance(value, tuple):
-            if len(value) == 2:
-                if all([
-                    isinstance(value[0], basestring), isinstance(value[1], int)
-                ]):
-                    port = value[1]
-                    if port >= 0 and port <= 65535:
-                        return value
-        self.error(this, value)

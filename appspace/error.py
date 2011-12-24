@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=f0401
+# pylint: disable-msg=w0611
 '''appspace exceptions'''
 
 from __future__ import absolute_import
 
-from zope.interface.interfaces import ComponentLookupError
-
-# app lookup exception
-AppLookupError = ComponentLookupError
+from .keys import AppLookupError  # @UnusedImport
 
 
 class ConfigurationError(Exception):

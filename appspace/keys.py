@@ -1,12 +1,23 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=w0232,f0401,e0213,e0211
+## pylint: disable-msg=w0232,f0401,e0213,e0211,w0611
 '''keys'''
 
 from __future__ import absolute_import
 
+from zope.interface.interfaces import ComponentLookupError
+from zope.interface.adapter import AdapterRegistry as AppStore  # @UnusedImport
 from zope.interface.interface import InterfaceClass as Appspacer, Attribute
 
+
+from zope.interface import (
+    implements as appifies, directlyProvides as apped,  # @UnusedImport
+    providedBy as get_apps,  # @UnusedImport
+)
+
+
 AppspaceKey = Appspacer('AppspaceKey')
+# app lookup exception
+AppLookupError = ComponentLookupError
 
 
 class AApp(AppspaceKey):
@@ -35,7 +46,7 @@ class AAppspace(AppspaceKey):
 
 class AAppspaceManager(AppspaceKey):
 
-    '''appspace manager key'''
+    '''manager key'''
 
     events = Attribute('event handler')
     settings = Attribute('settings for an appspace')
@@ -104,7 +115,6 @@ class AEventManager(AppspaceKey):
         '''
         fire event, passing arbitrary positional arguments and keywords
 
-        @param appspace: existing appspace
         @param event: event label
         '''
 

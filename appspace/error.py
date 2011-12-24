@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 
-from .keys import AppLookupError  # @UnusedImport
+from .core import AppLookupError  # @UnusedImport
 
 
 class ConfigurationError(Exception):
@@ -15,3 +15,8 @@ class ConfigurationError(Exception):
 class NoAppError(Exception):
 
     '''No application found exception'''
+
+
+class TraitError(Exception):
+
+    '''trait error'''

@@ -1,45 +1,22 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=w0702,w0232,e0611
-'''base Trait classes'''
+'''base trait classes'''
 
 from __future__ import absolute_import
 
 from types import FunctionType, MethodType
 from functools import partial, update_wrapper
-from inspect import ismethod, getargspec, getmro, isclass
+from inspect import isclass, ismethod, getargspec, getmro
 
 from stuf.utils import (
     clsname, either, getter, get_or_default, setter, selfname,
 )
 
-from .error import TraitError
 from .properties.base import TraitType
+from appspace.error import TraitError
 from .support import ResetMixin, Sync, _SimpleTest
-from ..utils import (
-    get_appspace, component, get_component, get_members, parse_notifier_name,
+from appspace.utils import (
+    get_appspace, component, get_component, get_members,
 )
-
-
-def appspacer(appspace):
-    '''
-    add appspace to class
-
-    @param appspace: appspace to add
-    '''
-    Appspaced.a = appspace
-    Appspaced.s = appspace.appspace.settings
-    return Appspaced
-
-
-def delegater(appspace):
-    '''
-    add appspace to class
-
-    @param appspace: appspace to add
-    '''
-    Delegated.a = appspace
-    Delegated.s = appspace.appspace.settings
-    return Delegated
 
 
 def delegatable(**kw):
@@ -53,34 +30,23 @@ def delegatable(**kw):
     return wrapped
 
 
-class Appspaced(ResetMixin):
+def delegater(appspace):
+    '''
+    add appspace to class
 
-    '''class with appspace attached'''
-
-    _descriptor_class = component
-
-    def _instance_component(self, name, label, branch=None):
-        '''
-        inject appspaced component as instance attribute
-
-        @param name: instance attribute label
-        @param label: component label
-        @param branch: component branch (default: None)
-        '''
-        appspace = get_appspace(self, self.__class__)
-        return setter(
-            self,
-            name,
-            get_component(appspace, label, branch),
-        )
+    @param appspace: appspace to add
+    '''
+    Delegated.a = appspace
+    Delegated.s = appspace.appspace.settings
+    return Delegated
 
 
-class Delegated(Appspaced):
+class Delegated(ResetMixin):
 
     '''attributes and methods can be delegated to appspaced components'''
 
+    _descriptor_class = component
     _delegates = {}
-    _descriptor_class = delegatable
     a = None
     s = None
 
@@ -104,6 +70,21 @@ class Delegated(Appspaced):
                         pass
             else:
                 raise AttributeError('"{key}" not found'.format(key=key))
+
+    def _instance_component(self, name, label, branch=None):
+        '''
+        inject appspaced component as instance attribute
+
+        @param name: instance attribute label
+        @param label: component label
+        @param branch: component branch (default: None)
+        '''
+        appspace = get_appspace(self, self.__class__)
+        return setter(
+            self,
+            name,
+            get_component(appspace, label, branch),
+        )
 
 
 class Delegatable(object):
@@ -129,7 +110,7 @@ class Delegatable(object):
         return setter(that, self.name, method)
 
 
-class SynchedMixin(Appspaced):
+class SynchedMixin(Delegated):
 
     def __init__(self, original, **kw):
         '''
@@ -205,8 +186,6 @@ class HasTraitsMixin(SynchedMixin):
         else:
             inst = new_meth(cls, *args, **kw)
         inst._trait_values = {}
-        inst._trait_notifiers = {}
-        inst._trait_dyn_inits = {}
         # Here we tell all the TraitType instances to set their default
         # values on the instance.
         for key in dir(cls):
@@ -329,7 +308,7 @@ class HasTraitsMixin(SynchedMixin):
 
     def on_trait_change(self, handler, name=None, remove=False):
         '''
-        Setup a handler to be called when a trait changes.
+        setup component to be fired when a trait changes.
 
         This is used to setup dynamic notifications of trait changes.
 
@@ -354,13 +333,9 @@ class HasTraitsMixin(SynchedMixin):
             uninstall it.
         '''
         if remove:
-            names = parse_notifier_name(name)
-            for n in names:
-                self._remove_notifiers(handler, n)
+            self.a.events.unregister(name)
         else:
-            names = parse_notifier_name(name)
-            for n in names:
-                self._add_notifiers(handler, n)
+            self.a.events.register(name, handler)
 
     def trait_metadata(self, traitname, key):
         '''Get metadata values for trait by key.'''

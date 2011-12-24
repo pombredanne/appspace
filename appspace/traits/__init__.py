@@ -41,10 +41,6 @@ the file COPYING, distributed as part of this software.
 
 from __future__ import absolute_import
 
-from .support import Meta
+from .support import Meta, ResetMixin
+from .properties.base import TraitType
 from .base import HasTraitsMixin, SynchedMixin
-from .error import TraitError
-from .trait_types.base import TraitType
-from .trait_types.properties import (
-    StringField, IntegerField, TextField, CharField, BooleanField, FloatField,
-)

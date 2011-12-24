@@ -166,3 +166,8 @@ class ADefaultSettings(ASettings):
 class ARequiredSettings(ASettings):
 
     '''required settings key'''
+
+
+class ATraitType(AppspaceKey):
+
+    '''trait property key'''

@@ -146,30 +146,6 @@ def object_walk(this):
     return this_stuf
 
 
-def parse_notifier_name(name):
-    '''
-    convert the name argument to a list of names.
-
-    Examples
-    --------
-
-    >>> parse_notifier_name('a')
-    ['a']
-    >>> parse_notifier_name(['a','b'])
-    ['a', 'b']
-    >>> parse_notifier_name(None)
-    ['anytrait']
-    '''
-    if isinstance(name, str):
-        return [name]
-    elif name is None:
-        return ['anytrait']
-    elif isinstance(name, (list, tuple)):
-        for n in name:
-            assert isinstance(n, str), 'names must be strings'
-        return name
-
-
 def repr_type(this):
     '''
     return a string representation of a value and its type for readable error

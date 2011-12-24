@@ -8,7 +8,8 @@ from stuf import frozenstuf, stuf
 from stuf.utils import deepget, lazy, lazy_set, setter
 
 from .utils import object_walk
-from .keys import ASettings, ADefaultSettings, ARequiredSettings,  appifies
+from .traits import ResetMixin
+from .core import ASettings, ADefaultSettings, ARequiredSettings,  appifies
 
 
 class AppspaceSettings(ResetMixin):

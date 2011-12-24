@@ -9,7 +9,7 @@ from stuf.utils import attr_or_item, lazy, selfname
 
 from .utils import lru_cache
 from .error import AppLookupError, NoAppError
-from .keys import AAppspace, ABranch, ANamespace
+from .core import AAppspace, ABranch, ANamespace
 from .states import AppspaceManager, appifies, global_appspace
 
 

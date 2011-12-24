@@ -12,7 +12,7 @@ from .utils import lazy_import
 from .events import EventManager
 from .error import AppLookupError
 from .settings import AppspaceSettings
-from .keys import (
+from .core import (
     AppStore, AApp, AAppspaceManager, AEventManager, ALazyApp, ASettings,
     appifies,
 )
@@ -142,7 +142,6 @@ class LazyApp(object):
 
     def __repr__(self):
         return 'component@{path}'.format(path=self.path)
-
 
 
 # global appspace

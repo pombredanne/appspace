@@ -10,7 +10,7 @@ from operator import attrgetter, getitem
 from stuf.utils import setter
 
 from .utils import get_appspace
-from .keys import AEventManager, AEvent, appifies, get_apps, apped
+from .core import AEventManager, AEvent, appifies, get_apps, apped
 
 
 def on(*events):

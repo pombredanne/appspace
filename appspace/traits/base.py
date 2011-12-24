@@ -4,25 +4,139 @@
 
 from __future__ import absolute_import
 
-import types
-import inspect
-from types import FunctionType
+from types import FunctionType, MethodType
+from functools import partial, update_wrapper
+from inspect import ismethod, getargspec, getmro, isclass
 
-from stuf.utils import clsname, either, getter
+from stuf.utils import (
+    clsname, either, getter, get_or_default, setter, selfname,
+)
 
 from .error import TraitError
-from .support import Sync, _SimpleTest
-from ..utils import get_members, parse_notifier_name
-from appspace.traits.properties.base import TraitType
+from .properties.base import TraitType
+from .support import ResetMixin, Sync, _SimpleTest
+from ..utils import (
+    get_appspace, component, get_component, get_members, parse_notifier_name
+)
 
 
-class SynchedMixin(object):
+def appspacer(appspace):
+    '''
+    add appspace to class
+
+    @param appspace: appspace to add
+    '''
+    Appspaced.a = appspace
+    Appspaced.s = appspace.appspace.settings
+    return Appspaced
+
+
+def delegater(appspace):
+    '''
+    add appspace to class
+
+    @param appspace: appspace to add
+    '''
+    Delegated.a = appspace
+    Delegated.s = appspace.appspace.settings
+    return Delegated
+
+
+def delegatable(**kw):
+    '''
+    marks method as being able to be delegated
+
+    @param **fkw: attributes to set on decorated method
+    '''
+    def wrapped(func):
+        return Delegatable(func, **kw)
+    return wrapped
+
+
+class Appspaced(ResetMixin):
+
+    '''class with appspace attached'''
+
+    _descriptor_class = component
+
+    def _instance_component(self, name, label, branch=None):
+        '''
+        inject appspaced component as instance attribute
+
+        @param name: instance attribute label
+        @param label: component label
+        @param branch: component branch (default: None)
+        '''
+        appspace = get_appspace(self, self.__class__)
+        return setter(
+            self,
+            name,
+            get_component(appspace, label, branch),
+        )
+
+
+class Delegated(Appspaced):
+
+    '''attributes and methods can be delegated to appspaced components'''
+
+    _delegates = {}
+    _descriptor_class = delegatable
+    a = None
+    s = None
+
+    def __getattr__(self, key):
+        try:
+            return object.__getattribute__(self, key)
+        except AttributeError:
+            for comp in vars(self).itervalues():
+                if get_or_default(comp, '_delegatable', False):
+                    try:
+                        this = getter(comp, key)
+                        if ismethod(this):
+                            pkwds = {}
+                            for k, v in self._delegates:
+                                if hasattr(this, k):
+                                    pkwds[k] = getter(self, v)
+                                this = partial(this, **pkwds)
+                        setter(self.__class__, key, this)
+                        return this
+                    except AttributeError:
+                        pass
+            else:
+                raise AttributeError('"{key}" not found'.format(key=key))
+
+
+class Delegatable(object):
+
+    delegated = True
+
+    def __init__(self, method, **kw):
+        self.method = method
+        self.kw = kw
+        self.name = selfname(method)
+        update_wrapper(self, method)
+
+    def __get__(self, this, that):
+        method = self.method
+        delegates = that._delegates
+        if delegates:
+            kw = dict(
+                (k, getter(that, v)) for k, v in delegates.iteritems()
+                if hasattr(that, k)
+            )
+            if kw:
+                method = partial(method, **kw)
+        return setter(that, self.name, method)
+
+
+class SynchedMixin(Appspaced):
 
     def __init__(self, original, **kw):
         '''
         Allow trait values to be set using keyword arguments. We need to use
         setattr for this to trigger validation and notifications.
         '''
+        super(SynchedMixin, self).__init__()
         self._sync = Sync(original, **kw)
 
     def __repr__(self):
@@ -51,7 +165,7 @@ class MetaHasTraits(type):
         for k, v in classdict.iteritems():
             if isinstance(v, TraitType):
                 v.name = k
-            elif inspect.isclass(v):
+            elif isclass(v):
                 if issubclass(v, TraitType):
                     vinst = v()
                     vinst.name = k
@@ -60,7 +174,7 @@ class MetaHasTraits(type):
 
     def __init__(cls, name, bases, classdict):
         '''
-        Finish initializing HasTraits class.
+        finish initializing HasTraits class.
 
         This sets the :attr:`this_class` attribute of each TraitType in the
         class dict to the newly created class ``cls``.
@@ -78,11 +192,11 @@ class HasTraitsMixin(SynchedMixin):
     c = None
 
     def __new__(cls, *args, **kw):
-        # This is needed because in Python 2.6 object.__new__ only accepts
-        # the cls argument.
+        # This is needed because in Python 2.6 object.__new__ only accepts the
+        # cls argument.
         # pylint: disable-msg=e1101
         cls._metas = [
-            b.Meta for b in inspect.getmro(cls) if hasattr(b, 'Meta')
+            b.Meta for b in getmro(cls) if hasattr(b, 'Meta')
         ]
         # pylint: enable-msg=e1101
         new_meth = super(HasTraitsMixin, cls).__new__
@@ -143,12 +257,12 @@ class HasTraitsMixin(SynchedMixin):
         for c in callables:
             # Traits catches and logs errors here.  I allow them to raise
             if callable(c):
-                argspec = inspect.getargspec(c)
+                argspec = getargspec(c)
                 nargs = len(argspec[0])
                 # Bound methods have an additional 'self' argument
                 # I don't know how to treat unbound methods, but they
                 # can't really be used for callbacks.
-                if isinstance(c, types.MethodType):
+                if isinstance(c, MethodType):
                     offset = -1
                 else:
                     offset = 0
@@ -332,12 +446,12 @@ class HasTraitsMixin(SynchedMixin):
             self._trait_notify(False)
             try:
                 for name, value in traits.items():
-                    setattr(self, name, value)
+                    setter(self, name, value)
             finally:
                 self._trait_notify(True)
         else:
             for name, value in traits.items():
-                setattr(self, name, value)
+                setter(self, name, value)
         return self
 
     def trait_validate(self, trait, value):
@@ -378,7 +492,7 @@ class HasTraitsMixin(SynchedMixin):
     def traits_sync(self, **kw):
         '''synchronize traits with current instance property values'''
         cur = self._sync.current
-        self.trait_set(**{k: cur[k] for k in self.trait_names(**kw)})
+        self.trait_set(**dict((k, cur[k]) for k in self.trait_names(**kw)))
 
     def traits_update(self, **kw):
         if self._sync.changed:

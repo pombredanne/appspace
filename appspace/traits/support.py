@@ -3,9 +3,7 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import lazy
-
-from ..utils import ResetMixin
+from stuf.utils import deleter, lazy, lazybase
 
 
 class _SimpleTest:
@@ -34,6 +32,37 @@ class Meta(object):
         return 'Meta: %s' % str(dict((k, v) for k, v in vars(
             self.__class__
         ).iteritems() if not k.startswith('_')))
+
+
+class ResetMixin(object):
+
+    '''
+    mixin to add a ".reset()" method to methods decorated with "lazybase"
+
+    By default, lazy attributes, once computed, are static. If they happen to
+    depend on other parts of an object and those parts change, their values may
+    be out of sync.
+
+    This class offers a ".reset()" method that an instance can call its state
+    has changed and invalidate all their lazy attributes. Once reset() is
+    called, all lazy attributes are reset to original format and their accessor
+    functions can be triggered again.
+    '''
+
+    _descriptor_class = lazybase
+
+    def reset(self):
+        '''reset accessed lazy attributes'''
+        instdict = vars(self)
+        classdict = vars(self.__class__)
+        desc = self._descriptor_class
+        # To reset them, we simply remove them from the instance dict. At that
+        # point, it's as if they had never been computed. On the next access,
+        # the accessor function from the parent class will be called, simply
+        # because that's how the python descriptor protocol works.
+        for key, value in classdict.iteritems():
+            if all([key in instdict, isinstance(value, desc)]):
+                deleter(self, key)
 
 
 class Sync(ResetMixin):
@@ -68,7 +97,7 @@ class Sync(ResetMixin):
         return unicode(dict(i for i in self.current.iteritems()))
 
     __str__ = __unicode__
-    
+
     @lazy
     def all(self):
         return dict((k, v) for k, v in self.current.iteritems())

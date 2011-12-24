@@ -104,7 +104,7 @@ class TraitType(object):
         if old_value != new_value:
             this._sync.update_current({self.name: new_value})
             this._trait_values[self.name] = new_value
-            this._trait_notify(self.name, old_value, new_value)
+            this.a.trait(self.name, old_value, new_value)
 
     def _validate(self, this, value):
         if hasattr(self, 'validate'):
@@ -124,6 +124,14 @@ class TraitType(object):
 
     def info(self):
         return self.info_text
+
+    @classmethod
+    def subclass(self, value):
+        return issubclass(value, TraitType)
+
+    @classmethod
+    def instance(self, value):
+        return isinstance(value, TraitType)
 
     def instance_init(self, this):
         '''
@@ -186,3 +194,6 @@ class TraitType(object):
 
     def set_metadata(self, key, value):
         getattr(self, '_metadata', {})[key] = value
+
+
+ttinstance = TraitType.instance

@@ -3,16 +3,14 @@
 
 from __future__ import absolute_import
 
-from functools import partial
-from types import FunctionType, MethodType
-from inspect import isclass, ismethod, getargspec, getmro
+from types import FunctionType
+from inspect import isclass, getmro
 
-from stuf.utils import (
-    clsname, either, getter, get_or_default, setter, deleter)
+from stuf.utils import clsname, either, getter, deleter, setter
 
 from .error import TraitError
-from .properties.core import TraitType
 from .collections import ResetMixin, Sync
+from .properties.core import TraitType, ttinstance
 from .utils import get_appspace, component, get_component, get_members
 
 
@@ -50,27 +48,6 @@ class Delegated(ResetMixin):
     _delegates = {}
     a = None
     s = None
-
-    def __getattr__(self, key):
-        try:
-            return object.__getattribute__(self, key)
-        except AttributeError:
-            for comp in vars(self).itervalues():
-                if get_or_default(comp, '_delegatable', False):
-                    try:
-                        this = getter(comp, key)
-                        if ismethod(this):
-                            pkwds = {}
-                            for k, v in self._delegates:
-                                if hasattr(this, k):
-                                    pkwds[k] = getter(self, v)
-                                this = partial(this, **pkwds)
-                        setter(self.__class__, key, this)
-                        return this
-                    except AttributeError:
-                        pass
-            else:
-                raise AttributeError('"{key}" not found'.format(key=key))
 
     def _instance_component(self, name, label, branch=None):
         '''
@@ -122,10 +99,10 @@ class MetaHasTraits(type):
         :attr:`name` attribute.
         '''
         for k, v in classdict.iteritems():
-            if isinstance(v, TraitType):
+            if ttinstance(v):
                 v.name = k
             elif isclass(v):
-                if issubclass(v, TraitType):
+                if TraitType.subclass(v):
                     vinst = v()
                     vinst.name = k
                     classdict[k] = vinst
@@ -139,7 +116,7 @@ class MetaHasTraits(type):
         class dict to the newly created class ``cls``.
         '''
         for v in classdict.itervalues():
-            if isinstance(v, TraitType):
+            if ttinstance(v):
                 v.this_class = cls
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
@@ -154,9 +131,7 @@ class HasTraitsMixin(SynchedMixin):
         # This is needed because in Python 2.6 object.__new__ only accepts the
         # cls argument.
         # pylint: disable-msg=e1101
-        cls._metas = [
-            b.Meta for b in getmro(cls) if hasattr(b, 'Meta')
-        ]
+        cls._metas = [b.Meta for b in getmro(cls) if hasattr(b, 'Meta')]
         # pylint: enable-msg=e1101
         new_meth = super(HasTraitsMixin, cls).__new__
         if new_meth is object.__new__:
@@ -175,55 +150,14 @@ class HasTraitsMixin(SynchedMixin):
             except AttributeError:
                 pass
             else:
-                if isinstance(value, TraitType):
+                if ttinstance(value):
                     value.instance_init(inst)
         return inst
-
-    def _trait_notify(self, name, old_value, new_value):
-        # First dynamic ones
-        callables = self._trait_notifiers.get(name, [])
-        more_callables = self._trait_notifiers.get('anytrait', [])
-        callables.extend(more_callables)
-        # Now static ones
-        try:
-            cb = getattr(self, '_%s_changed' % name)
-        except:
-            pass
-        else:
-            callables.append(cb)
-        # Call them all now
-        for c in callables:
-            # Traits catches and logs errors here.  I allow them to raise
-            if callable(c):
-                argspec = getargspec(c)
-                nargs = len(argspec[0])
-                # Bound methods have an additional 'self' argument
-                # I don't know how to treat unbound methods, but they
-                # can't really be used for callbacks.
-                if isinstance(c, MethodType):
-                    offset = -1
-                else:
-                    offset = 0
-                if nargs + offset == 0:
-                    c()
-                elif nargs + offset == 1:
-                    c(name)
-                elif nargs + offset == 2:
-                    c(name, new_value)
-                elif nargs + offset == 3:
-                    c(name, old_value, new_value)
-                else:
-                    raise TraitError(
-                        'trait changed callback must have 0-3 arguments'
-                    )
-            else:
-                raise TraitError('trait changed callback must be callable')
 
     @either
     def _traits(self):
         return dict(
-            m for m in get_members(self.__class__)
-            if isinstance(m[1], TraitType)
+            m for m in get_members(self.__class__) if ttinstance(m[1])
         )
 
     @classmethod
@@ -265,17 +199,12 @@ class HasTraitsMixin(SynchedMixin):
                 result[name] = trait
         return result
 
-    def on_trait_change(self, handler, name=None, remove=False):
+    def on_trait_change(self, handler, name, remove=False):
         '''
         setup component to be fired when a trait changes.
 
         This is used to setup dynamic notifications of trait changes.
 
-        Static handlers can be created by creating methods on a HasTraits
-        subclass with the naming convention '_[traitname]_changed'.  Thus,
-        to create static handler for the trait 'a', create the method
-        _a_changed(self, name, old, new) (fewer arguments can be used, see
-        below).
 
         Parameters
         ----------
@@ -283,10 +212,8 @@ class HasTraitsMixin(SynchedMixin):
             A callable that is called when a trait changes.  Its
             signature can be handler(), handler(name), handler(name, new)
             or handler(name, old, new).
-        name : list, str, None
-            If None, the handler will apply to all traits.  If a list of str,
-            handler will apply to all names in the list.  If a str, the handler
-            will apply just to that name.
+        name : str
+            handler will apply to that name.
         remove : bool
             If False (the default), then install the handler.  If True then
             uninstall it.
@@ -301,7 +228,7 @@ class HasTraitsMixin(SynchedMixin):
         try:
             trait = getter(self.__class__, traitname)
         except AttributeError:
-            raise TraitError('Class %s does not have a trait named %s' % (
+            raise TraitError('class %s does not have a trait named %s' % (
                 clsname(self), traitname
             ))
         else:
@@ -377,15 +304,15 @@ class HasTraitsMixin(SynchedMixin):
             person.age = 27
         '''
         if not trait_change_notify:
-            self._trait_notify(False)
+            self.a.events.enabled = False
             try:
                 for name, value in traits.items():
                     setter(self, name, value)
             finally:
-                self._trait_notify(True)
-        else:
-            for name, value in traits.items():
-                setter(self, name, value)
+                self.a.events.enabled = True
+            return self
+        for name, value in traits.items():
+            setter(self, name, value)
         return self
 
     def trait_validate(self, trait, value):

@@ -6,9 +6,11 @@ from __future__ import absolute_import
 from collections import deque
 from functools import update_wrapper
 from operator import attrgetter, getitem
+from inspect import ismethod, getargspec
 
 from stuf.utils import setter
 
+from .error import TraitError
 from .utils import get_appspace
 from .core import AEventManager, AEvent, appifies, get_apps, apped
 
@@ -46,7 +48,7 @@ class EventManager(object):
 
     appifies(AEventManager)
 
-    __slots__ = ['a']
+    __slots__ = ['a', '_enabled']
 
     def __init__(self, appspace):
         '''
@@ -55,6 +57,15 @@ class EventManager(object):
         @param appspace: appspace to store events in
         '''
         self.a = appspace
+        self._enabled = True
+
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        self._enabled = value
 
     def bind(self, label, component):
         '''
@@ -135,6 +146,37 @@ class EventManager(object):
         new_event = NewEvent(priority, **kw)
         apped(NewEvent, ANewEvent)
         self.appspace.easy_register(AEvent, label, new_event)
+
+    def trait(self, name, old_value, new_value):
+        # First dynamic ones
+        callables = self.react(name)
+        # Call them all now
+        for c in callables:
+            # Traits catches and logs errors here.  I allow them to raise
+            if callable(c):
+                argspec = getargspec(c)
+                nargs = len(argspec[0])
+                # Bound methods have an additional 'self' argument
+                # I don't know how to treat unbound methods, but they
+                # can't really be used for callbacks.
+                if ismethod(c):
+                    offset = -1
+                else:
+                    offset = 0
+                if nargs + offset == 0:
+                    c()
+                elif nargs + offset == 1:
+                    c(name)
+                elif nargs + offset == 2:
+                    c(name, new_value)
+                elif nargs + offset == 3:
+                    c(name, old_value, new_value)
+                else:
+                    raise TraitError(
+                        'trait changed callback must have 0-3 arguments'
+                    )
+            else:
+                raise TraitError('trait changed callback must be callable')
 
     def unbind(self, label, component):
         '''

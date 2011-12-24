@@ -16,7 +16,7 @@ from .error import TraitError
 from .properties.base import TraitType
 from .support import ResetMixin, Sync, _SimpleTest
 from ..utils import (
-    get_appspace, component, get_component, get_members, parse_notifier_name
+    get_appspace, component, get_component, get_members, parse_notifier_name,
 )
 
 

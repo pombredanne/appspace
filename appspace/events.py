@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=w0232
 '''events'''
 
 from __future__ import absolute_import
@@ -80,10 +79,9 @@ class EventManager(object):
             raise ValueError('queue length {0} != event length {1}'.format(
                 qlen, slen,
             ))
-        queue.reverse()
         results = []
-        spop = subs.pop
-        qpop = queue.pop_right
+        spop = subs.popleft
+        qpop = queue.pop_left
         while subs and queue:
             args = qpop()[-1]
             if len(args) == 2:
@@ -97,11 +95,11 @@ class EventManager(object):
         @param event: event label
         '''
         subs = self.appspace.react(event)
-        slen = len(subs)
         spop = subs.pop
-        ## pylint: disable-msg=w0612
-        return [spop()(*args, **kw) for i in xrange(slen)]  # @UnusedVariable
-        ## pylint: enable-msg=w0612
+        results = []
+        rappend = results.append
+        while subs:
+            rappend(spop()(*args, **kw))
 
     def get(self, label):
         '''
@@ -121,7 +119,6 @@ class EventManager(object):
             self.appspace.subscribers(AEvent, self.get(label)),
             key=attrgetter('priority'),
         ))
-        subs.reverse()
         return subs
 
     def register(self, label, priority=1, **kw):
@@ -131,7 +128,7 @@ class EventManager(object):
         @param event: event label
         @param priority: priority of event (default: 1)
         '''
-        class ANewEvent(AEvent):
+        class ANewEvent(AEvent):  # pylint: disable-msg=w0232
             '''new event key'''
         class NewEvent(Event):
             '''event'''
@@ -177,7 +174,7 @@ class On(object):
         if not self.is_set:
             ebind = get_appspace(this, that).events.bind
             method = self.method
-            # pylint: disable-msg=w0106
-            [ebind(arg, method) for arg in self.events]
+            for arg in self.events:
+                ebind(arg, method)
             self.is_set = True
         return self.method

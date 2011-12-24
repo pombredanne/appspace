@@ -10,7 +10,7 @@ from functools import wraps, update_wrapper
 
 from stuf import stuf
 from stuf.utils import (
-    OrderedDict, clsname, getter, instance_or_class, selfname
+    OrderedDict, clsname, getter, instance_or_class, selfname,
 )
 
 

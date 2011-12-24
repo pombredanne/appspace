@@ -7,7 +7,7 @@ from inspect import ismethod
 from functools import partial, update_wrapper
 
 from stuf.utils import (
-    getter, get_or_default, instance_or_class, inverse_lookup, setter, selfname
+    getter, get_or_default, instance_or_class, setter, selfname,
 )
 
 from .utils import ResetMixin, lazy_import
@@ -46,6 +46,18 @@ def delegatable(**kw):
     return wrapped
 
 
+def lazy_component(branch=None):
+    '''
+    marks method as being a lazy component
+
+    @param label: component label
+    @param branch: component branch (default: None)
+    '''
+    def wrapped(func):
+        return LazyComponent(func, branch)
+    return wrapped
+
+
 def get_appspace(this, owner):
     '''
     get the appspace attached to a class
@@ -76,15 +88,16 @@ class component(object):
 
     def __init__(self, label, branch=None):
         '''
-        @param setting: a component setting
+        init
+
+        @param label: component label
+        @param branch: component branch (default: None)
         '''
         self.label = label
         self.branch = branch
 
-    def __get__(self, instance, owner):
-        return get_component(
-            get_appspace(instance, owner), self.label, self.branch,
-        )
+    def __get__(self, this, that):
+        return get_component(get_appspace(this, that), self.label, self.branch)
 
 
 class delegate(component):
@@ -166,3 +179,28 @@ class Delegatable(object):
             if kw:
                 method = partial(method, **kw)
         return setter(that, self.name, method)
+
+
+class LazyComponent(object):
+
+    '''lazily set appspaced component as class attribute on first access'''
+
+    def __init__(self, method, branch=None):
+        '''
+        init
+
+        @param label: component label
+        @param branch: component branch (default: None)
+        '''
+        self.method = method
+        self.label = selfname(method)
+        self.branch = branch
+        self.is_set = False
+        update_wrapper(self, method)
+
+    def __get__(self, this, that):
+        aspace = get_appspace(this, that)
+        if not self.is_set:
+            aspace.set(self.label, self.method(this))
+            self.is_set = True
+        return get_component(aspace, self.label, self.branch)

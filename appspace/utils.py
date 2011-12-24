@@ -175,8 +175,11 @@ class NamedQueue(object):
 
     '''named queue'''
 
+    __slots__ = ['_queue', 'max_length']
+
     def __init__(self, max_length=None):
         self._queue = deque(max_length) if max_length is not None else deque()
+        self.max_length = max_length
 
     def __getitem__(self, key):
         for k, v in self:
@@ -188,6 +191,9 @@ class NamedQueue(object):
     def __iter__(self):
         for k, v in self._queue:
             yield [k, v]
+
+    def __len__(self):
+        return len(self._queue)
 
     def add_args_left(self, key, *args, **kw):
         '''

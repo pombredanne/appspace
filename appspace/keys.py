@@ -20,9 +20,6 @@ class AAppspace(AppspaceKey):
 
     appspace = Attribute('appspace manager')
 
-    def __init__(appspace):  # @NoSelf
-        '''@param appspace: configured appspace'''
-
     def __call__(label, *args, **kw):  # @NoSelf
         '''@param label: label of app in appspace'''
 
@@ -46,22 +43,6 @@ class AAppspaceManager(AppspaceKey):
     def __contains__(label):  # @NoSelf
         '''membership check'''
 
-    def bind(label, component):  # @NoSelf
-        '''
-        bind component to event
-
-        @param event: event label
-        @param component: object to bind to event
-        '''
-
-    def event(label, priority=1):  # @NoSelf
-        '''
-        create new event
-
-        @param event: event label
-        @param priority: priority of event (default: 1)
-        '''
-
     def get(label):  # @NoSelf
         '''
         fetch component
@@ -75,13 +56,6 @@ class AAppspaceManager(AppspaceKey):
 
         @param label: component or branch label
         @param module_path: Python module path
-        '''
-
-    def react(event):  # @NoSelf
-        '''
-        returns objects bound to an event
-
-        @param label: event label
         '''
 
     def set(label, component):  # @NoSelf
@@ -116,6 +90,36 @@ class AEventManager(AppspaceKey):
 
         @param label: event label
         @param component: object to bind to event
+        '''
+
+    def burst(label, queue):  # @NoSelf
+        '''
+        run event subscribers on contents of queue
+
+        @param label: event label
+        @param queue: queue of arguements
+        '''
+
+    def fire(event, *args, **kw):  # @NoSelf
+        '''
+        fire event, passing arbitrary positional arguments and keywords
+
+        @param appspace: existing appspace
+        @param event: event label
+        '''
+
+    def get(label):  # @NoSelf
+        '''
+        returns event
+
+        @param label: event label
+        '''
+
+    def react(event):  # @NoSelf
+        '''
+        returns objects bound to an event
+
+        @param label: event label
         '''
 
     def register(label, priority=1, **kw):  # @NoSelf

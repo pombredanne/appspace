@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 ## pylint: disable-msg=f0401,w0232
-'''appspace events'''
+'''events'''
 
 from __future__ import absolute_import
 
-from operator import getitem
+from collections import deque
+from operator import attrgetter, getitem
 
 from stuf.utils import setter
-from zope.interface import (
-    implements as appifies, directlyProvides as cls_appify, providedBy
-)
+from zope.interface import implements, directlyProvides, providedBy
 
 from .keys import AEventManager, AEvent
 
 
 class Event(object):
+
+    '''event rules'''
 
     def __init__(self, label, priority=1, **kw):
         self.priority = priority
@@ -25,10 +26,12 @@ class Event(object):
 
 class EventManager(object):
 
-    appifies(AEventManager)
+    implements(AEventManager)
+
+    __slots__ = ['a']
 
     def __init__(self, appspace):
-        self.appspace = appspace
+        self.a = appspace
 
     def bind(self, label, component):
         '''
@@ -39,15 +42,41 @@ class EventManager(object):
         '''
         self.appspace.subscribe(AEvent, self.appspace.get(label), component)
 
+    def burst(self, label, queue):
+        '''
+        run event subscribers on contents of queue
+
+        @param label: event label
+        @param queue: queued arguments
+        '''
+        subs = self.react(label)
+        if len(subs) != len(queue):
+            raise ValueError('queue length {0} != event length {1}'.format(
+                len(queue), len(subs),
+            ))
+        queue.reverse()
+        results = []
+        spop = subs.pop
+        qpop = queue.pop_right
+        while subs and queue:
+            args = qpop()[-1]
+            if len(args) == 2:
+                results.append(spop()(*args[0], **args[-1]))
+        return results
+
     def fire(self, event, *args, **kw):
         '''
         fire event, passing arbitrary positional arguments and keywords
 
-        @param appspace: existing appspace
         @param event: event label
         '''
-        for handler in self.appspace.react(event):
-            handler(*args, **kw)
+        subs = self.appspace.react(event)
+        spop = subs.pop
+        results = []
+        rappend = results.append
+        while subs:
+            rappend(spop()(*args, **kw))
+        return results
 
     def get(self, label):
         '''
@@ -63,7 +92,12 @@ class EventManager(object):
 
         @param label: event label
         '''
-        return self.appspace.subscribers(AEvent, self.get(label))
+        subs = deque(i for i in sorted(
+            self.appspace.subscribers(AEvent, self.get(label)),
+            key=attrgetter('priority'),
+        ))
+        subs.reverse()
+        return subs
 
     def register(self, label, priority=1, **kw):
         '''
@@ -74,10 +108,25 @@ class EventManager(object):
         '''
         class ANewEvent(AEvent):
             '''new event key'''
-
         class NewEvent(Event):
             '''event'''
-
         new_event = NewEvent(priority, **kw)
-        cls_appify(NewEvent, ANewEvent)
+        directlyProvides(NewEvent, ANewEvent)
         self.appspace.easy_register(AEvent, label, new_event)
+
+    def unbind(self, label, component):
+        '''
+        unbind component from event
+
+        @param label: event label
+        @param component: object to unbind from event
+        '''
+        self.appspace.unsubscribe(AEvent, self.appspace.get(label), component)
+
+    def unregister(self, label):
+        '''
+        remove event
+
+        @param label: event label
+        '''
+        self.appspace.easy_unregister(AEvent, label)

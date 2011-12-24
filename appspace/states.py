@@ -22,7 +22,7 @@ class AppspaceManager(AdapterRegistry):
 
     '''state manager'''
 
-    __slots__ = ['_label', '_settings']
+    __slots__ = ['_label', '_settings', 'settings', 'events']
 
     appifies(AAppspaceManager)
 
@@ -31,13 +31,13 @@ class AppspaceManager(AdapterRegistry):
         init
 
         @param label: label for application configuration object
-        @param ns: label for settings
+        @param ns: label for internal namespace
         '''
         super(AppspaceManager, self).__init__(())
         self._label = label
         self._settings = ns
-        self.easy_register(ASettings, 'default', AppspaceSettings)
-        self.easy_register(AEventManager, 'default', EventManager)
+        self._easy_register(ASettings, 'default', AppspaceSettings)
+        self._easy_register(AEventManager, 'default', EventManager)
 
     def __contains__(self, label):
         return contains(self.names(((), AApp), label))
@@ -47,6 +47,7 @@ class AppspaceManager(AdapterRegistry):
 
     @lazy
     def events(self):
+        '''get events manager'''
         return self.easy_lookup(AEventManager, self._settings)(self)
 
     @lazy
@@ -55,10 +56,32 @@ class AppspaceManager(AdapterRegistry):
         return self.easy_lookup(ASettings, self._settings)()
 
     def easy_lookup(self, key, label):
+        '''
+        streamlined component lookup
+
+        @param key: key to lookup
+        @param label: label to lookup
+        '''
         return self.lookup1(key, key, label)
 
     def easy_register(self, key, label, component):
+        '''
+        streamlined component registration
+
+        @param key: key to register under
+        @param label: label to register under
+        @param component: component to register
+        '''
         self.register([key], key, label, component)
+
+    def easy_unregister(self, key, label):
+        '''
+        streamlined component unregistration
+
+        @param key: key to lookup
+        @param label: label to lookup
+        '''
+        self.unregister([key], key, label, self.easy_lookup(key, label))
 
     def get(self, label):
         '''
@@ -91,7 +114,7 @@ class AppspaceManager(AdapterRegistry):
 
     def set(self, label, component):
         '''
-        register branches or components in appspace
+        register branch or component in appspace
 
         @param label: appspace label
         @param component: component to add to appspace

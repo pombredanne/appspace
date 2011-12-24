@@ -19,9 +19,8 @@ except ImportError:
     import unittest
 
 from appspace.error import TraitError
-from appspace.traits import HasTraitsMixin
-from appspace.traits.base import MetaHasTraits
-from appspace.traits.properties import (
+from appspace.traits import HasTraitsMixin, MetaHasTraits
+from appspace.properties import (
    TraitType, List, Any, CBytes, Int, Long, Integer, Float, Complex, Bytes,
    Unicode, Undefined, Type, This,  Instance, Tuple, ObjectName,
    DottedObjectName,

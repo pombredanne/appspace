@@ -39,8 +39,20 @@ Distributed under the terms of the BSD License. The full license is in
 the file COPYING, distributed as part of this software.
 '''
 
-from __future__ import absolute_import
+__all__ = [
+    'TraitType', 'Bytes', 'CBytes', 'CUnicode', 'CheckedUnicode', 'List',
+    'Container', 'CaselessStrEnum', 'Any', 'Tuple', 'Dict', 'ObjectName',
+    'DottedObjectName', 'This', 'Instance', 'Type', 'Bool', 'CBool', 'Int',
+    'Unicode', 'Undefined',
+]
 
-from .support import Meta, ResetMixin
-from .properties.base import TraitType
-from .base import HasTraitsMixin, SynchedMixin
+from .core import TraitType, Undefined
+from .containers import (
+    List, Container, CaselessStrEnum, Enum, Any, Tuple, Dict
+)
+from .lang import DottedObjectName, Instance, ObjectName, This, Type
+from .strings import Bytes, CBytes, CUnicode, CheckedUnicode, Unicode
+from .numbers import (
+    Bool, CBool, CInt, CLong, CFloat, CComplex, Complex, Float, Int, Integer,
+    Long,
+)

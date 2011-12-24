@@ -3,31 +3,21 @@
 
 from __future__ import absolute_import
 
+from functools import partial
 from types import FunctionType, MethodType
-from functools import partial, update_wrapper
 from inspect import isclass, ismethod, getargspec, getmro
 
 from stuf.utils import (
-    clsname, either, getter, get_or_default, setter, selfname,
+    clsname, either, getter, get_or_default, setter,
 )
 
-from .properties.base import TraitType
-from appspace.error import TraitError
-from .support import ResetMixin, Sync, _SimpleTest
-from appspace.utils import (
+
+from .error import TraitError
+from .properties.core import TraitType
+from .collections import ResetMixin, Sync
+from .utils import (
     get_appspace, component, get_component, get_members,
 )
-
-
-def delegatable(**kw):
-    '''
-    marks method as being able to be delegated
-
-    @param **fkw: attributes to set on decorated method
-    '''
-    def wrapped(func):
-        return Delegatable(func, **kw)
-    return wrapped
 
 
 def delegater(appspace):
@@ -39,6 +29,21 @@ def delegater(appspace):
     Delegated.a = appspace
     Delegated.s = appspace.appspace.settings
     return Delegated
+
+
+class _SimpleTest:
+
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self, test):
+        return test == self.value
+
+    def __repr__(self):
+        return '<SimpleTest(%r)' % self.value
+
+    def __str__(self):
+        return self.__repr__()
 
 
 class Delegated(ResetMixin):
@@ -85,29 +90,6 @@ class Delegated(ResetMixin):
             name,
             get_component(appspace, label, branch),
         )
-
-
-class Delegatable(object):
-
-    delegated = True
-
-    def __init__(self, method, **kw):
-        self.method = method
-        self.kw = kw
-        self.name = selfname(method)
-        update_wrapper(self, method)
-
-    def __get__(self, this, that):
-        method = self.method
-        delegates = that._delegates
-        if delegates:
-            kw = dict(
-                (k, getter(that, v)) for k, v in delegates.iteritems()
-                if hasattr(that, k)
-            )
-            if kw:
-                method = partial(method, **kw)
-        return setter(that, self.name, method)
 
 
 class SynchedMixin(Delegated):
@@ -200,25 +182,6 @@ class HasTraitsMixin(SynchedMixin):
                 if isinstance(value, TraitType):
                     value.instance_init(inst)
         return inst
-
-    def _add_notifiers(self, handler, name):
-        if not name in self._trait_notifiers:
-            nlist = []
-            self._trait_notifiers[name] = nlist
-        else:
-            nlist = self._trait_notifiers[name]
-        if handler not in nlist:
-            nlist.append(handler)
-
-    def _remove_notifiers(self, handler, name):
-        if name in self._trait_notifiers:
-            nlist = self._trait_notifiers[name]
-            try:
-                index = nlist.index(handler)
-            except ValueError:
-                pass
-            else:
-                del nlist[index]
 
     def _trait_notify(self, name, old_value, new_value):
         # First dynamic ones
@@ -333,9 +296,9 @@ class HasTraitsMixin(SynchedMixin):
             uninstall it.
         '''
         if remove:
-            self.a.events.unregister(name)
+            self.a.events.unbind(name, handler)
         else:
-            self.a.events.register(name, handler)
+            self.a.events.bind(name, handler)
 
     def trait_metadata(self, traitname, key):
         '''Get metadata values for trait by key.'''

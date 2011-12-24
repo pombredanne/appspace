@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+# pylint: disable-msg=f0401,e0611
 '''traits types base'''
 
 from __future__ import absolute_import
 
-from appspace.traits.error import TraitError
-from appspace.utils import class_of, repr_type
+from zope.interface import implements
+
+from .keys import ATraitType
+from ..error import TraitError
+from ...utils import class_of, repr_type
 
 
 class NoDefaultSpecified(object):
@@ -41,6 +45,7 @@ class TraitType(object):
        superclasses for :class:`This` values.
     '''
 
+    implements(ATraitType)
     default_value = Undefined
     info_text = 'any value'
     metadata = {}

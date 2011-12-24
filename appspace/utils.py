@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace utilities'''
+'''utilities'''
 
 from __future__ import absolute_import
 
@@ -11,7 +11,9 @@ from types import InstanceType
 from importlib import import_module
 
 from stuf import stuf
-from stuf.utils import OrderedDict, clsname, deleter, getter, lazybase
+from stuf.utils import (
+    OrderedDict, clsname, deleter, getter, instance_or_class, lazybase,
+)
 
 
 def add_article(name):
@@ -30,6 +32,30 @@ def class_of(this):
     if isinstance(this, basestring):
         return add_article(this)
     return add_article(clsname(this))
+
+
+def get_appspace(this, owner):
+    '''
+    get the appspace attached to a class
+
+    @param this: an instance
+    @param owner: the instance's class
+    '''
+    appspace = instance_or_class('a', this, owner)
+    if appspace is None:
+        appspace = this.appspace = lazy_import('appspace.builder.app')
+    return appspace
+
+
+def get_component(appspace, label, branch=None):
+    '''
+    get component from appspace
+
+    @param appspace: appspace
+    @param label: component label
+    @param branch: component branch (default: None)
+    '''
+    return appspace[branch][label] if branch is not None else appspace[label]
 
 
 def get_members(this, predicate=None):

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=w0702,w0232
+# pylint: disable-msg=w0702,w0232,e0611
 '''base Trait classes'''
 
 from __future__ import absolute_import
@@ -8,21 +8,21 @@ import types
 import inspect
 from types import FunctionType
 
-from stuf.utils import clsname, either
-
-from appspace.utils import get_members, parse_notifier_name
+from stuf.utils import clsname, either, getter
 
 from .error import TraitError
 from .support import Sync, _SimpleTest
-from .trait_types.base import TraitType
+from ..utils import get_members, parse_notifier_name
+from appspace.traits.properties.base import TraitType
 
 
 class SynchedMixin(object):
 
     def __init__(self, original, **kw):
-        # Allow trait values to be set using keyword arguments. We need to use
-        # setattr for this to trigger validation and notifications.
-        super(SynchedMixin, self).__init__()
+        '''
+        Allow trait values to be set using keyword arguments. We need to use
+        setattr for this to trigger validation and notifications.
+        '''
         self._sync = Sync(original, **kw)
 
     def __repr__(self):
@@ -37,7 +37,7 @@ class SynchedMixin(object):
 class MetaHasTraits(type):
 
     '''
-    A metaclass for HasTraits.
+    metaclass for HasTraits.
 
     This metaclass makes sure that any TraitType class attributes are
     instantiated and sets their name attribute.
@@ -251,7 +251,7 @@ class HasTraitsMixin(SynchedMixin):
     def trait_metadata(self, traitname, key):
         '''Get metadata values for trait by key.'''
         try:
-            trait = getattr(self.__class__, traitname)
+            trait = getter(self.__class__, traitname)
         except AttributeError:
             raise TraitError('Class %s does not have a trait named %s' % (
                 clsname(self), traitname

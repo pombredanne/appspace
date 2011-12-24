@@ -6,11 +6,9 @@ from __future__ import absolute_import
 from inspect import ismethod
 from functools import partial, update_wrapper
 
-from stuf.utils import (
-    getter, get_or_default, instance_or_class, setter, selfname,
-)
+from stuf.utils import getter, get_or_default, setter, selfname
 
-from .utils import ResetMixin, lazy_import
+from .utils import ResetMixin, get_appspace, get_component
 
 
 def appspacer(appspace):
@@ -56,30 +54,6 @@ def lazy_component(branch=None):
     def wrapped(func):
         return LazyComponent(func, branch)
     return wrapped
-
-
-def get_appspace(this, owner):
-    '''
-    get the appspace attached to a class
-
-    @param this: an instance
-    @param owner: the instance's class
-    '''
-    appspace = instance_or_class('a', this, owner)
-    if appspace is None:
-        appspace = this.appspace = lazy_import('appspace.builder.app')
-    return appspace
-
-
-def get_component(appspace, label, branch=None):
-    '''
-    get component from appspace
-
-    @param appspace: appspace
-    @param label: component label
-    @param branch: component branch (default: None)
-    '''
-    return appspace[branch][label] if branch is not None else appspace[label]
 
 
 class component(object):

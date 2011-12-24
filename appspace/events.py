@@ -5,12 +5,26 @@
 from __future__ import absolute_import
 
 from collections import deque
+from functools import update_wrapper
 from operator import attrgetter, getitem
 
 from stuf.utils import setter
 from zope.interface import implements, directlyProvides, providedBy
 
+from .utils import get_appspace
 from .keys import AEventManager, AEvent
+
+
+def on(*events):
+    '''
+    marks method as being a lazy component
+
+    @param label: component label
+    @param branch: component branch (default: None)
+    '''
+    def wrapped(func):
+        return On(func, *events)
+    return wrapped
 
 
 class Event(object):
@@ -18,8 +32,14 @@ class Event(object):
     '''event rules'''
 
     def __init__(self, label, priority=1, **kw):
-        self.priority = priority
+        '''
+        init
+
+        @param label: event label
+        @param priority: priority of event
+        '''
         self.label = label
+        self.priority = priority
         for k, v in kw.iteritems():
             setter(self, k, v)
 
@@ -50,9 +70,11 @@ class EventManager(object):
         @param queue: queued arguments
         '''
         subs = self.react(label)
-        if len(subs) != len(queue):
+        slen = len(subs)
+        qlen = len(queue)
+        if qlen != slen:
             raise ValueError('queue length {0} != event length {1}'.format(
-                len(queue), len(subs),
+                qlen, slen,
             ))
         queue.reverse()
         results = []
@@ -71,12 +93,9 @@ class EventManager(object):
         @param event: event label
         '''
         subs = self.appspace.react(event)
+        slen = len(subs)
         spop = subs.pop
-        results = []
-        rappend = results.append
-        while subs:
-            rappend(spop()(*args, **kw))
-        return results
+        return [spop()(*args, **kw) for i in xrange(slen)]
 
     def get(self, label):
         '''
@@ -130,3 +149,29 @@ class EventManager(object):
         @param label: event label
         '''
         self.appspace.easy_unregister(AEvent, label)
+
+
+class On(object):
+
+    '''attach events to method'''
+
+    def __init__(self, method, *events):
+        '''
+        init
+
+        @param method: method to tie to events
+        @param *args: events
+        '''
+        self.events = events
+        self.is_set = False
+        self.method = method
+        update_wrapper(self, method)
+
+    def __get__(self, this, that):
+        if not self.is_set:
+            ebind = get_appspace(this, that).events.bind
+            method = self.method
+            # pylint: disable-msg=w0106
+            [ebind(arg, method) for arg in self.events]
+            self.is_set = True
+        return self.method

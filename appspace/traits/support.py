@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from stuf.utils import lazy
 
-from appspace.utils import ResetMixin
+from ..utils import ResetMixin
 
 
 class _SimpleTest:
@@ -68,16 +68,16 @@ class Sync(ResetMixin):
         return unicode(dict(i for i in self.current.iteritems()))
 
     __str__ = __unicode__
+    
+    @lazy
+    def all(self):
+        return dict((k, v) for k, v in self.current.iteritems())
 
     @lazy
     def private(self):
         return dict(
             (k, v) for k, v in self.current.iteritems() if k.startswith('_')
         )
-
-    @lazy
-    def all(self):
-        return dict((k, v) for k, v in self.current.iteritems())
 
     @lazy
     def public(self):

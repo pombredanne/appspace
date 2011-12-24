@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable-msg=e0611,f0401,w0211
 '''python language trait types'''
 
 from __future__ import absolute_import
@@ -10,11 +11,10 @@ from types import InstanceType, ClassType
 
 from stuf.utils import clsname
 
-from appspace.traits.error import TraitError
-from appspace.utils import lazy_import, class_of
-
-
 from .base import TraitType
+from ..error import TraitError
+from ...utils import lazy_import, class_of
+
 
 ClassTypes = (ClassType, type)
 

@@ -56,7 +56,7 @@ class component(object):
         self._appspace = False
 
     def __get__(self, this, that):
-        return setter(that, self.label, self.component(this, that))
+        return self.calculate(this, that)
 
     def appspace(self, this, that):
         '''
@@ -71,6 +71,9 @@ class component(object):
                 appspace = this.a = lazy_import('appspace.builder.app')
             self._appspace = appspace
         return self._appspace
+
+    def calculate(self, this, that):
+        return setter(that, self.label, self.component(this, that))
 
     def component(self, this, that):
         '''
@@ -103,17 +106,16 @@ class LazyComponent(component):
 
     '''lazily load appspaced component'''
 
-    def __get__(self, this, that):
-        aspace = self.appspace(this, that)
-        aspace.set(self.label, self.method(this))
-        return super(LazyComponent, self).__get__(this, that)
+    def compute(self, this, that):
+        self.appspace(this, that).set(self.label, self.method(this))
+        return super(LazyComponent, self).compute(this, that)
 
 
 class Delegatable(LazyComponent):
 
     '''appspace component that can be delegated to another class'''
 
-    def __get__(self, this, that):
+    def compute(self, this, that):
         method = self.method
         delegates = that._delegates
         if delegates:
@@ -134,7 +136,7 @@ class On(LazyComponent):
         super(On, self).__init__(method, selfname(method), branch)
         self.events = events
 
-    def __get__(self, this, that):
+    def compute(self, this, that):
         ebind = self.appspace(this, that).events.bind
         method = self.method
         for arg in self.events:

@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-## pylint: disable-msg=w0232,f0401,e0213,e0211,w0611
+#@PydevCodeAnalysisIgnore
 '''keys'''
 
 from __future__ import absolute_import
 
-from zope.interface import (
-    implements as appifies, directlyProvides as apped,  # @UnusedImport
-    providedBy as get_apps)  # @UnusedImport
 from zope.interface.interfaces import ComponentLookupError
-from zope.interface.adapter import AdapterRegistry as AppStore  # @UnusedImport
+from zope.interface.adapter import AdapterRegistry as AppStore
 from zope.interface.interface import InterfaceClass as Appspacer, Attribute
+from zope.interface import (
+    implements as appifies, directlyProvides as apped, providedBy as get_apps)
 
-
+# primary key
 AppspaceKey = Appspacer('AppspaceKey')
 # app lookup exception
 AppLookupError = ComponentLookupError
@@ -28,16 +27,16 @@ class AAppspace(AppspaceKey):
 
     appspace = Attribute('appspace manager')
 
-    def __call__(label, *args, **kw):  # @NoSelf
+    def __call__(label, *args, **kw):
         '''@param label: label of app in appspace'''
 
-    def __contains__(label):  # @NoSelf
+    def __contains__(label):
         '''membership check'''
 
-    def __getattr__(label):  # @NoSelf
+    def __getattr__(label):
         pass
 
-    def __getitem__(label):  # @NoSelf
+    def __getitem__(label):
         pass
 
 
@@ -48,17 +47,17 @@ class AAppspaceManager(AppspaceKey):
     events = Attribute('event handler')
     settings = Attribute('settings for an appspace')
 
-    def __contains__(label):  # @NoSelf
+    def __contains__(label):
         '''membership check'''
 
-    def get(label):  # @NoSelf
+    def get(label):
         '''
         fetch component
 
         @param label: component or branch label
         '''
 
-    def load(label, module_path):  # @NoSelf
+    def load(label, module_path):
         '''
         load branch or component from appspace
 
@@ -66,7 +65,7 @@ class AAppspaceManager(AppspaceKey):
         @param module_path: Python module path
         '''
 
-    def set(label, component):  # @NoSelf
+    def set(label, component):
         '''
         register branches or components in appspace
 
@@ -79,7 +78,7 @@ class ABranch(AppspaceKey):
 
     '''branch key'''
 
-    def build():  # @NoSelf
+    def build():
         pass
 
 
@@ -92,7 +91,7 @@ class AEvent(AppspaceKey):
 
 class AEventManager(AppspaceKey):
 
-    def bind(label, component):  # @NoSelf
+    def bind(label, component):
         '''
         bind component to event
 
@@ -100,7 +99,7 @@ class AEventManager(AppspaceKey):
         @param component: object to bind to event
         '''
 
-    def burst(label, queue):  # @NoSelf
+    def burst(label, queue):
         '''
         run event subscribers on contents of queue
 
@@ -108,28 +107,28 @@ class AEventManager(AppspaceKey):
         @param queue: queue of arguements
         '''
 
-    def fire(event, *args, **kw):  # @NoSelf
+    def fire(event, *args, **kw):
         '''
         fire event, passing arbitrary positional arguments and keywords
 
         @param event: event label
         '''
 
-    def get(label):  # @NoSelf
+    def get(label):
         '''
         returns event
 
         @param label: event label
         '''
 
-    def react(event):  # @NoSelf
+    def react(event):
         '''
         returns objects bound to an event
 
         @param label: event label
         '''
 
-    def register(label, priority=1, **kw):  # @NoSelf
+    def register(label, priority=1, **kw):
         '''
         create new event
 
@@ -142,7 +141,7 @@ class ALazyApp(AApp):
 
     '''lazy app key'''
 
-    path = Attribute('module import path')
+    path = Attribute('import path')
 
 
 class ANamespace(AppspaceKey):

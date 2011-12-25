@@ -5,11 +5,11 @@ from __future__ import absolute_import
 
 from inspect import isclass, getmro
 
-from stuf.utils import setter
+from stuf.utils import setter, get_or_default
 
-from .utils import getcls
+from .utils import getcls, isrelated
 from .collections import ResetMixin, Sync
-from .decorators import TraitType, component, delegate
+from .decorators import TraitType, component, delegate, on
 
 
 class Delegated(ResetMixin):
@@ -18,8 +18,20 @@ class Delegated(ResetMixin):
 
     _descriptor_class = delegate
     _delegates = {}
-    a = None
-    s = None
+
+    def __new__(cls, *args, **kw):
+        # This is needed because in Python 2.6 object.__new__ only accepts the
+        # cls argument.
+        cls._metas = [b.Meta for b in getmro(cls) if hasattr(b, 'Meta')]
+        return super(Delegated, cls).__new__(cls, *args, **kw)
+
+    @classmethod
+    def _c(cls):
+        cls.s.update(dict(
+            dict(
+                (k, v) for k, v in vars(m).iteritems() if not k.startswith('_')
+            ) for m in get_or_default(cls, '_metas', []) + [cls.Meta]
+        ))
 
     def _instance_component(self, name, label, branch=None):
         '''
@@ -29,20 +41,7 @@ class Delegated(ResetMixin):
         @param label: component label
         @param branch: component branch (default: None)
         '''
-        return setter(getcls(self), name, delegate(label, branch))
-
-
-class Meta(object):
-
-    def __new__(cls, **kw):
-        for k, v in kw.iteritems():
-            setattr(cls, k, v)
-        return super(Meta, cls).__new__(cls)
-
-    def __repr__(self):
-        return 'Meta: %s' % str(dict((k, v) for k, v in vars(
-            self.__class__
-        ).iteritems() if not k.startswith('_')))
+        setter(getcls(self), name, delegate(label, branch))
 
 
 class Synched(Delegated):
@@ -103,20 +102,12 @@ class MetaHasTraits(type):
 class HasTraits(Synched):
 
     __metaclass__ = MetaHasTraits
-    _descriptor_class = TraitType
-    c = None
+    _descriptor = TraitType
 
     def __new__(cls, *args, **kw):
         # This is needed because in Python 2.6 object.__new__ only accepts the
         # cls argument.
-        # pylint: disable-msg=e1101
-        cls._metas = [b.Meta for b in getmro(cls) if hasattr(b, 'Meta')]
-        # pylint: enable-msg=e1101
-        new_meth = super(HasTraits, cls).__new__
-        if new_meth is object.__new__:
-            inst = new_meth(cls)
-        else:
-            inst = new_meth(cls, *args, **kw)
+        inst = super(HasTraits, cls).__new__(cls, *args, **kw)
         inst._trait_dyn_inits = {}
         inst._trait_values = {}
         # set all TraitType instances to their default values

@@ -178,13 +178,13 @@ class ResetMixin(object):
     functions can be triggered again.
     '''
 
-    _descriptor_class = lazybase
+    _descriptor = lazybase
 
     def reset(self):
         '''reset accessed lazy attributes'''
         instdict = vars(self)
         classdict = vars(getcls(self))
-        desc = self._descriptor_class
+        desc = self._descriptor
         # To reset them, we simply remove them from the instance dict. At that
         # point, it's as if they had never been computed. On the next access,
         # the accessor function from the parent class will be called, simply

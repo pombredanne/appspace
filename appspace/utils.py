@@ -62,6 +62,10 @@ def get_members(this, predicate=None):
     return results
 
 
+def isrelated(this, that):
+    return issubclass(this, that) if isclass(this) else isinstance(this, that)
+
+
 def lazy_import(path, attribute=None):
     '''
     deferred module loader

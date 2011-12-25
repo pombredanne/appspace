@@ -187,4 +187,3 @@ class EventManager(object):
         @param label: event label
         '''
         self.appspace.easy_unregister(AEvent, label)
-

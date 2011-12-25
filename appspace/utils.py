@@ -3,14 +3,14 @@
 
 from __future__ import absolute_import
 
+from functools import wraps
 from inspect import isclass
 from types import InstanceType
 from importlib import import_module
-from functools import update_wrapper, wraps
+
 
 from stuf import stuf
-from stuf.utils import (
-    OrderedDict, clsname, getter, instance_or_class, selfname)
+from stuf.utils import OrderedDict, clsname, getter
 
 
 def add_article(name):
@@ -31,19 +31,6 @@ def class_of(this):
     return add_article(clsname(this))
 
 
-def get_appspace(this, owner):
-    '''
-    get the appspace attached to a class
-
-    @param this: an instance
-    @param owner: the instance's class
-    '''
-    appspace = instance_or_class('a', this, owner)
-    if appspace is None:
-        appspace = this.appspace = lazy_import('appspace.builder.app')
-    return appspace
-
-
 def getcls(this):
     '''
     get class
@@ -51,17 +38,6 @@ def getcls(this):
     @param this: object
     '''
     return getter(this, '__class__')
-
-
-def get_component(appspace, label, branch=None):
-    '''
-    get component from appspace
-
-    @param appspace: appspace
-    @param label: component label
-    @param branch: component branch (default: None)
-    '''
-    return appspace[branch][label] if branch is not None else appspace[label]
 
 
 def get_members(this, predicate=None):
@@ -165,58 +141,3 @@ def repr_type(this):
         # Old-style class.
         the_type = getcls(this)
     return '%r %r' % (this, the_type)
-
-
-class component(object):
-
-    '''lazily set appspaced component as class attribute on first access'''
-
-    def __init__(self, label, branch=None):
-        '''
-        init
-
-        @param label: component label
-        @param branch: component branch (default: None)
-        '''
-        self.label = label
-        self.branch = branch
-
-    def __get__(self, this, that):
-        return get_component(get_appspace(this, that), self.label, self.branch)
-
-
-def lazy_component(branch=None):
-    '''
-    marks method as being a lazy component
-
-    @param label: component label
-    @param branch: component branch (default: None)
-    '''
-    def wrapped(func):
-        return LazyComponent(func, branch)
-    return wrapped
-
-
-class LazyComponent(object):
-
-    '''lazily set appspaced component as class attribute on first access'''
-
-    def __init__(self, method, branch=None):
-        '''
-        init
-
-        @param label: component label
-        @param branch: component branch (default: None)
-        '''
-        self.method = method
-        self.label = selfname(method)
-        self.branch = branch
-        self.is_set = False
-        update_wrapper(self, method)
-
-    def __get__(self, this, that):
-        aspace = get_appspace(this, that)
-        if not self.is_set:
-            aspace.set(self.label, self.method(this))
-            self.is_set = True
-        return get_component(aspace, self.label, self.branch)

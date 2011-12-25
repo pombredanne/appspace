@@ -3,58 +3,10 @@
 
 from operator import getitem
 from collections import deque
-from functools import partial, update_wrapper
 
-from stuf.utils import deleter, lazy, lazybase, selfname, getter, setter
+from stuf.utils import deleter, lazy, lazybase
 
 from .utils import getcls
-
-
-def delegatable(**kw):
-    '''
-    marks method as being able to be delegated
-
-    @param **fkw: attributes to set on decorated method
-    '''
-    def wrapped(func):
-        return Delegatable(func, **kw)
-    return wrapped
-
-
-class Delegatable(object):
-
-    delegated = True
-
-    def __init__(self, method, **kw):
-        self.method = method
-        self.kw = kw
-        self.name = selfname(method)
-        update_wrapper(self, method)
-
-    def __get__(self, this, that):
-        method = self.method
-        delegates = that._delegates
-        if delegates:
-            kw = dict(
-                (k, getter(that, v)) for k, v in delegates.iteritems()
-                if hasattr(that, k)
-            )
-            if kw:
-                method = partial(method, **kw)
-        return setter(that, self.name, method)
-
-
-class Meta(object):
-
-    def __new__(cls, **kw):
-        for k, v in kw.iteritems():
-            setattr(cls, k, v)
-        return super(Meta, cls).__new__(cls)
-
-    def __repr__(self):
-        return 'Meta: %s' % str(dict((k, v) for k, v in vars(
-            self.__class__
-        ).iteritems() if not k.startswith('_')))
 
 
 class NamedQueue(object):

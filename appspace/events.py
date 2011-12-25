@@ -4,27 +4,13 @@
 from __future__ import absolute_import
 
 from collections import deque
-from functools import update_wrapper
 from operator import attrgetter, getitem
 from inspect import ismethod, getargspec
 
 from stuf.utils import setter
 
 from .error import TraitError
-from .utils import get_appspace
 from .core import AEventManager, AEvent, appifies, get_apps, apped
-
-
-def on(*events):
-    '''
-    marks method as being a lazy component
-
-    @param label: component label
-    @param branch: component branch (default: None)
-    '''
-    def wrapped(func):
-        return On(func, *events)
-    return wrapped
 
 
 class Event(object):
@@ -61,10 +47,16 @@ class EventManager(object):
 
     @property
     def enabled(self):
+        '''are trait events allowed'''
         return self._enabled
 
     @enabled.setter
     def enabled(self, value):
+        '''
+        enable trait events
+
+        @param value: True or False
+        '''
         self._enabled = value
 
     def bind(self, label, component):
@@ -196,28 +188,3 @@ class EventManager(object):
         '''
         self.appspace.easy_unregister(AEvent, label)
 
-
-class On(object):
-
-    '''attach events to method'''
-
-    def __init__(self, method, *events):
-        '''
-        init
-
-        @param method: method to tie to events
-        @param *args: events
-        '''
-        self.events = events
-        self.is_set = False
-        self.method = method
-        update_wrapper(self, method)
-
-    def __get__(self, this, that):
-        if not self.is_set:
-            ebind = get_appspace(this, that).events.bind
-            method = self.method
-            for arg in self.events:
-                ebind(arg, method)
-            self.is_set = True
-        return self.method

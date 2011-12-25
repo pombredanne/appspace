@@ -209,8 +209,7 @@ class Traits(object):
 
     def validate_one(self, trait, value):
         try:
-            trait_class = self._traits[trait]
-            if trait_class.validate(trait, value):
+            if self._traits[trait].validate(trait, value):
                 return True
         except KeyError:
             return False

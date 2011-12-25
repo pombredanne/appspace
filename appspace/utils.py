@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from inspect import isclass
 from types import InstanceType
 from importlib import import_module
-from functools import wraps, update_wrapper
+from functools import update_wrapper, wraps
 
 from stuf import stuf
 from stuf.utils import (

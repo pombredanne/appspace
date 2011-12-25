@@ -4,8 +4,9 @@
 from __future__ import absolute_import
 
 from inspect import isclass, getmro
+from functools import partial, update_wrapper
 
-from stuf.utils import setter
+from stuf.utils import selfname, getter, setter
 
 from .properties.core import TraitType
 from .collections import ResetMixin, Sync
@@ -21,6 +22,55 @@ def delegater(appspace):
     Delegated.a = appspace
     Delegated.s = appspace.appspace.settings
     return Delegated
+
+
+def delegatable(**kw):
+    '''
+    marks method as being able to be delegated
+
+    @param **fkw: attributes to set on decorated method
+    '''
+    def wrapped(func):
+        return Delegatable(func, **kw)
+    return wrapped
+
+
+def on(*events):
+    '''
+    marks method as being a lazy component
+
+    @param label: component label
+    @param branch: component branch (default: None)
+    '''
+    def wrapped(func):
+        return On(func, *events)
+    return wrapped
+
+
+class On(object):
+
+    '''attach events to method'''
+
+    def __init__(self, method, *events):
+        '''
+        init
+
+        @param method: method to tie to events
+        @param *args: events
+        '''
+        self.events = events
+        self.is_set = False
+        self.method = method
+        update_wrapper(self, method)
+
+    def __get__(self, this, that):
+        if not self.is_set:
+            ebind = get_appspace(this, that).events.bind
+            method = self.method
+            for arg in self.events:
+                ebind(arg, method)
+            self.is_set = True
+        return self.method
 
 
 class Delegated(ResetMixin):
@@ -45,6 +95,42 @@ class Delegated(ResetMixin):
             name,
             get_component(get_appspace(self, self.__class__), label, branch),
         )
+
+
+class Delegatable(object):
+
+    delegated = True
+
+    def __init__(self, method, **kw):
+        self.method = method
+        self.kw = kw
+        self.name = selfname(method)
+        update_wrapper(self, method)
+
+    def __get__(self, this, that):
+        method = self.method
+        delegates = that._delegates
+        if delegates:
+            kw = dict(
+                (k, getter(that, v)) for k, v in delegates.iteritems()
+                if hasattr(that, k)
+            )
+            if kw:
+                method = partial(method, **kw)
+        return setter(that, self.name, method)
+
+
+class Meta(object):
+
+    def __new__(cls, **kw):
+        for k, v in kw.iteritems():
+            setattr(cls, k, v)
+        return super(Meta, cls).__new__(cls)
+
+    def __repr__(self):
+        return 'Meta: %s' % str(dict((k, v) for k, v in vars(
+            self.__class__
+        ).iteritems() if not k.startswith('_')))
 
 
 class SynchedMixin(Delegated):
@@ -134,6 +220,3 @@ class HasTraitsMixin(SynchedMixin):
                 if TraitType.instance(value):
                     value.instance_init(inst)
         return inst
-
-    class Meta:
-        pass

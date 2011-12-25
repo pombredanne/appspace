@@ -48,7 +48,7 @@ class TraitType(object):
             self._metadata = self.metadata
         self.init()
 
-    def __get__(self, this, cls=None):
+    def __get__(self, this, that=None):
         '''
         get the value of the trait by self.name for the instance.
 
@@ -114,6 +114,9 @@ class TraitType(object):
         '''create a new instance of the default value'''
         return self.default_value
 
+    def get_metadata(self, key):
+        return getattr(self, '_metadata', {}).get(key, None)
+
     def info(self):
         return self.info_text
 
@@ -138,9 +141,6 @@ class TraitType(object):
         @param this: newly create parent `HasTraits` instance
         '''
         self.set_default_value(this)
-
-    def get_metadata(self, key):
-        return getattr(self, '_metadata', {}).get(key, None)
 
     def set_default_value(self, this):
         '''
@@ -174,6 +174,3 @@ class TraitType(object):
     @staticmethod
     def subclass(value):
         return issubclass(value, TraitType)
-
-
-ttinstance = TraitType.instance

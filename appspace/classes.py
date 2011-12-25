@@ -7,15 +7,16 @@ from inspect import isclass, getmro
 
 from stuf.utils import setter
 
-from .properties.core import TraitType
+from .utils import getcls
 from .collections import ResetMixin, Sync
+from .decorators import TraitType, component, delegate
 
 
 class Delegated(ResetMixin):
 
     '''attributes and methods can be delegated to appspaced components'''
 
-    _descriptor_class = component
+    _descriptor_class = delegate
     _delegates = {}
     a = None
     s = None
@@ -28,11 +29,7 @@ class Delegated(ResetMixin):
         @param label: component label
         @param branch: component branch (default: None)
         '''
-        return setter(
-            self,
-            name,
-            get_component(get_appspace(self, self.__class__), label, branch),
-        )
+        return setter(getcls(self), name, delegate(label, branch))
 
 
 class Meta(object):
@@ -48,7 +45,7 @@ class Meta(object):
         ).iteritems() if not k.startswith('_')))
 
 
-class SynchedMixin(Delegated):
+class Synched(Delegated):
 
     def __init__(self, original, **kw):
         '''
@@ -56,7 +53,7 @@ class SynchedMixin(Delegated):
 
         We need to use setattr for this to trigger validation and events.
         '''
-        super(SynchedMixin, self).__init__()
+        super(Synched, self).__init__()
         self._sync = Sync(original, **kw)
 
     def __repr__(self):
@@ -94,8 +91,8 @@ class MetaHasTraits(type):
         '''
         finish initializing HasTraits class.
 
-        This sets the :attr:`this_class` attribute of each TraitType in the
-        class dict to the newly created class ``cls``.
+        This sets the `this_class` attribute of each TraitType in the
+        class dict to a newly created class.
         '''
         for v in classdict.itervalues():
             if TraitType.instance(v):
@@ -103,7 +100,7 @@ class MetaHasTraits(type):
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
 
-class HasTraitsMixin(SynchedMixin):
+class HasTraits(Synched):
 
     __metaclass__ = MetaHasTraits
     _descriptor_class = TraitType
@@ -115,7 +112,7 @@ class HasTraitsMixin(SynchedMixin):
         # pylint: disable-msg=e1101
         cls._metas = [b.Meta for b in getmro(cls) if hasattr(b, 'Meta')]
         # pylint: enable-msg=e1101
-        new_meth = super(HasTraitsMixin, cls).__new__
+        new_meth = super(HasTraits, cls).__new__
         if new_meth is object.__new__:
             inst = new_meth(cls)
         else:

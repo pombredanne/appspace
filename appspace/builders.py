@@ -50,14 +50,11 @@ class Appspace(object):
 
 class AppspaceFactory(object):
 
-    '''appspace factory'''
+    '''factory for appspace'''
 
     def __init__(self, label, *args, **kw):
         '''
-        init
-
-        @param label: label of appspace
-        @param *args: tuple of module paths or component inclusions
+        @param label: label for appspace
         '''
         # whether to use global appspace instead of local appspace
         self._glob = kw.get('use_global', False)
@@ -86,7 +83,7 @@ class Patterns(object):
         add new component to appspace
 
         @param appspace: existing appspace
-        @param label: label of branch appspace
+        @param label: label for branch appspace
         @param component: new component
         @param branch: branch to add component to
         @param use_global: use global appspace (default: False)

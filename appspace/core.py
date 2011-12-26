@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #@PydevCodeAnalysisIgnore
-'''keys'''
+'''appspace core keys'''
 
 from __future__ import absolute_import
 

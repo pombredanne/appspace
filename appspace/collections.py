@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''collections'''
+'''appspace collections'''
 
 from operator import getitem
 from collections import deque
@@ -160,9 +160,6 @@ class NamedQueue(object):
         self.reverse()
 
 
-namedqueue = NamedQueue
-
-
 class ResetMixin(object):
 
     '''
@@ -275,3 +272,6 @@ class Sync(ResetMixin):
     def update_original(self, kw):
         self.original.update(kw)
         self.reset()
+
+
+namedqueue = NamedQueue

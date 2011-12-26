@@ -124,19 +124,17 @@ class TraitType(object):
 
     def instance_init(self, this):
         '''
-        called by `HasTraits.__new__` to finish init'ing.
+        called by HasTraits.__new__ to finish init'ing.
+
+        @param this: newly create parent `HasTraits` instance
 
         Some stages of initialization must be delayed until the parent
-        `HasTraits` instance has been created.  This method is called in
-        `HasTraits.__new__` after the instance has been created.
+        HasTraits instance has been created.  This method is called in
+        HasTraits.__new__ after the instance has been created.
 
         This method trigger the creation and validation of default values and
         also things like the resolution of str given class names in the
         `Type` or `Instance` class.
-
-        =====================================================================
-
-        @param this: newly create parent `HasTraits` instance
         '''
         self.set_default_value(this)
 
@@ -144,9 +142,9 @@ class TraitType(object):
         '''
         set the default value on a per instance basis.
 
-        This method is called by :meth:`instance_init` to create and validate
-        the default value.  The creation and validation of default values must
-        be delayed until the parent :class:`HasTraits` class has been
+        This method is called by instance_init to create and validate the
+        default value.  The creation and validation of default values must be
+        delayed until the parent :class:`HasTraits` class has been
         instantiated.
         '''
         # Check for a deferred initializer defined in the same class as the

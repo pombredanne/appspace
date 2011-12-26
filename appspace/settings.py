@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''settings'''
+'''appspace settings'''
 
 from __future__ import absolute_import
 
@@ -13,7 +13,7 @@ from .core import ASettings, ADefaultSettings, ARequiredSettings, appifies
 
 class AppspaceSettings(ResetMixin):
 
-    '''settings manager'''
+    '''appspace settings'''
 
     appifies(ASettings)
 

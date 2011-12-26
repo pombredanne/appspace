@@ -26,9 +26,7 @@ class Any(TraitType):
 class Container(Instance):
 
     '''
-    An instance of a container (list, set, etc.)
-
-    To be subclassed by overriding klass.
+    instance of container (list, set, etc.) (subclassed by overriding klass)
     '''
 
     klass = None
@@ -36,35 +34,26 @@ class Container(Instance):
     _trait = None
 
     def __init__(self, trait=None, default_value=None, allow_none=True, **md):
-        '''Create a container trait type from a list, set, or tuple.
+        '''
+        create a container trait type from a list, set, or tuple.
 
-        The default value is created by doing ``List(default_value)``, which
-        creates a copy of the ``default_value``.
+        @param trait: type for restricting the contents of the Container. If
+            unspecified, types are not checked.
+        @param default_value: default value for the Trait. Must be
+            list/tuple/set and will be cast to the container type.
+        @param allow_none: whether to allow the value to be None
+        @param **md: further keys for extensions to the Trait (e.g. config)
 
-        ``trait`` can be specified, which restricts the type of elements in the
+        The default value is created by doing List(default_value), which
+        creates a copy of the default_value.
+
+        trait can be specified, which restricts the type of elements in the
         container to that TraitType.
 
         If only one arg is given and it is not a Trait, it is taken as
         ``default_value``:
 
         ``c = List([1,2,3])``
-
-        Parameters
-        ----------
-
-        trait : TraitType [ optional ]
-            the type for restricting the contents of the Container. If
-            unspecified, types are not checked.
-
-        default_value : SequenceType [ optional ]
-            The default value for the Trait.  Must be list/tuple/set, and will
-            be cast to the container type.
-
-        allow_none : Bool [ default True ]
-            Whether to allow the value to be None
-
-        **md : any
-            further keys for extensions to the Trait (e.g. config)
         '''
         istrait = lambda t: isinstance(t, type) and issubclass(t, TraitType)
         # allow List([values]):
@@ -84,14 +73,14 @@ class Container(Instance):
             self._trait.name = 'element'
         elif trait is not None:
             raise TypeError(
-                '`trait` must be a Trait or None, got %s' % repr_type(trait)
+                'trait must be a Trait or None, got %s' % repr_type(trait)
             )
         super(Container, self).__init__(
             klass=self.klass, args=args, allow_none=allow_none, **md
         )
 
     def element_error(self, this, element, validator):
-        e = '%s trait element of %s instance must be %s but value %s specified' % (
+        e = '%s trait of %s must be %s but value %s specified' % (
             self.name, class_of(this), validator.info(), repr_type(element)
         )
         raise TraitError(e)
@@ -119,7 +108,7 @@ class Container(Instance):
 
 class List(Container):
 
-    '''An instance of a Python list.'''
+    '''instance of a Python list.'''
 
     klass = list
 
@@ -127,41 +116,26 @@ class List(Container):
         self, trait=None, default_value=None, minlen=0, maxlen=sys.maxint,
         allow_none=True, **md
     ):
-        '''Create a List trait type from a list, set, or tuple.
+        '''
+        create a List trait type from a list, set, or tuple.
 
-        The default value is created by doing ``List(default_value)``,
-        which creates a copy of the ``default_value``.
+        @param trait: type for restricting the contents of the Container. If 
+            unspecified, types are not checked.
+        @param default_value: default value for Trait. Must be list/tuple/set
+            and will be cast to the container type.
+        @param minlen: minimum length of the input list
+        @param maxlen: maximum length of the input list
+        @param allow_none: whether to allow the value to be None
+        @param **md: any further keys for extensions to the Trait (e.g. config)
+        
+        Default value is created by doing List(default_value), which creates a
+        copy of the default_value.
 
-        ``trait`` can be specified, which restricts the type of elements
-        in the container to that TraitType.
+        trait can be specified, which restricts the type of elements in the
+        container to that TraitType.
 
         If only one arg is given and it is not a Trait, it is taken as
-        ``default_value``:
-
-        ``c = List([1,2,3])``
-
-        Parameters
-        ----------
-
-        trait : TraitType [ optional ]
-            the type for restricting the contents of the Container.  If 
-            unspecified, types are not checked.
-
-        default_value : SequenceType [ optional ]
-            The default value for the Trait.  Must be list/tuple/set, and
-            will be cast to the container type.
-
-        minlen : Int [ default 0 ]
-            The minimum length of the input list
-
-        maxlen : Int [ default sys.maxint ]
-            The maximum length of the input list
-
-        allow_none : Bool [ default True ]
-            Whether to allow the value to be None
-
-        **md : any
-            further keys for extensions to the Trait (e.g. config)
+        "default_value": "c = List([1,2,3])"
         '''
         self._minlen = minlen
         self._maxlen = maxlen
@@ -171,7 +145,7 @@ class List(Container):
         )
 
     def length_error(self, this, value):
-        e = '%s trait of %s instance must be length %i <= L <= %i but value %s specified' % (
+        e = '%s trait of %s must be %i <= L <= %i but %s specified' % (
             self.name, class_of(this), self._minlen, self._maxlen, value,
         )
         raise TraitError(e)
@@ -185,22 +159,31 @@ class List(Container):
 
 class Set(Container):
 
-    '''instance of a python set.'''
+    '''instance of a python set'''
 
     klass = set
 
 
 class Tuple(Container):
 
-    '''instance of a python tuple.'''
+    '''instance of a python tuple'''
 
     klass = tuple
 
     def __init__(self, *traits, **md):
         '''
-        Tuple(*traits, default_value=None, allow_none=True, **medatata)
-
-        Create a tuple from a list, set, or tuple.
+        create tuple from a list, set, or tuple
+        
+        @param *traits: type for restricting the contents of the Tuple. If 
+            unspecified, types are not checked. If specified, then each
+            positional argument corresponds to an element of the tuple. Tuples
+            defined with traits are of fixed length.
+        @param default_value: default value for the Tuple. Must be
+            list/tuple/set and will be cast to a tuple. If traits are 
+            specified, the default_value must conform to the shape and type
+            they specify.
+        @param allow_none: whether to allow the value to be None
+        @param **md: any further keys for extensions to the Trait (e.g. config)
 
         Create a fixed-type tuple with Traits:
 
@@ -215,25 +198,7 @@ class Tuple(Container):
 
         Otherwise, ``default_value`` *must* be specified by keyword.
 
-        Parameters
-        ----------
-
-        *traits : TraitTypes [ optional ]
-            the tsype for restricting the contents of the Tuple. If unspecified,
-            types are not checked. If specified, then each positional argument
-            corresponds to an element of the tuple. Tuples defined with traits
-            are of fixed length.
-
-        default_value : SequenceType [ optional ]
-            The default value for the Tuple.  Must be list/tuple/set, and
-            will be cast to a tuple. If `traits` are specified, the
-            `default_value` must conform to the shape and type they specify.
-
-        allow_none : Bool [ default True ]
-            Whether to allow the value to be None
-
-        **md : any
-            further keys for extensions to the Trait (e.g. config)
+        Tuple(*traits, default_value=None, allow_none=True, **md)
         '''
         default_value = md.pop('default_value', None)
         allow_none = md.pop('allow_none', True)
@@ -271,7 +236,7 @@ class Tuple(Container):
             # nothing to validate
             return value
         if len(value) != len(self._traits):
-            e = '%s trait of %s instance requires %i elements but value %s specified' % (
+            e = '%s trait for %s instance needs %i args but %s specified' % (
                 self.name, class_of(this), len(self._traits), repr_type(value)
             )
             raise TraitError(e)
@@ -288,14 +253,14 @@ class Tuple(Container):
 
 class Dict(Instance):
 
-    '''an instance of a python dictionary'''
+    '''instance of a Python dictionary'''
 
     def __init__(self, default_value=None, allow_none=True, **md):
         '''
-        create a dict trait type from a dict.
+        create a dict trait type from a dict
 
-        The default value is created by doing ``dict(default_value)``, which 
-        creates a copy of the ``default_value``.
+        The default value is created by doing dict(default_value), which 
+        creates a copy of the default_value.
         '''
         if default_value is None:
             args = ((),)
@@ -312,7 +277,7 @@ class Dict(Instance):
         
 class Enum(TraitType):
 
-    '''enum whose value must be in a given sequence.'''
+    '''enum whose value must be in a given sequence'''
 
     def __init__(self, values, default_value=None, allow_none=True, **md):
         self.values = values
@@ -337,7 +302,7 @@ class Enum(TraitType):
 
 class CaselessStrEnum(Enum):
 
-    '''enum of strings that are caseless in validate.'''
+    '''enum of strings that are caseless in validate'''
 
     def validate(self, this, value):
         if value is None:

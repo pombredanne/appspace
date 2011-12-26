@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-'''query'''
+'''appspace query'''
 
-from inspect import ismethod
+from inspect import getmro, ismethod
 
 from stuf import stuf
 from stuf.utils import setter, instance_or_class, get_or_default
@@ -29,6 +29,10 @@ class AppQuery(list):
         @param appspace: an appspace
         '''
         return getcls(self)(self.appspace, *args)
+
+    def all(self):
+        '''fetch all results'''
+        return [i for i in self]
 
     def app(self, label, component, branch='', use_global=False):
         '''
@@ -86,7 +90,7 @@ class AppQuery(list):
         return cls(desc._appspace)
 
     @staticmethod
-    def filter_members(this, that):
+    def filter(this, that):
         '''
         filter members of an object by class
 
@@ -113,15 +117,21 @@ class AppQuery(list):
         '''add local settings to appspace settings'''
         local = self.appspace.s.local
         lid = self.id(this)
+        metas = [b.Meta for b in getmro(getcls(this)) if hasattr(b, 'Meta')]
         local[lid] = dict(
           dict((k, v) for k, v in vars(m).iteritems() if not k.startswith('_'))
-          for m in get_or_default(this, '_metas', []) + [this.Meta]
+          for m in metas + [this.Meta]
         )
-        return local[lid]
+        return self(self.appspace, local[lid])
 
-    @classmethod
-    def id(cls, this):
-        return '_'.join([this.__module__, this(self)])
+    def id(self, this):
+        return self(self.appspace, '_'.join([this.__module__, this(self)]))
+
+    def one(self):
+        '''fetch one result'''
+        return self[0]
+
+    first = all
 
     def patterns(self, label, *args, **kw):
         '''

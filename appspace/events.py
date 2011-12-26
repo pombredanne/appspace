@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''events'''
+'''appspace events'''
 
 from __future__ import absolute_import
 
@@ -15,7 +15,7 @@ from .core import AEventManager, AEvent, appifies, get_apps, apped
 
 class Event(object):
 
-    '''event rules'''
+    '''appspace event rules'''
 
     def __init__(self, label, priority=1, **kw):
         '''
@@ -32,9 +32,11 @@ class Event(object):
 
 class EventManager(object):
 
-    appifies(AEventManager)
+    '''appspace event manager'''
 
     __slots__ = ['a', '_enabled']
+
+    appifies(AEventManager)
 
     def __init__(self, appspace):
         '''

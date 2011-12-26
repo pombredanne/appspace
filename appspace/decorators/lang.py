@@ -5,15 +5,14 @@
 from __future__ import absolute_import
 
 import re
-import sys
 import inspect
 from types import InstanceType, ClassType
 
 from stuf.utils import clsname, selfname
 
 from .core import TraitType
-from ..error import TraitError
-from ..utils import lazy_import, class_of
+from appspace.error import TraitError
+from appspace.utils import lazy_import, class_of
 
 
 ClassTypes = (ClassType, type)
@@ -21,7 +20,7 @@ ClassTypes = (ClassType, type)
 
 class ClassBasedTraitType(TraitType):
 
-    '''A trait with error reporting for Type, Instance and This.'''
+    '''trait with error reporting for Type, Instance and This'''
 
     def error(self, this, value):
         kind = type(value)
@@ -42,31 +41,24 @@ class ClassBasedTraitType(TraitType):
 
 class Type(ClassBasedTraitType):
 
-    '''A trait whose value must be a subclass of a specified class.'''
+    '''trait whose value must be a subclass of a specified class'''
 
     def __init__(self, default_value=None, klass=None, allow_none=True, **md):
         '''
-        A Type trait specifies that its values must be subclasses of
-        a particular class.
+        trait specifying its values must be subclasses of a particular class
 
-        If only ``default_value`` is given, it is used for the ``klass`` as
-        well.
+        If only default_value is given, it is used for the klass as well.
 
-        Parameters
-        ----------
-        default_value : class, str or None
-            The default value must be a subclass of klass.  If an str,
-            the str must be a fully specified class name, like 'foo.bar.Bah'.
-            The string is resolved into real class, when the parent
-            :class:`HasTraits` class is instantiated.
-        klass : class, str, None
-            Values of this trait must be a subclass of klass.  The klass
-            may be specified in a string like: 'foo.bar.MyClass'.
-            The string is resolved into real class, when the parent
-            :class:`HasTraits` class is instantiated.
-        allow_none : boolean
-            Indicates whether None is allowed as an assignable value. Even if
-            ``False``, the default value may be ``None``.
+        @param default_value: default value must be a subclass of klass. If an
+            str, str must be a fully specified class name, like 'foo.bar.Bah'.
+            The string is resolved into real class, when the parent HasTraits
+            class is instantiated.
+        @param klass: values of this trait must be a subclass of klass. The
+            klass may be specified in a string like: 'foo.bar.MyClass'. The
+            string is resolved into real class, when the parent HasTraits class
+             is instantiated.
+        @param allow_none: indicates whether None is allowed as an assignable
+            value. Even if False, default value may be None.
         '''
         if default_value is None:
             if klass is None:
@@ -116,7 +108,7 @@ class Type(ClassBasedTraitType):
 
 class DefaultValueGenerator(object):
 
-    '''A class for generating new default value instances.'''
+    '''class for generating new default value instances.'''
 
     def __init__(self, *args, **kw):
         self.args = args
@@ -129,31 +121,23 @@ class DefaultValueGenerator(object):
 class Instance(ClassBasedTraitType):
 
     '''
-    A trait whose value must be an instance of a specified class.
+    trait whose value must be an instance of a specified class
 
     The value can also be an instance of a subclass of the specified class.
     '''
 
     def __init__(self, klass=None, args=None, kw=None, allow_none=True, **md):
         '''
-        Construct an Instance trait.
-
-        This trait allows values that are instances of a particular class or
+        this trait allows values that are instances of a particular class or
         its subclasses.  Our implementation is quite different from that of
         enthough.traits as we don't allow instances to be used for klass and we
-        handle the ``args`` and ``kw`` arguments differently.
+        handle the args and kw arguments differently.
 
-        Parameters
-        ----------
-        klass : class, str
-            The class that forms the basis for the trait.  Class names
-            can also be specified as strings, like 'foo.bar.Bar'.
-        args : tuple
-            Positional arguments for generating the default value.
-        kw : dict
-            Keyword arguments for generating the default value.
-        allow_none : bool
-            Indicates whether None is allowed as a value.
+        @param klass: class that forms the basis for the trait. Class names
+            can also be specified as strings, like 'foo.bar.Bar'
+        args: positional arguments for generating the default value
+        kw: keyword arguments for generating the default value
+        allow_none: indicates whether None is allowed as a value.
 
         Default Value
         -------------
@@ -194,11 +178,11 @@ class Instance(ClassBasedTraitType):
 
     def get_default_value(self):
         '''
-        Instantiate a default value instance.
+        instantiate default value instance
 
-        This is called when the containing HasTraits classes'
-        :meth:`__new__` method is called to ensure that a unique instance
-        is created for each HasTraits instance.
+        Called when the containing HasTraits classes' __new__ method is
+        called to ensure that a unique instance is created for each HasTraits
+        instance.
         '''
         dv = self.default_value
         if isinstance(dv, DefaultValueGenerator):
@@ -235,9 +219,9 @@ class This(ClassBasedTraitType):
     '''
     trait for instances of the class containing this trait.
 
-    Because how how and when class bodies are executed, the ``This`` trait can
-    only have a default value of None.  This, and because we always validate
-    default values, ``allow_none`` is *always* true.
+    Because how how and when class bodies are executed, "This" trait can only
+    have a default value of None. This, and because we always validate
+    default values, allow_none is *always* true.
     '''
 
     info_text = 'an instance of the same type as the receiver or None'
@@ -258,32 +242,25 @@ class This(ClassBasedTraitType):
 class ObjectName(TraitType):
 
     '''
-    string holding a valid object name for this version of Python.
+    string holding a valid object name for this version of Python
 
     This does not check that the name exists in any scope.
     '''
 
     info_text = 'a valid object identifier in Python'
+    _name_re = re.compile(r'[a-zA-Z_][a-zA-Z0-9_]*$')
 
-    if sys.version_info[0] < 3:
-        # Python 2:
-        _name_re = re.compile(r'[a-zA-Z_][a-zA-Z0-9_]*$')
+    def isidentifier(self, s):
+        return bool(self._name_re.match(s))
 
-        def isidentifier(self, s):
-            return bool(self._name_re.match(s))
-
-        def coerce_str(self, this, value):
-            'In Python 2, coerce ascii-only unicode to str'
-            if isinstance(value, unicode):
-                try:
-                    return str(value)
-                except UnicodeEncodeError:
-                    self.error(this, value)
-            return value
-    else:
-        # Python 3:
-        isidentifier = staticmethod(lambda s: s.isidentifier())
-        coerce_str = staticmethod(lambda _, s: s)
+    def coerce_str(self, this, value):
+        'coerce ascii-only unicode to str'
+        if isinstance(value, unicode):
+            try:
+                return str(value)
+            except UnicodeEncodeError:
+                self.error(this, value)
+        return value
 
     def validate(self, this, value):
         value = self.coerce_str(this, value)

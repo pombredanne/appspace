@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=e1001,e1002
-'''state management'''
+'''appspace state management'''
 
 from __future__ import absolute_import
 

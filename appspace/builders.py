@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''builders'''
+'''appspace builders'''
 
 from __future__ import absolute_import
 
@@ -15,7 +15,7 @@ from .states import AppspaceManager, appifies, global_appspace
 
 def include(module):
     '''
-    load a branch appspace
+    load configuration for a branch appspace
 
     @param module_path: module import path
     '''

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable-msg=w0702
 '''
+appspace string traits
+
 We should always be explicit about whether we're using bytes or unicode, both
 for Python 3 conversion and for reliable unicode behaviour on Python 2. So
 we don't have a Str type.
@@ -16,7 +18,7 @@ from .core import TraitType
 
 class Bytes(TraitType):
 
-    '''trait for strings.'''
+    '''trait for strings'''
 
     default_value = ''
     info_text = 'a string'
@@ -29,7 +31,7 @@ class Bytes(TraitType):
 
 class CBytes(Bytes):
 
-    '''casting version of string trait.'''
+    '''casting version of string trait'''
 
     def validate(self, this, value):
         try:
@@ -40,7 +42,7 @@ class CBytes(Bytes):
 
 class Unicode(TraitType):
 
-    '''A trait for unicode strings.'''
+    '''trait for unicode strings'''
 
     default_value = u''
     info_text = 'a unicode string'
@@ -55,7 +57,7 @@ class Unicode(TraitType):
 
 class CUnicode(Unicode):
 
-    '''A casting version of the unicode trait.'''
+    '''casting version of the unicode trait'''
 
     def validate(self, this, value):
         try:
@@ -67,25 +69,17 @@ class CUnicode(Unicode):
 class CheckedUnicode(Unicode):
 
     '''
-    Defines a trait whose value must be a Python string whose length is
-    optionally in a specified range, and which optionally matches a specified
-    regular expression.
+    trait whose value must be a Python string whose length is optionally in a
+    specified range, and which optionally matches a specified regular
+    expression
     '''
 
     def __init__(self, value='', minlen=0, maxlen=sys.maxint, regex='', **md):
         '''
-        Creates a String trait.
-
-        Parameters
-        ----------
-        value : string
-            The default value for the string
-        minlen : integer
-            The minimum length allowed for the string
-        maxlen : integer
-            The maximum length allowed for the string
-        regex : string
-            A Python regular expression that the string must match
+        @param value: default value for the string
+        @param minlen: minimum length allowed for the string
+        @param maxlen : maximum length allowed for the string
+        @param regex: regular expression that the string must match
         '''
         super(CheckedUnicode, self).__init__(value, **md)
         self.minlen = max(0, minlen)
@@ -102,7 +96,7 @@ class CheckedUnicode(Unicode):
             self._validate = 'validate_len'
 
     def info(self):
-        '''Returns a description of the trait.'''
+        '''trait description'''
         msg = ''
         if self.minlen != 0 and self.maxlen != sys.maxint:
             msg = ' between %d and %d characters long' % (
@@ -119,13 +113,13 @@ class CheckedUnicode(Unicode):
         return 'a string' + msg
 
     def validate(self, name, value):
-        '''Validates that the value is a valid string'''
+        '''validates value is valid string'''
         return getattr(self, self._validate)(name, value)
 
     def validate_all(self, name, value):
         '''
-        Validates that the value is a valid string in the specified length
-        range which matches the specified regular expression.
+        validates value is valid string in the specified length range which
+        matches the specified regular expression
         '''
         try:
             value = super(CheckedUnicode, self).validate(value)
@@ -139,10 +133,7 @@ class CheckedUnicode(Unicode):
         self.error(name, value)
 
     def validate_len(self, name, value):
-        '''
-        Validates that the value is a valid string in the specified length
-        range
-        '''
+        '''validates value is valid string within specified length range'''
         try:
             value = super(CheckedUnicode, self).validate(value)
             if self.minlen <= len(value) <= self.maxlen:
@@ -153,8 +144,8 @@ class CheckedUnicode(Unicode):
 
     def validate_regex(self, name, value):
         '''
-        Validates that the value is a valid string which matches the specified
-        regular expression.
+        validates value is valid string that matches the specified regular
+        expression
         '''
         try:
             value = super(CheckedUnicode, self).validate(value)
@@ -165,7 +156,7 @@ class CheckedUnicode(Unicode):
         self.error(name, value)
 
     def validate_str(self, name, value):
-        '''Validates that the value is a valid string'''
+        '''validates value is a valid string'''
         try:
             return super(CheckedUnicode, self).validate(value)
         except:

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-'''traits'''
+'''appspace classes'''
 
 from __future__ import absolute_import
 
-from inspect import getmro, isclass
+from inspect import isclass
 
-from stuf.utils import either, getter, setter
+from stuf.utils import either, setter
 
 from .query import __
 from .utils import getcls, isrelated
@@ -21,7 +21,6 @@ class Delegated(ResetMixin):
 
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
-        cls._metas = [b.Meta for b in getmro(cls) if hasattr(b, 'Meta')]
         for k, v in vars(cls).itervalues():
             if isrelated(v, delegated):
                 v.__get__(None, cls)
@@ -29,12 +28,6 @@ class Delegated(ResetMixin):
             elif isrelated(v, on):
                 v.__get__(None, cls)
         return super(Delegated, cls).__new__(cls, *args, **kw)
-
-    def __getattr__(self, k):
-        try:
-            return self
-        except KeyError:
-            return getter(self, k)
 
     @either
     def c(self):

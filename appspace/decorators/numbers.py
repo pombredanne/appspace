@@ -8,7 +8,7 @@ from .core import TraitType
 
 class Bool(TraitType):
 
-    '''A boolean (True, False) trait.'''
+    '''boolean (True, False) trait'''
 
     default_value = False
     info_text = 'a boolean'
@@ -21,7 +21,7 @@ class Bool(TraitType):
 
 class CBool(Bool):
 
-    '''casting version of the boolean trait.'''
+    '''casting version of boolean trait'''
 
     def validate(self, this, value):
         try:
@@ -32,7 +32,7 @@ class CBool(Bool):
 
 class Int(TraitType):
 
-    '''integer trait.'''
+    '''integer trait'''
 
     default_value = 0
     info_text = 'an integer'
@@ -45,7 +45,7 @@ class Int(TraitType):
 
 class CInt(Int):
 
-    '''casting version of the int trait.'''
+    '''casting version of the int trait'''
 
     def validate(self, this, value):
         try:
@@ -59,7 +59,7 @@ class Integer(TraitType):
     '''
     integer trait.
 
-    Longs that are unnecessary (<= sys.maxint) are cast to ints.
+    unnecessary longs that are <= sys.maxint are cast to ints.
     '''
 
     default_value = 0
@@ -104,7 +104,7 @@ class CLong(Long):
 
 class Float(TraitType):
 
-    '''A float trait.'''
+    '''float trait'''
 
     default_value = 0.0
     info_text = 'a float'
@@ -119,7 +119,7 @@ class Float(TraitType):
 
 class CFloat(Float):
 
-    '''casting version of float trait.'''
+    '''casting version of float trait'''
 
     def validate(self, this, value):
         try:
@@ -130,7 +130,7 @@ class CFloat(Float):
 
 class Complex(TraitType):
 
-    '''trait for complex numbers.'''
+    '''trait for complex numbers'''
 
     default_value = 0.0 + 0.0j
     info_text = 'a complex number'
@@ -145,7 +145,7 @@ class Complex(TraitType):
 
 class CComplex(Complex):
 
-    '''casting version of complex number trait.'''
+    '''casting version of complex number trait'''
 
     def validate(self, this, value):
         try:

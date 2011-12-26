@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''decorators'''
+'''appspace decorators'''
 
 from functools import partial, update_wrapper
 from stuf.utils import selfname, getter, setter

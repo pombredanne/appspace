@@ -5,8 +5,9 @@ from __future__ import absolute_import
 
 from inspect import getmro, isclass
 
-from stuf.utils import clsname, either, getter, get_or_default, setter
+from stuf.utils import either, getter, setter
 
+from .query import __
 from .utils import getcls, isrelated
 from .collections import ResetMixin, Sync
 from .decorators import TraitType, delegated, on
@@ -38,19 +39,11 @@ class Delegated(ResetMixin):
     @either
     def c(self):
         '''add local settings to appspace settings'''
-        self.s.local[self.k] = dict(
-          dict((k, v) for k, v in vars(m).iteritems() if not k.startswith('_'))
-          for m in get_or_default(self, '_metas', []) + [self.Meta]
-        )
-        return self.s.local[self.k]
+        return __(self).localize(self)
 
     @either
     def _d(self):
         return self.s.delegates[self.k]
-
-    @either
-    def _k(self):
-        return '_'.join([self.__module__, clsname(self)])
 
     def _instance_component(self, name, label, branch=None):
         '''

@@ -3,10 +3,10 @@
 
 from __future__ import absolute_import
 
+from inspect import isclass
 from functools import wraps
 from types import InstanceType
 from importlib import import_module
-from inspect import isclass, ismethod
 
 from stuf import stuf
 from stuf.utils import OrderedDict, clsname, getter
@@ -58,18 +58,6 @@ def get_members(this, predicate=None):
                 rappend((key, value))
     results.sort()
     return results
-
-
-def filter_members(this, that):
-    '''
-    filter members of an object by class
-
-    @param this: an instance
-    @param that: a class
-    '''
-    return stuf(
-        (k, v) for k, v in itermembers(this, ismethod) if isrelated(v, that)
-    )
 
 
 def isrelated(this, that):

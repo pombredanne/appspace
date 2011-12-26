@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 '''query'''
 
-from stuf.utils import setter
+from inspect import ismethod
 
-from .utils import getcls
+from stuf import stuf
+from stuf.utils import setter, instance_or_class, get_or_default
+
 from .core import AAppQuery, appifies
+from .utils import getcls, itermembers, isrelated, lazy_import
 from .builders import Appspace, AppspaceManager, patterns, app
 
 
@@ -18,10 +21,13 @@ class AppQuery(list):
         '''
         @param appspace: an appspace
         '''
-        self.appspace = appspace
+        self.appspace = get_or_default(appspace, 'a', appspace)
         list.__init__(self, args)
 
     def __call__(self, *args):
+        '''
+        @param appspace: an appspace
+        '''
         return getcls(self)(self.appspace, *args)
 
     def app(self, label, component, branch='', use_global=False):
@@ -55,6 +61,43 @@ class AppQuery(list):
             return new_appspace
         return self
 
+    def build(self, pattern_class, required, defaults):
+        '''
+        build new appspace
+
+        @param required: required settings
+        @param defaults: default settings
+        '''
+        return self(pattern_class.build(required, defaults))
+
+    @classmethod
+    def class_space(cls, desc, this, that):
+        '''
+        get appspace attached to class
+
+        @param this: an instance
+        @param that: the instance's class
+        '''
+        if not desc._appspace:
+            appspace = instance_or_class('a', this, that)
+            if appspace is None:
+                appspace = this.a = lazy_import('appspace.builder.app')
+            desc._appspace = appspace
+        return cls(desc._appspace)
+
+    @staticmethod
+    def filter_members(this, that):
+        '''
+        filter members of an object by class
+
+        @param this: an instance
+        @param that: a class
+        '''
+        return stuf(
+            (k, v) for k, v in itermembers(this, ismethod)
+            if isrelated(v, that)
+        )
+
     def get(self, label, branch=''):
         '''
         get component from appspace
@@ -65,6 +108,20 @@ class AppQuery(list):
         return self(
             self.appspace[branch][label] if branch else self.appspace[label]
         )
+
+    def localize(self, this):
+        '''add local settings to appspace settings'''
+        local = self.appspace.s.local
+        lid = self.id(this)
+        local[lid] = dict(
+          dict((k, v) for k, v in vars(m).iteritems() if not k.startswith('_'))
+          for m in get_or_default(this, '_metas', []) + [this.Meta]
+        )
+        return local[lid]
+
+    @classmethod
+    def id(cls, this):
+        return '_'.join([this.__module__, this(self)])
 
     def patterns(self, label, *args, **kw):
         '''
@@ -84,3 +141,7 @@ class AppQuery(list):
         setter(klass, 'a', self.appspace)
         setter(klass, 's', self.appspace.settings)
         return self
+
+
+# shortcut
+__ = AppQuery

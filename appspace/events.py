@@ -103,6 +103,7 @@ class EventManager(object):
         rappend = results.append
         while subs:
             rappend(spop()(*args, **kw))
+        return results
 
     def get(self, label):
         '''
@@ -139,10 +140,17 @@ class EventManager(object):
         apped(NewEvent, ANewEvent)
         self.appspace.easy_register(AEvent, label, new_event)
 
-    def trait(self, name, old_value, new_value):
+    def trait(self, label, old_value, new_value):
+        '''
+        process trait related event
+
+        @param label: trait event label
+        @param old_value: old trait value
+        @param new_value: new trait value
+        '''
         if self.enabled:
             # First dynamic ones
-            callables = self.react(name)
+            callables = self.react(label)
             # Call them all now
             for c in callables:
                 # Traits catches and logs errors here.  I allow them to raise
@@ -159,11 +167,11 @@ class EventManager(object):
                     if nargs + offset == 0:
                         c()
                     elif nargs + offset == 1:
-                        c(name)
+                        c(label)
                     elif nargs + offset == 2:
-                        c(name, new_value)
+                        c(label, new_value)
                     elif nargs + offset == 3:
-                        c(name, old_value, new_value)
+                        c(label, old_value, new_value)
                     else:
                         raise TraitError(
                             'trait changed callback must have 0-3 arguments'

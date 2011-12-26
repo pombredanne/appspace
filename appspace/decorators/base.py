@@ -2,9 +2,9 @@
 '''decorators'''
 
 from functools import partial, update_wrapper
-from stuf.utils import selfname, getter, setter, instance_or_class
+from stuf.utils import selfname, getter, setter
 
-from appspace.utils import lazy_import, filter_members
+from appspace.query import __
 
 
 def delegatable(**kw):
@@ -64,20 +64,6 @@ class component(object):
     def __delete__(self, this):
         raise AttributeError('attribute is read only')
 
-    def appspace(self, this, that):
-        '''
-        get appspace attached to class
-
-        @param this: an instance
-        @param that: the instance's class
-        '''
-        if not self._appspace:
-            appspace = instance_or_class('a', this, that)
-            if appspace is None:
-                appspace = this.a = lazy_import('appspace.builder.app')
-            self._appspace = appspace
-        return self._appspace
-
     def calculate(self, this, that):
         return setter(that, self.label, self.component(this, that))
 
@@ -88,10 +74,7 @@ class component(object):
         @param this: an instance
         @param that: the instance's class
         '''
-        appspace = self.appspace(this, that)
-        branch = self.branch
-        label = self.label
-        return appspace[branch][label] if branch else appspace[label]
+        return __.class_space(self, this, that).get(self.label, self.branch)
 
 
 class delegated(component):
@@ -113,7 +96,9 @@ class LazyComponent(component):
         update_wrapper(self, method)
 
     def compute(self, this, that):
-        self.appspace(this, that).set(self.label, self.method(this))
+        __.class_space(self, this, that).app(
+            self.label, self.branch, self.method(this)
+        )
         return super(LazyComponent, self).compute(this, that)
 
 
@@ -143,20 +128,8 @@ class On(LazyComponent):
         self.events = events
 
     def compute(self, this, that):
-        ebind = self.appspace(this, that).events.bind
+        ebind = __.class_space(self, this, that).events.bind
         method = self.method
         for arg in self.events:
             ebind(arg, method)
         return setter(that, self.label, self.method)
-
-
-# filter out component descriptors
-filter_component = partial(filter_members, that=component)
-# filter out delegatable descriptors
-filter_delegatable = partial(filter_members, that=Delegatable)
-# filter out delegated descriptors
-filter_delegated = partial(filter_members, that=delegated)
-# filter out lazy component descriptors
-filter_lc = partial(filter_members, that=LazyComponent)
-# filter out event descriptors
-filter_on = partial(filter_members, that=On)

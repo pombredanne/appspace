@@ -23,8 +23,10 @@ class AApp(AppspaceKey):
     
 class AAppQuery(list):
 
-    def __call__(label, *args, **kw):
-        '''@param label: label of app in appspace'''
+    def __call__(appspace, *args):
+        '''
+        @param appspace: an appspace
+        '''
 
     def app(label, component, branch='', use_global=False):
         '''
@@ -42,6 +44,14 @@ class AAppQuery(list):
 
         @param label: label of new appspace
         @param use_global: use global appspace (default: False)
+        '''
+        
+    def build(required, defaults):
+        '''
+        build appspace from class
+
+        @param required: required settings
+        @param defaults: default settings
         '''
 
     def get(label, branch=''):

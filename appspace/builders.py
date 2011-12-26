@@ -25,6 +25,7 @@ def include(module):
 def patterns(label, *args, **kw):
     '''
     configuration for branch appspace
+
     @param label: name of branch appspace
     @param *args: tuple of module paths or component inclusions
     '''

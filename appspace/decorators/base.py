@@ -4,14 +4,14 @@
 from functools import partial, update_wrapper
 from stuf.utils import selfname, getter, setter, instance_or_class
 
-from appspace.utils import lazy_import
+from appspace.utils import lazy_import, filter_members
 
 
 def delegatable(**kw):
     '''
     marks method as being able to be delegated
 
-    @param **fkw: attributes to set on decorated method
+    @param **kw: delegated attributes to set on decorated method
     '''
     def wrapped(func):
         return Delegatable(func, **kw)
@@ -58,6 +58,12 @@ class component(object):
     def __get__(self, this, that):
         return self.calculate(this, that)
 
+    def __set__(self, this, value):
+        raise AttributeError('attribute is read only')
+
+    def __delete__(self, this):
+        raise AttributeError('attribute is read only')
+
     def appspace(self, this, that):
         '''
         get appspace attached to class
@@ -88,12 +94,14 @@ class component(object):
         return appspace[branch][label] if branch else appspace[label]
 
 
-class delegate(component):
+class delegated(component):
 
     '''delegated component'''
 
 
 class LazyComponent(component):
+
+    '''lazily load appspaced component'''
 
     def __init__(self, method, branch=''):
         '''
@@ -103,8 +111,6 @@ class LazyComponent(component):
         super(LazyComponent, self).__init__(selfname(method), branch)
         self.method = method
         update_wrapper(self, method)
-
-    '''lazily load appspaced component'''
 
     def compute(self, this, that):
         self.appspace(this, that).set(self.label, self.method(this))
@@ -142,3 +148,15 @@ class On(LazyComponent):
         for arg in self.events:
             ebind(arg, method)
         return setter(that, self.label, self.method)
+
+
+# filter out component descriptors
+filter_component = partial(filter_members, that=component)
+# filter out delegatable descriptors
+filter_delegatable = partial(filter_members, that=Delegatable)
+# filter out delegated descriptors
+filter_delegated = partial(filter_members, that=delegated)
+# filter out lazy component descriptors
+filter_lc = partial(filter_members, that=LazyComponent)
+# filter out event descriptors
+filter_on = partial(filter_members, that=On)

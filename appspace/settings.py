@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=f0401
 '''settings'''
 
 from __future__ import absolute_import
 
-from stuf import frozenstuf, stuf
+from stuf import defaultstuf, frozenstuf, stuf
 from stuf.utils import deepget, lazy, lazy_set, setter
 
 from .utils import object_walk
@@ -20,10 +19,14 @@ class AppspaceSettings(ResetMixin):
 
     def __init__(self):
         super(AppspaceSettings, self).__init__()
-        # final settings
-        self._final = stuf()
         # default settings
         self._default = stuf()
+        # delegates settings
+        self._delegates = defaultstuf(set)
+        # final settings
+        self._final = stuf()
+        # local settings
+        self._local = defaultstuf(set)
         # required settings
         self._required = stuf()
 
@@ -49,6 +52,15 @@ class AppspaceSettings(ResetMixin):
             self.update_default(value)
         else:
             raise TypeError('invalid DefaultSettings')
+
+    @lazy
+    def delegates(self):
+        '''get delegates separately'''
+        return self._delegates
+
+    @lazy
+    def local(self):
+        return self._local
 
     @lazy
     def r(self):

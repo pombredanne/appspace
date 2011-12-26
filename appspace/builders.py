@@ -13,6 +13,24 @@ from .core import AAppspace, ABranch, ANamespace
 from .states import AppspaceManager, appifies, global_appspace
 
 
+def include(module):
+    '''
+    load a branch appspace
+
+    @param module_path: module import path
+    '''
+    return ('include', module)
+
+
+def patterns(label, *args, **kw):
+    '''
+    configuration for branch appspace
+    @param label: name of branch appspace
+    @param *args: tuple of module paths or component inclusions
+    '''
+    return AppspaceFactory(label, *args, **kw)()
+
+
 class Appspace(object):
 
     '''interface with appspace'''
@@ -78,39 +96,6 @@ class Patterns(object):
     '''pattern class'''
 
     @classmethod
-    def app(cls, appspace, label, component, branch='', use_global=False):
-        '''
-        add new component to appspace
-
-        @param appspace: existing appspace
-        @param label: label for branch appspace
-        @param component: new component
-        @param branch: branch to add component to
-        @param use_global: use global appspace (default: False)
-        '''
-        if use_global:
-            appspace = app
-        elif branch:
-            appspace = cls.add_branch(appspace, branch)
-        appspace.appspace.set(label, component)
-        return cls
-
-    @classmethod
-    def branch(appspace, label, use_global=False):
-        '''
-        add new appspace to existing appspace
-
-        @param appspace: existing appspace
-        @param label: label of new appspace
-        @param use_global: use global appspace (default: False)
-        '''
-        if label not in appspace and not use_global:
-            new_appspace = Appspace(AppspaceManager())
-            appspace.appspace.set(label, new_appspace)
-            return new_appspace
-        return appspace
-
-    @classmethod
     def build(cls, required, defaults):
         this = list()
         tappend = this.append
@@ -125,43 +110,10 @@ class Patterns(object):
                     textend(v.build())
                 else:
                     tappend((k, v))
-        appconf = cls.patterns(selfname(cls), *tuple(this))
+        appconf = patterns(selfname(cls), *tuple(this))
         appconf.appspace.settings.required = required
         appconf.appspace.settings.defaults = defaults
         return appconf
-
-    @classmethod
-    def configure(cls, klass):
-        '''
-        add appspace to class
-
-        @param appspace: appspace to add
-        '''
-        klass.a = cls.appspace
-        klass.s = cls.appspace.settings
-        return klass
-
-    @staticmethod
-    def include(module):
-        '''
-        load a branch appspace
-
-        @param module_path: module import path
-        '''
-        return ('include', module)
-
-    @staticmethod
-    def patterns(label, *args, **kw):
-        '''
-        configuration for branch appspace
-        @param label: name of branch appspace
-        @param *args: tuple of module paths or component inclusions
-        '''
-        return AppspaceFactory(label, *args, **kw)()
-
-
-patterns = Patterns.patterns
-include = Patterns.include
 
 
 class Branch(object):

@@ -19,6 +19,53 @@ AppLookupError = ComponentLookupError
 class AApp(AppspaceKey):
 
     '''app key'''
+    
+    
+class AAppQuery(list):
+
+    def __call__(label, *args, **kw):
+        '''@param label: label of app in appspace'''
+
+    def app(label, component, branch='', use_global=False):
+        '''
+        add new component to appspace
+
+        @param label: label for branch appspace
+        @param component: new component
+        @param branch: branch to add component to
+        @param use_global: use global appspace (default: False)
+        '''
+
+    def branch(label, use_global=False):
+        '''
+        add new appspace to existing appspace
+
+        @param label: label of new appspace
+        @param use_global: use global appspace (default: False)
+        '''
+
+    def get(label, branch=''):
+        '''
+        get component from appspace
+
+        @param label: label for branch appspace
+        @param branch: branch to add component to
+        '''
+
+    def patterns(label, *args, **kw):
+        '''
+        configuration for branch appspace
+
+        @param label: name of branch appspace
+        @param *args: tuple of module paths or component inclusions
+        '''
+
+    def register(klass):
+        '''
+        add appspace to class
+
+        @param appspace: appspace to add
+        '''
 
 
 class AAppspace(AppspaceKey):

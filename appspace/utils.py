@@ -4,10 +4,9 @@
 from __future__ import absolute_import
 
 from functools import wraps
-from inspect import isclass
 from types import InstanceType
 from importlib import import_module
-
+from inspect import isclass, ismethod
 
 from stuf import stuf
 from stuf.utils import OrderedDict, clsname, getter
@@ -15,16 +14,16 @@ from stuf.utils import OrderedDict, clsname, getter
 
 def add_article(name):
     '''
-    Returns a string containing the correct indefinite article ('a' or 'an')
-    prefixed to the specified string.
+    get string containing the correct indefinite article ('a' or 'an') prefixed
+    to the specified string
     '''
     return 'an ' + name if name[:1].lower() in 'aeiou' else 'a ' + name
 
 
 def class_of(this):
     '''
-    Returns a string containing the class name of an object with the correct
-    indefinite article ('a' or 'an') preceding it.
+    get string containing class name of object with the correct indefinite
+    article ('a' or 'an') preceding it
     '''
     if isinstance(this, basestring):
         return add_article(this)
@@ -33,20 +32,19 @@ def class_of(this):
 
 def getcls(this):
     '''
-    get class
+    get class of instance
 
-    @param this: object
+    @param this: an instance
     '''
     return getter(this, '__class__')
 
 
 def get_members(this, predicate=None):
     '''
-    A safe version of inspect.getmembers that handles missing attributes.
+    version of inspect.getmembers that handles missing attributes.
 
     This is useful when there are descriptor based attributes that for some
-    reason raise AttributeError even though they exist.  This happens in
-    zope.inteface with the __provides__ attribute.
+    reason raise AttributeError even though they exist.
     '''
     results = []
     rappend = results.append
@@ -62,8 +60,43 @@ def get_members(this, predicate=None):
     return results
 
 
+def filter_members(this, that):
+    '''
+    filter members of an object by class
+
+    @param this: an instance
+    @param that: a class
+    '''
+    return stuf(
+        (k, v) for k, v in itermembers(this, ismethod) if isrelated(v, that)
+    )
+
+
 def isrelated(this, that):
+    '''
+    tell if this object is an instance or subclass of that object
+
+    @param this: an instance
+    @param that: a class
+    '''
     return issubclass(this, that) if isclass(this) else isinstance(this, that)
+
+
+def itermembers(that, predicate=None):
+    '''
+    iterate object members
+
+    @param this: an object
+    @param predicate: filter for members (default: None)
+    '''
+    for key in dir(that):
+        try:
+            value = getter(that, key)
+        except AttributeError:
+            pass
+        else:
+            if not predicate or predicate(value):
+                yield key, value
 
 
 def lazy_import(path, attribute=None):

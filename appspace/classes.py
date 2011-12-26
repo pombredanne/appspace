@@ -3,35 +3,54 @@
 
 from __future__ import absolute_import
 
-from inspect import isclass, getmro
+from inspect import getmro, isclass
 
-from stuf.utils import setter, get_or_default
+from stuf.utils import clsname, either, getter, get_or_default, setter
 
 from .utils import getcls, isrelated
 from .collections import ResetMixin, Sync
-from .decorators import TraitType, component, delegate, on
+from .decorators import TraitType, delegated, on
 
 
 class Delegated(ResetMixin):
 
     '''attributes and methods can be delegated to appspaced components'''
 
-    _descriptor_class = delegate
-    _delegates = {}
+    _descriptor = delegated
 
     def __new__(cls, *args, **kw):
-        # This is needed because in Python 2.6 object.__new__ only accepts the
-        # cls argument.
+        # needed because Python 2.6 object.__new__ only accepts cls argument
         cls._metas = [b.Meta for b in getmro(cls) if hasattr(b, 'Meta')]
+        for k, v in vars(cls).itervalues():
+            if isrelated(v, delegated):
+                v.__get__(None, cls)
+                cls.s.delegates[cls.k].add(k)
+            elif isrelated(v, on):
+                v.__get__(None, cls)
         return super(Delegated, cls).__new__(cls, *args, **kw)
 
-    @classmethod
-    def _c(cls):
-        cls.s.update(dict(
-            dict(
-                (k, v) for k, v in vars(m).iteritems() if not k.startswith('_')
-            ) for m in get_or_default(cls, '_metas', []) + [cls.Meta]
-        ))
+    def __getattr__(self, k):
+        try:
+            return self
+        except KeyError:
+            return getter(self, k)
+
+    @either
+    def c(self):
+        '''add local settings to appspace settings'''
+        self.s.local[self.k] = dict(
+          dict((k, v) for k, v in vars(m).iteritems() if not k.startswith('_'))
+          for m in get_or_default(self, '_metas', []) + [self.Meta]
+        )
+        return self.s.local[self.k]
+
+    @either
+    def _d(self):
+        return self.s.delegates[self.k]
+
+    @either
+    def _k(self):
+        return '_'.join([self.__module__, clsname(self)])
 
     def _instance_component(self, name, label, branch=None):
         '''
@@ -41,18 +60,15 @@ class Delegated(ResetMixin):
         @param label: component label
         @param branch: component branch (default: None)
         '''
-        setter(getcls(self), name, delegate(label, branch))
+        setter(getcls(self), name, delegated(label, branch))
 
 
-class Synched(Delegated):
+class Sync(Delegated):
+
+    '''delegate with synchronized class'''
 
     def __init__(self, original, **kw):
-        '''
-        set trait values using keyword arguments
-
-        We need to use setattr for this to trigger validation and events.
-        '''
-        super(Synched, self).__init__()
+        super(Sync, self).__init__()
         self._sync = Sync(original, **kw)
 
     def __repr__(self):
@@ -67,14 +83,13 @@ class MetaHasTraits(type):
     '''
     metaclass for HasTraits.
 
-    This metaclass makes sure that any TraitType class attributes are
-    instantiated and sets their name attribute.
+    This metaclass makes sure TraitType class attributes are instantiated with
+    their name attribute set.
     '''
 
     def __new__(cls, name, bases, classdict):
         '''
-        instantiate all TraitTypes in class dict, setting their `name`
-        attribute
+        instantiate TraitTypes in classdict, setting their name attribute
         '''
         for k, v in classdict.iteritems():
             if TraitType.instance(v):
@@ -88,10 +103,10 @@ class MetaHasTraits(type):
 
     def __init__(cls, name, bases, classdict):
         '''
-        finish initializing HasTraits class.
+        finish initializing HasTraits class
 
-        This sets the `this_class` attribute of each TraitType in the
-        class dict to a newly created class.
+        This sets this_class attribute of each TraitType in the classdict to a
+        newly created class.
         '''
         for v in classdict.itervalues():
             if TraitType.instance(v):
@@ -99,7 +114,7 @@ class MetaHasTraits(type):
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
 
-class HasTraits(Synched):
+class HasTraits(Sync):
 
     __metaclass__ = MetaHasTraits
     _descriptor = TraitType

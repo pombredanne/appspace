@@ -9,7 +9,7 @@ from stuf.utils import clsname, either, getter, deleter, setter
 
 from .error import TraitError
 from .utils import get_members, getcls
-from .properties.core import TraitType
+from .decorators.core import TraitType
 
 
 class _SimpleTest:
@@ -32,6 +32,36 @@ class Traits(object):
     def __init__(self, this):
         self.this = this
 
+    @staticmethod
+    def _filter(traits, **md):
+        '''
+        get a list of all the traits of this class.
+
+        This method a class method equivalent of the `traits` method.
+
+        The traits returned know nothing about the values that HasTrait's
+        instances are holding.
+
+        This follows the same algorithm as traits does and does not allow for
+        any simple way of specifying merely that a metadata name exists, but
+        has any value.  This is because get_metadata returns None if a metadata
+        key doesn't exist.
+        '''
+        if not md:
+            return traits
+        for meta_name, meta_eval in md.itemitems():
+            if type(meta_eval) is not FunctionType:
+                md[meta_name] = _SimpleTest(meta_eval)
+        result = {}
+        for name, trait in traits.iteritems():
+            get_metadata = trait.get_metadata
+            for meta_name, meta_eval in md.itemitems():
+                if not meta_eval(get_metadata(meta_name)):
+                    break
+            else:
+                result[name] = trait
+        return result
+
     @either
     def _traits(self):
         return dict(
@@ -53,20 +83,7 @@ class Traits(object):
         has any value.  This is because get_metadata returns None if a metadata
         key doesn't exist.
         '''
-        traits = cls._traits
-        if not md:
-            return traits
-        for meta_name, meta_eval in md.items():
-            if type(meta_eval) is not FunctionType:
-                md[meta_name] = _SimpleTest(meta_eval)
-        result = {}
-        for name, trait in traits.items():
-            for meta_name, meta_eval in md.items():
-                if not meta_eval(trait.get_metadata(meta_name)):
-                    break
-            else:
-                result[name] = trait
-        return result
+        return cls._filter(cls._traits, **md)
 
     @classmethod
     def class_names(cls, **md):
@@ -75,7 +92,7 @@ class Traits(object):
 
         This method is just like the :meth:`trait_names` method, but is unbound
         '''
-        return cls.class_filter(**md).iterkeys()
+        return cls.class_filter(**md).keys()
 
     def commit(self):
         self._sync.commit()
@@ -93,21 +110,7 @@ class Traits(object):
         has any value.  This is because get_metadata returns None if a metadata
         key doesn't exist.
         '''
-        traits = self._traits
-        if not md:
-            return traits
-        for meta_name, meta_eval in md.iteritems():
-            if type(meta_eval) is not FunctionType:
-                md[meta_name] = _SimpleTest(meta_eval)
-        result = {}
-        for name, trait in traits.iteritems():
-            get_metadata = trait.get_metadata
-            for meta_name, meta_eval in md.iteritems():
-                if not meta_eval(get_metadata(meta_name)):
-                    break
-            else:
-                result[name] = trait
-        return result
+        return self._filter(self._traits, **md)
 
     def metadata(self, label, key):
         '''
@@ -124,7 +127,7 @@ class Traits(object):
             )
 
     def names(self, **md):
-        '''get al names of this instances' traits.'''
+        '''get all names of this instance's traits.'''
         return self.filter(**md).keys()
 
     def reset(self, labels=None, **metadata):

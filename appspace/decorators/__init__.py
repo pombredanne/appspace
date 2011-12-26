@@ -57,12 +57,12 @@ __all__ = [
     'TraitType', 'Bytes', 'CBytes', 'CUnicode', 'CheckedUnicode', 'List',
     'Container', 'CaselessStrEnum', 'Any', 'Tuple', 'Dict', 'ObjectName',
     'DottedObjectName', 'This', 'Instance', 'Type', 'Bool', 'CBool', 'Int',
-    'Unicode', 'Undefined', 'component', 'delegatable', 'delegate', 'on',
+    'Unicode', 'Undefined', 'component', 'delegatable', 'delegated', 'on',
     'lazy_component',
 ]
 
 from .core import TraitType, Undefined
-from .base import component, delegatable, delegate, on
+from .base import component, delegatable, delegated, lazy_component, on
 from .containers import (
     List, Container, CaselessStrEnum, Enum, Any, Tuple, Dict
 )

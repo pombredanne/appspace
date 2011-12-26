@@ -24,9 +24,7 @@ NoDefaultSpecified = NoDefaultSpecified()
 
 class TraitType(object):
 
-    '''
-    base class for all trait descriptors.
-    '''
+    '''base class for all traits'''
 
     appifies(ATraitType)
     default_value = Undefined

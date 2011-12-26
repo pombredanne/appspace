@@ -228,7 +228,7 @@ class Sync(ResetMixin):
     __str__ = __unicode__
 
     @lazy
-    def all(self):
+    def properties(self):
         return dict((k, v) for k, v in self.current.iteritems())
 
     @lazy

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace builders'''
+'''build appspaces'''
 
 from __future__ import absolute_import
 
@@ -15,21 +15,21 @@ from .states import AppspaceManager, appifies, global_appspace
 
 def include(module):
     '''
-    load configuration for a branch appspace
+    add branch appspace
 
-    @param module_path: module import path
+    @param module: module import path
     '''
     return ('include', module)
 
 
 def patterns(label, *args, **kw):
     '''
-    configuration for branch appspace
+    configure appspace
 
     @param label: name of branch appspace
     @param *args: tuple of module paths or component inclusions
     '''
-    return AppspaceFactory(label, *args, **kw)()
+    return AppspaceFactory(label, *args, **kw).build()
 
 
 class Appspace(object):
@@ -77,14 +77,18 @@ class AppspaceFactory(object):
         '''
         # whether to use global appspace instead of local appspace
         self._glob = kw.get('use_global', False)
+        # object with appspace configuration
         self._mod = kw.get('mod', 'appconf')
         # register apps in appspace
         apper = self._appspace.set
+        # add applications
         for arg in args:
             apper(*arg)
+        # add appspace
         apper(label, Appspace(self._appspace))
 
-    def __call__(self):
+    def build(self):
+        '''build appspace'''
         return Appspace(self._appspace)
 
     @lazy
@@ -94,24 +98,37 @@ class AppspaceFactory(object):
 
 class Patterns(object):
 
-    '''pattern class'''
+    '''patterns for appspace configured in a class'''
 
     @classmethod
     def build(cls, required, defaults):
+        '''
+        build appspace configuration from class
+
+        @param required: required settings
+        @param defaults: default settings
+        '''
         this = list()
         tappend = this.append
         textend = this.extend
+        # filters
         anamespace = ANamespace.implementedBy
         branch = ABranch.implementedBy
         for k, v in vars(cls).iteritems():
+            # filter private and hidden
             if not k.startswith('_'):
+                # handle namespace
                 if anamespace(v):
                     textend(i for i in v.build())
+                # handle branches
                 elif branch(v):
                     textend(v.build())
+                # handle anything else
                 else:
                     tappend((k, v))
+        # build configuration
         appconf = patterns(selfname(cls), *tuple(this))
+        # attach settings
         appconf.appspace.settings.required = required
         appconf.appspace.settings.defaults = defaults
         return appconf
@@ -125,6 +142,7 @@ class Branch(object):
 
     @classmethod
     def build(cls):
+        '''gather branch configuration'''
         return [
             (k, include(v)) for k, v in vars(cls).iteritems()
             if all([not k.startswith('_'), isinstance(v, basestring)])
@@ -139,10 +157,12 @@ class Namespace(object):
 
     @classmethod
     def _pack(cls, this, that):
-        return ('.'.join([selfname(cls), this]), that)
+        # build name
+        return ('_'.join([selfname(cls), this]), that)
 
     @classmethod
     def build(cls):
+        '''gather namespace configuration'''
         this = list()
         tappend = this.append
         textend = this.extend
@@ -150,6 +170,7 @@ class Namespace(object):
         pack = cls._pack
         for k, v in vars(cls).iteritems():
             if not k.startswith('_'):
+                # handle namespaces
                 if anamespace(v):
                     textend(pack(*i) for i in v.build())
                 else:

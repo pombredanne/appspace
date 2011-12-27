@@ -5,10 +5,11 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from stuf.utils import either, setter
+from stuf.utils import either, setter, getter
 
 from .query import __
-from .utils import getcls, isrelated
+from .utils import getcls
+from .core import ADelegated, appifies
 from .collections import ResetMixin, Sync
 from .decorators import TraitType, delegated, on
 
@@ -17,28 +18,29 @@ class Delegated(ResetMixin):
 
     '''attributes and methods can be delegated to appspaced components'''
 
+    appifies(ADelegated)
+
     _descriptor = delegated
+    _delegates = {}
 
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
-        for k, v in vars(cls).itervalues():
-            if isrelated(v, delegated):
-                v.__get__(None, cls)
-                cls.s.delegates[cls.k].add(k)
-            elif isrelated(v, on):
-                v.__get__(None, cls)
+        __(cls).api(delegated)
+        __(cls).api(on)
         return super(Delegated, cls).__new__(cls, *args, **kw)
 
     @either
     def c(self):
         '''add local settings to appspace settings'''
-        return __(self).localize(self)
+        return __(self).localize().one()
 
-    @either
-    def _d(self):
-        return self.s.delegates[self.k]
+    def __getattr__(self, key):
+        nkey = __(self).id()
+        if key in self.a.delegates[nkey]:
+            return self.a[nkey][key]
+        return getter(self, key)
 
-    def _instance_component(self, name, label, branch=None):
+    def _instance_component(self, name, label, branch=''):
         '''
         inject appspaced component as instance attribute
 
@@ -46,7 +48,7 @@ class Delegated(ResetMixin):
         @param label: component label
         @param branch: component branch (default: None)
         '''
-        setter(getcls(self), name, delegated(label, branch))
+        return setter(getcls(self), name, delegated(label, branch))
 
 
 class Sync(Delegated):

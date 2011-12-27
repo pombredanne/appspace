@@ -214,6 +214,11 @@ class ASettings(AppspaceKey):
 class ADefaultSettings(ASettings):
 
     '''default settings key'''
+    
+    
+class ADelegated(AppspaceKey):
+    
+    '''delegated app key'''
 
 
 class ARequiredSettings(ASettings):

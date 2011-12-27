@@ -60,7 +60,10 @@ class AppQuery(list):
         self.this = kw.pop('this', None)
         if AAppspace.providedBy(appspace):
             self.appspace = appspace
-        elif ADelegated.implementedBy(appspace):
+        elif any([
+            ADelegated.providedBy(appspace),
+            ADelegated.implementedBy(getcls(appspace))
+        ]):
             self.this = appspace
             self.appspace = appspace.a
         else:
@@ -217,7 +220,7 @@ class AppQuery(list):
         setter(appspaced, 'a', self.appspace)
         # attach appspace settings
         setter(appspaced, 's', self.appspace.appspace.settings)
-        return self
+        return self(appspaced)
 
 
 class component(object):
@@ -252,7 +255,7 @@ class component(object):
         @param this: an instance
         @param that: the instance's class
         '''
-        return __.class_space(self, this, that).get(self.label, self.branch)
+        return __(that).get(self.label, self.branch)
 
 
 class delegated(component):

@@ -38,7 +38,7 @@ class AppspaceManager(AppStore):
         self.easy_register(AEventManager, 'default', EventManager)
 
     def __contains__(self, label):
-        return contains(self.names(((), AApp), label))
+        return contains(self.names((), AApp), label)
 
     def __repr__(self):
         return str(self.lookupAll((), AApp))

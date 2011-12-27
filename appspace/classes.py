@@ -5,21 +5,49 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from stuf.utils import either, setter, getter, lazy
+from stuf.utils import either, setter, lazy
 
 from .utils import getcls
 from .traits import Traits
 from .decorators import TraitType
 from .core import ADelegated, appifies
 from .containers import ResetMixin, Sync
-from .query import __, component, delegated
+from .query import __, component
 
 
-class Delegated(ResetMixin):
+class Hosted(ResetMixin):
 
     '''attributes and methods can be delegated to appspaced components'''
 
     appifies(ADelegated)
+
+    __ = __
+    _descriptor = component
+
+    def __new__(cls, *args, **kw):
+        # needed because Python 2.6 object.__new__ only accepts cls argument
+        cls.__(cls).ons()
+        return super(Delegated, cls).__new__(cls, *args, **kw)
+
+    @either
+    def c(self):
+        '''local appspaced settings'''
+        return self.__(self).localize().one()
+
+    def _instance_component(self, name, label, branch=''):
+        '''
+        inject appspaced component as instance attribute
+
+        @param name: instance attribute label
+        @param label: component label
+        @param branch: component branch (default: None)
+        '''
+        return setter(getcls(self), name, self.__(self).getapp(label, branch))
+
+
+class Delegated(Hosted):
+
+    '''attributes and methods can be delegated to appspaced components'''
 
     __ = __
     _delegates = {}
@@ -37,10 +65,12 @@ class Delegated(ResetMixin):
         return self.__(self).localize().one()
 
     def __getattr__(self, key):
-        nkey = __(self).key()
-        if key in self.a.delegates[nkey]:
-            return self.__(self).get(key, nkey)
-        return getter(self, key)
+        try:
+            return object.__getattribute__(self, key)
+        except AttributeError:
+            nkey = __(self).key()
+            if key in self.s.delegates[nkey]:
+                return self.__(self).get(key, nkey)
 
     def _instance_component(self, name, label, branch=''):
         '''
@@ -50,7 +80,7 @@ class Delegated(ResetMixin):
         @param label: component label
         @param branch: component branch (default: None)
         '''
-        return setter(getcls(self), name, delegated(label, branch))
+        return setter(getcls(self), name, self.__(self).getapp(label, branch))
 
 
 class Sync(Delegated):

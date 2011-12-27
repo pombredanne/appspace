@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from operator import getitem, contains
 
-from stuf.utils import attr_or_item, lazy, selfname
+from stuf.utils import lazy, selfname
 
 from .utils import lru_cache
 from .error import AppLookupError, NoAppError

@@ -5,13 +5,14 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from stuf.utils import either, setter, getter
+from stuf.utils import either, setter, getter, lazy
 
 from .query import __
 from .utils import getcls
+from .traits import Traits
 from .core import ADelegated, appifies
 from .collections import ResetMixin, Sync
-from .decorators import TraitType, delegated, on
+from .decorators import TraitType, component, delegated
 
 
 class Delegated(ResetMixin):
@@ -20,24 +21,25 @@ class Delegated(ResetMixin):
 
     appifies(ADelegated)
 
-    _descriptor = delegated
+    __ = __
     _delegates = {}
+    _descriptor = component
 
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
-        __(cls).api(delegated)
-        __(cls).api(on)
+        cls.__(cls).delegated()
+        cls.__(cls).ons()
         return super(Delegated, cls).__new__(cls, *args, **kw)
 
     @either
     def c(self):
-        '''add local settings to appspace settings'''
-        return __(self).localize().one()
+        '''local appspaced settings'''
+        return self.__(self).localize().one()
 
     def __getattr__(self, key):
-        nkey = __(self).id()
+        nkey = __(self).key()
         if key in self.a.delegates[nkey]:
-            return self.a[nkey][key]
+            return self.__(self).get(key, nkey)
         return getter(self, key)
 
     def _instance_component(self, name, label, branch=''):
@@ -126,3 +128,7 @@ class HasTraits(Sync):
                 if TraitType.instance(value):
                     value.instance_init(inst)
         return inst
+
+    @lazy
+    def traits(self):
+        return Traits(self)

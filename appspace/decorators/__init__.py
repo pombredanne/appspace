@@ -58,11 +58,10 @@ __all__ = [
     'Container', 'CaselessStrEnum', 'Any', 'Tuple', 'Dict', 'ObjectName',
     'DottedObjectName', 'This', 'Instance', 'Type', 'Bool', 'CBool', 'Int',
     'Unicode', 'Undefined', 'component', 'delegatable', 'delegated', 'on',
-    'lazy_component',
+    'lazy_component', 'NoDefaultSpecified',
 ]
 
-from .core import TraitType, Undefined
-from .base import component, delegatable, delegated, lazy_component, on
+from .core import TraitType, Undefined, NoDefaultSpecified
 from .containers import (
     List, Container, CaselessStrEnum, Enum, Any, Tuple, Dict
 )

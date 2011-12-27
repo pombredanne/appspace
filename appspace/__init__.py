@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-'''application plumbing'''
+'''appspace'''
 
 from __future__ import absolute_import
 
+from .classes import Delegated, HasTraits, Sync
 from .settings import RequiredSettings, DefaultSettings
-from .decorators import component, delegatable, delegate
-from .builders import (
-    Patterns, Branch, Namespace, include, app, patterns, add_app, add_branch,
-)
+from .query import __, AppQuery, component, delegatable, delegated, on
+from .builders import Branch, Patterns, Namespace, include, app, patterns

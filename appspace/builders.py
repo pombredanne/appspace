@@ -41,6 +41,9 @@ class Appspace(object):
     appifies(AAppspace)
 
     def __init__(self, appspace):
+        '''
+        @param appspace: appspace
+        '''
         self.appspace = appspace
 
     def __getattr__(self, label):
@@ -80,20 +83,21 @@ class AppspaceFactory(object):
         # object with appspace configuration
         self._mod = kw.get('mod', 'appconf')
         # register apps in appspace
-        apper = self._appspace.set
+        apper = self.appspace.set
         # add applications
         for arg in args:
             apper(*arg)
         # add appspace
-        apper(label, Appspace(self._appspace))
+        apper(label, Appspace(self.appspace))
+
+    @lazy
+    def appspace(self):
+        '''appspace builder'''
+        return global_appspace if self._glob else AppspaceManager(self._mod)
 
     def build(self):
         '''build appspace'''
         return Appspace(self._appspace)
-
-    @lazy
-    def _appspace(self):
-        return global_appspace if self._glob else AppspaceManager(self._mod)
 
 
 class Patterns(object):
@@ -128,9 +132,10 @@ class Patterns(object):
                     tappend((k, v))
         # build configuration
         appconf = patterns(selfname(cls), *tuple(this))
+        settings = appconf.appspace.settings
         # attach settings
-        appconf.appspace.settings.required = required
-        appconf.appspace.settings.defaults = defaults
+        settings.required = required
+        settings.defaults = defaults
         return appconf
 
 
@@ -158,7 +163,7 @@ class Namespace(object):
     @classmethod
     def _pack(cls, this, that):
         # build name
-        return ('_'.join([selfname(cls), this]), that)
+        return ('.'.join([selfname(cls), this]), that)
 
     @classmethod
     def build(cls):

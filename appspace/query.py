@@ -6,28 +6,27 @@ from __future__ import absolute_import
 from inspect import getmro, ismethod
 from functools import partial, update_wrapper
 
-from stuf import stuf
 from stuf.utils import getter, instance_or_class, selfname, setter
 
+from .builders import Appspace, AppspaceManager, patterns
 from .core import AAppQuery, AAppspace, ADelegated, appifies
 from .utils import getcls, itermembers, isrelated, lazy_import
-from .builders import Appspace, AppspaceManager, patterns, app
 
 
-def delegatable(**kw):
+def delegatable(**metadata):
     '''
-    marks method as being able to be delegated
+    marks method as delegatable
 
-    @param **kw: delegated attributes to set on decorated method
+    @param **metadata: metadata to set on decorated method
     '''
     def wrapped(func):
-        return Delegatable(func, **kw)
+        return Delegatable(func, **metadata)
     return wrapped
 
 
 def lazy_component(branch=''):
     '''
-    marks method as being a lazy component
+    marks method as a lazily loaded component
 
     @param label: component label
     @param branch: component branch (default: None)
@@ -55,11 +54,11 @@ class AppQuery(list):
 
     appifies(AAppQuery)
 
-    def __init__(self, appspace, *args):
+    def __init__(self, appspace, *args, **kw):
         '''
         @param appspace: an appspace
         '''
-        self.this = None
+        self.this = kw.pop('this')
         if AAppspace.providedBy(appspace):
             self.appspace = appspace
         elif ADelegated.providedBy(appspace):
@@ -68,133 +67,104 @@ class AppQuery(list):
         list.__init__(self, args)
 
     def __call__(self, *args):
-        '''
-        @param appspace: an appspace
-        '''
-        return getcls(self)(self.appspace, *args)
+        return getcls(self)(self.appspace, *args, **dict(this=self.this))
 
     def all(self):
         '''fetch all results'''
         return [i for i in self]
 
-    def app(self, label, component, branch='', use_global=False):
+    def api(self, that):
+        combined = {}
+        for meths in self.filter(that).one():
+            combined.update(meths)
+        this = self.this
+        branch = self(self.branchset(self.key(this)))
+        for k, v in combined.iteritems():
+            branch.appset(k, v.__get__(None, this))
+        return self(combined)
+
+    def appget(self, label, branch=''):
+        '''
+        fetch component from appspace
+
+        @param label: label for appspace
+        @param branch: appspace to add component to
+        '''
+        return self(
+            self.appspace[branch][label] if branch else self.appspace[label]
+        )
+
+    def appset(self, component, label, branch=''):
         '''
         add new component to appspace
 
-        @param label: label for branch appspace
         @param component: new component
-        @param branch: branch to add component to
-        @param use_global: use global appspace (default: False)
+        @param label: label for branch appspace
+        @param branch: branch to add component to (default: '')
         '''
-        appspace = self.appspace
-        if use_global:
-            appspace = app
-        elif branch:
-            appspace = self.add_branch(branch)
-        appspace.appspace.set(label, component)
+        self.appspace.appspace.set(label, component)
         return self
 
-    def branch(self, label, use_global=False):
+    def branchget(self, desc, that):
         '''
-        add new appspace to existing appspace
+        fetch appspace attached to class
+
+        @param desc: an instance
+        @param that: the instance's class
+        '''
+        this = self.this
+        if not desc.appspace:
+            appspace = instance_or_class('a', this, that)
+            if appspace is None:
+                appspace = this.a = lazy_import('appspace.builder.app')
+            desc.appspace = appspace
+        return self
+
+    def branchset(self, label):
+        '''
+        add branch appspace to parent appspace
 
         @param label: label of new appspace
-        @param use_global: use global appspace (default: False)
         '''
         appspace = self.appspace
-        if label not in appspace and not use_global:
+        if label not in appspace:
             new_appspace = Appspace(AppspaceManager())
             appspace.appspace.set(label, new_appspace)
-            return new_appspace
         return self
 
     def build(self, pattern_class, required, defaults):
         '''
         build new appspace
 
+        @param pattern_class: pattern configuration class
         @param required: required settings
         @param defaults: default settings
         '''
-        return self(pattern_class.build(required, defaults))
+        return getcls(self)(pattern_class.build(required, defaults))
 
-    def space(self, desc, that):
-        '''
-        get appspace attached to class
-
-        @param this: an instance
-        @param that: the instance's class
-        '''
-        this = self.this
-        if not desc._appspace:
-            appspace = instance_or_class('a', this, that)
-            if appspace is None:
-                appspace = this.a = lazy_import('appspace.builder.app')
-            desc._appspace = appspace
-        return self(desc._appspace)
-
-    def api(self, that):
+    def delegated(self):
         this = self.this
         combined = {}
-        for meths in self.filter(this, that):
-            combined.update(meths)
-        key = self.id(this)
-        branch = self(self.branch(key))
+        for meths in self.filter(this, delegated).one():
+            combined.update(self(meths).delegatable.one())
         keys = set()
-        for k, v in combined.iteritems():
+        for k in combined.iterkeys():
             keys.add(k)
-            branch.app(k, v.__get__(None, this))
-        self.appspace.settings.delegates[key] = keys
+        self.appspace.settings.delegates[self.key(this)] = keys
         return self
 
-    def delegateds(self):
-        this = self.this
-        combined = {}
-        for meths in self.filter(this, delegated):
-            combined.update(meths)
-        key = self.id(this)
-        branch = self(self.branch(key))
-        keys = set()
-        for k, v in combined.iteritems():
-            keys.add(k)
-            branch.app(k, v.__get__(None, this))
-        self.appspace.settings.delegates[key] = keys
-        return self
-
-    def delegatables(self):
-        this = self.this
-        combined = {}
-        for meths in self.filter(this, Delegatable):
-            combined.update(meths)
-        key = self.id(this)
-        branch = self(self.branch(key))
-        keys = set()
-        for k, v in combined.iteritems():
-            keys.add(k)
-            branch.app(k, v.__get__(None, this))
-        self.appspace.settings.delegates[key] = keys
-        return self
+    def delegatable(self):
+        return self(self.api(Delegatable))
 
     def filter(self, that):
         '''
-        filter members of an object by class
+        filter object members by class
 
-        @param that: a class
-        '''
-        this = self.this
-        return stuf(
-            (k, v) for k, v in itermembers(this, ismethod)
-            if isrelated(v, that)
-        )
-
-    def get(self, label, branch=''):
-        '''
-        get component from appspace
-
-        @param label: label for branch appspace
-        @param branch: branch to add component to
+        @param that: class to filter by
         '''
         return self(
-            self.appspace[branch][label] if branch else self.appspace[label]
+            *tuple((k, v) for k, v in itermembers(self.this, ismethod)
+            if isrelated(v, that))
         )
 
     def load(self, label, *args, **kw):
@@ -206,39 +176,43 @@ class AppQuery(list):
         '''
         return self(patterns(label, *args, **kw))
 
-    def localize(self, this):
-        '''
-        add local settings to appspace settings
-
-        @param this: an instance
-        '''
+    def localize(self):
+        '''generate local settings for component'''
+        this = self.this
         local = self.appspace.s.local
-        lid = self.id(this)
-        local[lid] = dict(
+        key = self.key(this)
+        local[key] = dict(
           dict((k, v) for k, v in vars(m).iteritems() if not k.startswith('_'))
           for m in [
               b.Meta for b in getmro(getcls(this)) if hasattr(b, 'Meta')
           ] + [this.Meta]
         )
-        return self(self.appspace, local[lid])
+        return self(local[key])
 
-    def id(self, this):
-        return self(self.appspace, '_'.join([this.__module__, this(self)]))
+    def key(self):
+        '''identifier for component'''
+        this = self.this
+        return self('_'.join([this.__module__, this(self)]))
 
     def one(self):
         '''fetch one result'''
         return self[0]
 
+    def ons(self):
+        return self.api(On)
+
     first = one
 
-    def register(self, klass):
+    def register(self, appspaced):
         '''
-        add appspace to class
+        add appspace to appspaced class
 
-        @param appspace: appspace to add
+        @param appspaced: class to add appspace to
         '''
-        setter(klass, 'a', self.appspace)
-        setter(klass, 's', self.appspace.settings)
+        # attach appspace
+        setter(appspaced, 'a', self.appspace)
+        # attach appspace settings
+        setter(appspaced, 's', self.appspace.settings)
         return self
 
 

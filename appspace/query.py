@@ -176,18 +176,19 @@ class AppQuery(list):
         '''
         return self(patterns(label, *args, **kw))
 
-    def localize(self):
+    def localize(self, **kw):
         '''generate local settings for component'''
         this = self.this
         local = self.appspace.s.local
         key = self.key(this)
-        local[key] = dict(
+        local_settings = local[key] = dict(
           dict((k, v) for k, v in vars(m).iteritems() if not k.startswith('_'))
           for m in [
               b.Meta for b in getmro(getcls(this)) if hasattr(b, 'Meta')
           ] + [this.Meta]
         )
-        return self(local[key])
+        local_settings.update(kw)
+        return self(local_settings)
 
     def key(self):
         '''identifier for component'''

@@ -7,12 +7,12 @@ from inspect import isclass
 
 from stuf.utils import either, setter, getter, lazy
 
-from .query import __
 from .utils import getcls
 from .traits import Traits
+from .decorators import TraitType
 from .core import ADelegated, appifies
 from .collections import ResetMixin, Sync
-from .decorators import TraitType, component, delegated
+from .query import __, component, delegated
 
 
 class Delegated(ResetMixin):

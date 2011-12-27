@@ -11,7 +11,7 @@ from .utils import getcls
 from .traits import Traits
 from .decorators import TraitType
 from .core import ADelegated, appifies
-from .collections import ResetMixin, Sync
+from .containers import ResetMixin, Sync
 from .query import __, component, delegated
 
 

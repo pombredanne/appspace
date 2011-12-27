@@ -34,8 +34,8 @@ class AppspaceManager(AppStore):
         super(AppspaceManager, self).__init__(())
         self._label = label
         self._settings = ns
-        self._easy_register(ASettings, 'default', AppspaceSettings)
-        self._easy_register(AEventManager, 'default', EventManager)
+        self.easy_register(ASettings, 'default', AppspaceSettings)
+        self.easy_register(AEventManager, 'default', EventManager)
 
     def __contains__(self, label):
         return contains(self.names(((), AApp), label))

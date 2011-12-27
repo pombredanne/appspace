@@ -7,7 +7,7 @@ from stuf import defaultstuf, frozenstuf, stuf
 from stuf.utils import deepget, lazy, lazy_set, setter
 
 from .utils import object_walk
-from .collections import ResetMixin
+from .containers import ResetMixin
 from .core import ASettings, ADefaultSettings, ARequiredSettings, appifies
 
 

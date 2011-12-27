@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 #@PydevCodeAnalysisIgnore
+
 '''appspace core keys'''
 
 from __future__ import absolute_import
 
+from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
-from zope.interface.adapter import AdapterRegistry as AppStore
+from zope.interface import implements, directlyProvides, providedBy
 from zope.interface.interface import InterfaceClass as Appspacer, Attribute
-from zope.interface import (
-    implements as appifies, directlyProvides as apped, providedBy as get_apps)
 
+AppStore = AdapterRegistry
+appifies = implements
+apped = directlyProvides
+get_apps = providedBy
 # primary key
 AppspaceKey = Appspacer('AppspaceKey')
 # app lookup exception
@@ -34,13 +38,13 @@ class AAppspace(AppspaceKey):
         '''membership check'''
 
     def __getattr__(label):
-        pass
+        '''get attribute'''
 
     def __getitem__(label):
-        pass
+        '''get item'''
 
 
-class AAppspaceManager(AppspaceKey):
+class AManager(AppspaceKey):
 
     '''manager key'''
 
@@ -79,7 +83,7 @@ class ABranch(AppspaceKey):
     '''branch key'''
 
     def build():
-        pass
+        '''build appspace'''
 
 
 class AEvent(AppspaceKey):
@@ -157,10 +161,10 @@ class ASettings(AppspaceKey):
 class ADefaultSettings(ASettings):
 
     '''default settings key'''
-    
-    
+
+
 class ADelegated(AppspaceKey):
-    
+
     '''delegated app key'''
 
 

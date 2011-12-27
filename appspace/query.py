@@ -3,15 +3,16 @@
 
 from __future__ import absolute_import
 
+from collections import deque
 from inspect import getmro, ismethod
 from functools import partial, update_wrapper
 
-from stuf.utils import getter, instance_or_class, selfname, setter
+from stuf.utils import OrderedDict, getter, selfname, setter
 
+from appspace.error import NoAppError, ConfigurationError
 from .core import AAppspace, ADelegated
-from .builders import Appspace, AppspaceManager, patterns
+from .builders import Appspace, Patterns, Manager, patterns
 from .utils import getcls, itermembers, isrelated, lazy_import
-from appspace.error import NoAppError
 
 
 def delegatable(**metadata):
@@ -49,7 +50,7 @@ def on(*events):
     return wrapped
 
 
-class AppQuery(list):
+class Query(deque):
 
     '''appspace query'''
 
@@ -62,41 +63,41 @@ class AppQuery(list):
             self.appspace = appspace
         elif any([
             ADelegated.providedBy(appspace),
-            ADelegated.implementedBy(getcls(appspace))
+            ADelegated.implementedBy(getcls(appspace)),
         ]):
             self.this = appspace
             self.appspace = appspace.a
         else:
             raise NoAppError('appspace not found')
-        list.__init__(self, args)
+        deque.__init__(self, args)
 
     def __call__(self, *args):
         return getcls(self)(self.appspace, *args, **dict(this=self.this))
 
-    def all(self):
-        '''fetch all results'''
-        return [i for i in self]
-
     def api(self, that):
-        combined = {}
-        for meths in self.filter(that).one():
+        combined = OrderedDict()
+        for meths in self.filter(that):
             combined.update(meths)
         this = self.this
         branch = self(self.branchset(self.key().one()))
+        self.clear()
         for k, v in combined.iteritems():
             branch.appset(k, v.__get__(None, this))
-        return self(combined)
+            self.append((k, v))
+        return self
 
     def appget(self, label, branch=''):
         '''
         fetch component from appspace
 
         @param label: label for appspace
-        @param branch: appspace to add component to
+        @param branch: label for branch (default: '')
         '''
-        return self(
+        self.clear()
+        self.append(
             self.appspace[branch][label] if branch else self.appspace[label]
         )
+        return self
 
     def appset(self, component, label, branch=''):
         '''
@@ -106,23 +107,22 @@ class AppQuery(list):
         @param label: label for branch appspace
         @param branch: branch to add component to (default: '')
         '''
-        self.appspace.appspace.set(label, component)
+        if branch:
+            appspace = self.branchget(branch).root().one()
+        else:
+            appspace = self.root().one()
+        appspace.set(label, component)
+        self.clear()
+        self.append(component)
         return self
 
-    def branchget(self, desc, that):
+    def branchget(self, branch):
         '''
-        fetch appspace attached to class
+        fetch branch appspace
 
-        @param desc: an instance
-        @param that: the instance's class
+        @param branch: label for branch
         '''
-        this = self.this
-        if not desc.appspace:
-            appspace = instance_or_class('a', this, that)
-            if appspace is None:
-                appspace = this.a = lazy_import('appspace.builder.app')
-            desc.appspace = appspace
-        return self
+        return self.freshen(self.appspace[branch])
 
     def branchset(self, label):
         '''
@@ -130,21 +130,25 @@ class AppQuery(list):
 
         @param label: label of new appspace
         '''
-        appspace = self.appspace
-        if label not in appspace:
-            new_appspace = Appspace(AppspaceManager())
-            appspace.appspace.set(label, new_appspace)
-        return self
+        new_appspace = Appspace(Manager())
+        self.root().one().set(label, new_appspace)
+        return self.freshen(new_appspace)
 
-    def build(self, pattern_class, required, defaults):
+    @classmethod
+    def create(cls, pattern, required, defaults, *args, **kw):
         '''
         build new appspace
 
-        @param pattern_class: pattern configuration class
+        @param pattern: pattern configuration class or name of appspace
         @param required: required settings
         @param defaults: default settings
+        @param *args: tuple of module paths or component inclusions
         '''
-        return getcls(self)(pattern_class.build(required, defaults))
+        if isinstance(patterns, Patterns):
+            return cls(pattern.build(required, defaults))
+        elif isinstance(pattern, basestring) and args:
+            return cls(patterns(pattern, *args, **kw))
+        raise ConfigurationError('patterns not found')
 
     def delegated(self):
         combined = {}
@@ -153,11 +157,12 @@ class AppQuery(list):
         keys = set()
         for k in combined.iterkeys():
             keys.add(k)
-        self.appspace.appspace.settings.delegates[self.key().one()] = keys
+        self.settings().one().delegates[self.key().one()] = keys
         return self
 
     def delegatable(self):
-        return self(self.api(Delegatable))
+        self.api(Delegatable)
+        return self
 
     def filter(self, that):
         '''
@@ -165,24 +170,25 @@ class AppQuery(list):
 
         @param that: class to filter by
         '''
-        return self(
-            *tuple((k, v) for k, v in itermembers(self.this, ismethod)
-            if isrelated(v, that))
+        self.clear()
+        self.extend(
+            (k, v) for k, v in itermembers(self.this, ismethod)
+            if isrelated(v, that)
         )
+        return self
 
-    def load(self, label, *args, **kw):
-        '''
-        configuration for branch appspace
+    def freshen(self, this):
+        self.clear()
+        self.append(this)
+        return self
 
-        @param label: name of branch appspace
-        @param *args: tuple of module paths or component inclusions
-        '''
-        return self(patterns(label, *args, **kw))
+    def get(self, key, default=None):
+        return self.freshen(self.settings.get(key, default))
 
     def localize(self, **kw):
         '''generate local settings for component'''
         this = self.this
-        local = self.appspace.appspace.settings.local
+        local = self.settings().one().local
         key = self.key()
         local_settings = local[key] = dict(
           dict((k, v) for k, v in vars(m).iteritems() if not k.startswith('_'))
@@ -191,12 +197,13 @@ class AppQuery(list):
           ] + [this.Meta]
         )
         local_settings.update(kw)
-        return self(local_settings)
+        return self.freshen(local_settings)
 
     def key(self):
         '''identifier for component'''
-        this = self.this
-        return self('_'.join([this.__module__, selfname(this)]))
+        return self.freshen(
+            '_'.join([self.this.__module__, selfname(self.this)])
+        )
 
     def one(self):
         '''fetch one result'''
@@ -220,7 +227,17 @@ class AppQuery(list):
         setter(appspaced, 'a', self.appspace)
         # attach appspace settings
         setter(appspaced, 's', self.appspace.appspace.settings)
-        return self(appspaced)
+        return self.freshen(appspaced)
+
+    def root(self):
+        return self.freshen(self.appspace.appspace)
+
+    def set(self, key, value):
+        self.settings.set(key, value)
+        return self
+
+    def settings(self):
+        return self.freshen(self.appspace.appspace.settings)
 
 
 class component(object):
@@ -277,9 +294,7 @@ class LazyComponent(component):
         update_wrapper(self, method)
 
     def compute(self, this, that):
-        __.class_space(self, this, that).app(
-            self.label, self.branch, self.method(this)
-        )
+        __(that).appset(self.method(this), self.label, self.branch)
         return super(LazyComponent, self).compute(this, that)
 
 
@@ -309,7 +324,7 @@ class On(LazyComponent):
         self.events = events
 
     def compute(self, this, that):
-        ebind = __.class_space(self, this, that).events.bind
+        ebind = __(that).root().one().events.bind
         method = self.method
         for arg in self.events:
             ebind(arg, method)
@@ -317,4 +332,4 @@ class On(LazyComponent):
 
 
 # shortcut
-__ = AppQuery
+__ = Query

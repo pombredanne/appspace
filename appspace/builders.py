@@ -10,7 +10,7 @@ from stuf.utils import lazy, selfname
 from .utils import lru_cache
 from .error import AppLookupError, NoAppError
 from .core import AAppspace, ABranch, ANamespace
-from .states import AppspaceManager, appifies, global_appspace
+from .managers import Manager, appifies, global_appspace
 
 
 def include(module):
@@ -29,7 +29,7 @@ def patterns(label, *args, **kw):
     @param label: name of branch appspace
     @param *args: tuple of module paths or component inclusions
     '''
-    return AppspaceFactory(label, *args, **kw).build()
+    return Factory(label, *args, **kw).build()
 
 
 class Appspace(object):
@@ -73,7 +73,7 @@ class Appspace(object):
         return self.appspace.__repr__()
 
 
-class AppspaceFactory(object):
+class Factory(object):
 
     '''factory for appspace'''
 
@@ -94,13 +94,13 @@ class AppspaceFactory(object):
         apper(label, Appspace(self.appspace))
 
     @lazy
-    def appspace(self):
+    def which(self):
         '''appspace builder'''
-        return global_appspace if self._glob else AppspaceManager(self._mod)
+        return global_appspace if self._glob else Manager(self._mod)
 
     def build(self):
         '''build appspace'''
-        return Appspace(self.appspace)
+        return Appspace(self.which)
 
 
 class Patterns(object):

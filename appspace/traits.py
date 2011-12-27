@@ -8,8 +8,8 @@ from types import FunctionType
 from stuf.utils import clsname, either, getter, deleter, setter
 
 from .error import TraitError
+from .decorators import TraitType
 from .utils import get_members, getcls
-from .decorators.core import TraitType
 
 
 class _SimpleTest:

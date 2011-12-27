@@ -1,22 +1,26 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=w0611
 '''appspace exceptions'''
 
 from __future__ import absolute_import
 
-from .core import AppLookupError  # @UnusedImport
+from .core import AppLookupError
 
 
-class ConfigurationError(Exception):
+class ConfigurationError(AppLookupError):
 
-    '''Appspace configuration exception'''
-
-
-class NoAppError(Exception):
-
-    '''No application found exception'''
+    '''appspace configuration exception'''
 
 
-class TraitError(Exception):
+class NoAppspaceError(AppLookupError):
+
+    '''no appspace found error'''
+
+
+class NoAppError(AppLookupError):
+
+    '''mo application found exception'''
+
+
+class TraitError(AppLookupError):
 
     '''trait error'''

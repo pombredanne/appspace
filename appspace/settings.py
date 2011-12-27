@@ -11,14 +11,14 @@ from .containers import ResetMixin
 from .core import ASettings, ADefaultSettings, ARequiredSettings, appifies
 
 
-class AppspaceSettings(ResetMixin):
+class Settings(ResetMixin):
 
     '''appspace settings'''
 
     appifies(ASettings)
 
     def __init__(self):
-        super(AppspaceSettings, self).__init__()
+        super(Settings, self).__init__()
         # default settings
         self._default = stuf()
         # delegates settings

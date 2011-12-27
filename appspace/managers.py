@@ -10,19 +10,18 @@ from stuf.utils import lazy
 from .utils import lazy_import
 from .events import EventManager
 from .error import AppLookupError
-from .settings import AppspaceSettings
+from .settings import Settings
 from .core import (
-    AppStore, AApp, AAppspaceManager, AEventManager, ALazyApp, ASettings,
-    appifies)
+    AppStore, AApp, AManager, AEventManager, ALazyApp, ASettings, appifies)
 
 
-class AppspaceManager(AppStore):
+class Manager(AppStore):
 
     '''state manager'''
 
     __slots__ = ['_label', '_settings', 'settings', 'events']
 
-    appifies(AAppspaceManager)
+    appifies(AManager)
 
     def __init__(self, label='appconf', ns='default'):
         '''
@@ -31,10 +30,10 @@ class AppspaceManager(AppStore):
         @param label: label for application configuration object
         @param ns: label for internal namespace
         '''
-        super(AppspaceManager, self).__init__(())
+        super(Manager, self).__init__(())
         self._label = label
         self._settings = ns
-        self.easy_register(ASettings, 'default', AppspaceSettings)
+        self.easy_register(ASettings, 'default', Settings)
         self.easy_register(AEventManager, 'default', EventManager)
 
     def __contains__(self, label):
@@ -143,6 +142,6 @@ class LazyApp(object):
 
 
 # global appspace
-global_appspace = AppspaceManager()
+global_appspace = Manager()
 # global settings
 global_settings = global_appspace.settings

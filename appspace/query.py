@@ -8,9 +8,10 @@ from functools import partial, update_wrapper
 
 from stuf.utils import getter, instance_or_class, selfname, setter
 
+from .core import AAppspace, ADelegated
 from .builders import Appspace, AppspaceManager, patterns
-from .core import AAppQuery, AAppspace, ADelegated, appifies
 from .utils import getcls, itermembers, isrelated, lazy_import
+from appspace.error import NoAppError
 
 
 def delegatable(**metadata):
@@ -52,18 +53,18 @@ class AppQuery(list):
 
     '''appspace query'''
 
-    appifies(AAppQuery)
-
     def __init__(self, appspace, *args, **kw):
         '''
         @param appspace: an appspace
         '''
-        self.this = kw.pop('this')
+        self.this = kw.pop('this', None)
         if AAppspace.providedBy(appspace):
             self.appspace = appspace
-        elif ADelegated.providedBy(appspace):
+        elif ADelegated.implementedBy(appspace):
             self.this = appspace
             self.appspace = appspace.a
+        else:
+            raise NoAppError('appspace not found')
         list.__init__(self, args)
 
     def __call__(self, *args):
@@ -78,7 +79,7 @@ class AppQuery(list):
         for meths in self.filter(that).one():
             combined.update(meths)
         this = self.this
-        branch = self(self.branchset(self.key(this)))
+        branch = self(self.branchset(self.key().one()))
         for k, v in combined.iteritems():
             branch.appset(k, v.__get__(None, this))
         return self(combined)
@@ -143,14 +144,13 @@ class AppQuery(list):
         return getcls(self)(pattern_class.build(required, defaults))
 
     def delegated(self):
-        this = self.this
         combined = {}
-        for meths in self.filter(this, delegated).one():
+        for meths in self.filter(delegated).one():
             combined.update(self(meths).delegatable.one())
         keys = set()
         for k in combined.iterkeys():
             keys.add(k)
-        self.appspace.settings.delegates[self.key(this)] = keys
+        self.appspace.appspace.settings.delegates[self.key().one()] = keys
         return self
 
     def delegatable(self):
@@ -179,8 +179,8 @@ class AppQuery(list):
     def localize(self, **kw):
         '''generate local settings for component'''
         this = self.this
-        local = self.appspace.s.local
-        key = self.key(this)
+        local = self.appspace.appspace.settings.local
+        key = self.key()
         local_settings = local[key] = dict(
           dict((k, v) for k, v in vars(m).iteritems() if not k.startswith('_'))
           for m in [
@@ -193,11 +193,14 @@ class AppQuery(list):
     def key(self):
         '''identifier for component'''
         this = self.this
-        return self('_'.join([this.__module__, this(self)]))
+        return self('_'.join([this.__module__, selfname(this)]))
 
     def one(self):
         '''fetch one result'''
-        return self[0]
+        try:
+            return self[0]
+        except IndexError:
+            return []
 
     def ons(self):
         return self.api(On)
@@ -213,7 +216,7 @@ class AppQuery(list):
         # attach appspace
         setter(appspaced, 'a', self.appspace)
         # attach appspace settings
-        setter(appspaced, 's', self.appspace.settings)
+        setter(appspaced, 's', self.appspace.appspace.settings)
         return self
 
 

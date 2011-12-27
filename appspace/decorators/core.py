@@ -44,7 +44,7 @@ class TraitType(object):
                 self._metadata = md
         else:
             self._metadata = self.metadata
-        self.init()
+#        self.init()
 
     def __get__(self, this, that=None):
         '''

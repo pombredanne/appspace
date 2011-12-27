@@ -47,7 +47,10 @@ class Appspace(object):
         self.appspace = appspace
 
     def __getattr__(self, label):
-        return attr_or_item(self, label)
+        try:
+            return object.__getattribute__(self, label)
+        except AttributeError:
+            return self.__getitem__(label)
 
     @lru_cache()
     def __getitem__(self, label):
@@ -97,7 +100,7 @@ class AppspaceFactory(object):
 
     def build(self):
         '''build appspace'''
-        return Appspace(self._appspace)
+        return Appspace(self.appspace)
 
 
 class Patterns(object):

@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from .classes import Delegated, HasTraits, Sync, Hosted
+from .classes import Delegated, HasTraits, Synched, Hosted
 from .settings import RequiredSettings, DefaultSettings
 from .query import __, Query, component, delegatable, delegated, on
 from .builders import Branch, Patterns, Namespace, include, app, patterns

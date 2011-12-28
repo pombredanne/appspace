@@ -21,18 +21,24 @@ class Hosted(ResetMixin):
 
     appifies(AHosted)
 
-    __ = __
     _descriptor = component
 
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
         cls.__(cls).ons()
-        return super(Hosted, cls).__new__(cls, *args, **kw)
+        new = super(Hosted, cls).__new__
+        if new == object.__new__:
+            return new(cls)
+        return new(cls, *args, **kw)
+
+    @either
+    def __(self):
+        return __(self)
 
     @either
     def c(self):
         '''local appspaced settings'''
-        return self.__(self).localize().one()
+        return self.__.localize().one()
 
     def _instance_component(self, name, label, branch=''):
         '''
@@ -43,7 +49,7 @@ class Hosted(ResetMixin):
         @param branch: component branch (default: None)
         '''
         return setter(
-            getcls(self), name, self.__(self).app(label, branch).one()
+            getcls(self), name, self.__.app(label, branch).one()
         )
 
 
@@ -58,35 +64,19 @@ class Delegated(Hosted):
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
         cls.__(cls).delegated()
-        cls.__(cls).ons()
         return super(Delegated, cls).__new__(cls, *args, **kw)
-
-    @either
-    def c(self):
-        '''local appspaced settings'''
-        return self.__(self).localize().one()
 
     def __getattr__(self, key):
         try:
             return object.__getattribute__(self, key)
         except AttributeError:
             if self.s.delegates:
-                nkey = __(self).key()
+                nkey = self.__.key()
                 if key in self.s.delegates[nkey]:
-                    return self.__(self).get(key, nkey)
-
-    def _instance_component(self, name, label, branch=''):
-        '''
-        inject appspaced component as instance attribute
-
-        @param name: instance attribute label
-        @param label: component label
-        @param branch: component branch (default: None)
-        '''
-        return setter(getcls(self), name, self.__(self).getapp(label, branch))
+                    return self.__.app(key, nkey)
 
 
-class Synched(Delegated):
+class Synched(Hosted):
 
     '''delegate with synchronized class'''
 
@@ -137,7 +127,7 @@ class MetaHasTraits(type):
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
 
-class HasTraits(Sync):
+class HasTraits(Synched):
 
     __metaclass__ = MetaHasTraits
     _descriptor = TraitType

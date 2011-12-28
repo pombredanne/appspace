@@ -10,7 +10,7 @@ from stuf.utils import either, setter, lazy
 from .utils import getcls
 from .traits import Traits
 from .decorators import TraitType
-from .core import ADelegated, appifies
+from .core import AHosted, appifies
 from .containers import ResetMixin, Sync
 from .query import __, component
 
@@ -19,7 +19,7 @@ class Hosted(ResetMixin):
 
     '''attributes and methods can be delegated to appspaced components'''
 
-    appifies(ADelegated)
+    appifies(AHosted)
 
     __ = __
     _descriptor = component
@@ -27,7 +27,7 @@ class Hosted(ResetMixin):
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
         cls.__(cls).ons()
-        return super(Delegated, cls).__new__(cls, *args, **kw)
+        return super(Hosted, cls).__new__(cls, *args, **kw)
 
     @either
     def c(self):
@@ -42,7 +42,7 @@ class Hosted(ResetMixin):
         @param label: component label
         @param branch: component branch (default: None)
         '''
-        return setter(getcls(self), name, self.__(self).getapp(label, branch))
+        return setter(getcls(self), name, self.__(self).app(label, branch))
 
 
 class Delegated(Hosted):

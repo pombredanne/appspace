@@ -9,7 +9,7 @@ from functools import partial, update_wrapper
 
 from stuf.utils import OrderedDict, getter, selfname, setter
 
-from .core import AAppspace, ADelegated
+from .core import AAppspace
 from .utils import getcls, isrelated, itermembers
 from .error import NoAppError, ConfigurationError
 from .builders import Appspace, Manager, Patterns, patterns
@@ -60,10 +60,7 @@ class Query(deque):
         self.this = kw.pop('this', None)
         if AAppspace.providedBy(appspace):
             self.appspace = appspace
-        elif any([
-            ADelegated.providedBy(appspace),
-            ADelegated.implementedBy(getcls(appspace)),
-        ]):
+        elif hasattr(appspace, 'a') and AAppspace.providedBy(appspace.a):
             self.this = appspace
             self.appspace = appspace.a
         else:
@@ -147,7 +144,7 @@ class Query(deque):
         @param defaults: default settings
         @param *args: tuple of module paths or component inclusions
         '''
-        if isinstance(patterns, Patterns):
+        if issubclass(pattern, Patterns):
             return cls(pattern.build(required, defaults))
         elif isinstance(pattern, basestring) and args:
             appconf = patterns(pattern, *args, **kw)
@@ -190,7 +187,7 @@ class Query(deque):
         @param key: setting key
         @param default: setting value (default: None)
         '''
-        return self._freshen(self.settings.get(key, default))
+        return self._freshen(self.settings().get(key, default))
 
     def localize(self, **kw):
         '''

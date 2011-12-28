@@ -162,7 +162,7 @@ class ADefaultSettings(ASettings):
     '''default settings key'''
 
 
-class ADelegated(AppspaceKey):
+class AHosted(AppspaceKey):
 
     '''delegated app key'''
 

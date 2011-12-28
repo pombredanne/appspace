@@ -115,7 +115,7 @@ class Patterns(object):
         settings.defaults = defaults
 
     @classmethod
-    def build(cls, required, defaults):
+    def build(cls, required=None, defaults=None):
         '''
         build manager configuration from class
 
@@ -142,7 +142,8 @@ class Patterns(object):
                     tappend((k, v))
         # build configuration
         appconf = patterns(selfname(cls), *tuple(this))
-        cls.settings(appconf, required, defaults)
+        if required is not None and defaults is not None:
+            cls.settings(appconf, required, defaults)
         return appconf
 
 

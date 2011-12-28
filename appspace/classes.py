@@ -9,10 +9,10 @@ from stuf.utils import either, setter, lazy
 
 from .utils import getcls
 from .traits import Traits
+from .query import __, component
 from .decorators import TraitType
 from .core import AHosted, appifies
 from .containers import ResetMixin, Sync
-from .query import __, component
 
 
 class Hosted(ResetMixin):
@@ -70,9 +70,10 @@ class Delegated(Hosted):
         try:
             return object.__getattribute__(self, key)
         except AttributeError:
-            nkey = __(self).key()
-            if key in self.s.delegates[nkey]:
-                return self.__(self).get(key, nkey)
+            if self.s.delegates:
+                nkey = __(self).key()
+                if key in self.s.delegates[nkey]:
+                    return self.__(self).get(key, nkey)
 
     def _instance_component(self, name, label, branch=''):
         '''
@@ -85,12 +86,12 @@ class Delegated(Hosted):
         return setter(getcls(self), name, self.__(self).getapp(label, branch))
 
 
-class Sync(Delegated):
+class Synched(Delegated):
 
     '''delegate with synchronized class'''
 
     def __init__(self, original, **kw):
-        super(Sync, self).__init__()
+        super(Synched, self).__init__()
         self._sync = Sync(original, **kw)
 
     def __repr__(self):

@@ -100,7 +100,7 @@ class Query(deque):
             self.append((k, v))
         return self
 
-    def app(self, label, branch='', component=''):
+    def app(self, label, branch='', app=''):
         '''
         add or get app from appspace
 
@@ -113,13 +113,13 @@ class Query(deque):
                 return self._freshen(self.appspace[branch][label])
             return self._freshen(self.appspace[label])
         except NoAppError:
-            if component:
+            if app:
                 if branch:
                     manager = self.branch(branch).one().manager
                 else:
                     manager = self.appspace.manager
-                manager.set(label, component)
-                return self._freshen(component)
+                manager.set(label, app)
+                return self._freshen(app)
         raise ConfigurationError('invalid application')
 
     def apply(self, label, branch='', *args, **kw):
@@ -280,7 +280,7 @@ class component(object):
         return '{label}@{branch}'.format(label=self.label, branch=self.branch)
 
     def __get__(self, this, that):
-        return self.calculate(this, that)
+        return self.calculate(that)
 
     def __set__(self, this, value):
         raise AttributeError('attribute is read only')
@@ -288,10 +288,10 @@ class component(object):
     def __delete__(self, this):
         raise AttributeError('attribute is read only')
 
-    def calculate(self, this, that):
-        return setter(that, self.label, self.component(this, that))
+    def calculate(self, that):
+        return setter(that, self.label, self.component(that))
 
-    def component(self, this, that):
+    def component(self, that):
         '''
         get component from manager
 

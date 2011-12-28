@@ -5,22 +5,24 @@ from __future__ import absolute_import
 
 from .core import AppLookupError
 
+AppLookupError = AppLookupError
 
-class ConfigurationError(AppLookupError):
+
+class ConfigurationError(Exception):
 
     '''appspace configuration exception'''
 
 
-class NoAppspaceError(AppLookupError):
+class NoAppspaceError(Exception):
 
     '''no appspace found error'''
 
 
-class NoAppError(AppLookupError):
+class NoAppError(Exception):
 
     '''mo application found exception'''
 
 
-class TraitError(AppLookupError):
+class TraitError(Exception):
 
     '''trait error'''

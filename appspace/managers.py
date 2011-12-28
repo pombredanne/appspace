@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace state management'''
+'''appspace management'''
 
 from __future__ import absolute_import
 
@@ -7,10 +7,10 @@ from operator import contains
 
 from stuf.utils import lazy
 
+from .settings import Settings
 from .utils import lazy_import
 from .events import EventManager
 from .error import AppLookupError
-from .settings import Settings
 from .core import (
     AppStore, AApp, AManager, AEventManager, ALazyApp, ASettings, appifies)
 
@@ -44,36 +44,36 @@ class Manager(AppStore):
 
     @lazy
     def events(self):
-        '''get events manager'''
+        '''get appspace events manager'''
         return self.easy_lookup(AEventManager, self._settings)(self)
 
     @lazy
     def settings(self):
-        '''get settings'''
+        '''get appspace settings'''
         return self.easy_lookup(ASettings, self._settings)()
 
     def easy_lookup(self, key, label):
         '''
-        streamlined component lookup
+        streamlined app lookup
 
         @param key: key to lookup
         @param label: label to lookup
         '''
         return self.lookup1(key, key, label)
 
-    def easy_register(self, key, label, component):
+    def easy_register(self, key, label, app):
         '''
-        streamlined component registration
+        streamlined app registration
 
-        @param key: key to register under
-        @param label: label to register under
-        @param component: component to register
+        @param key: key to register
+        @param label: label to register
+        @param app: app to register
         '''
-        self.register([key], key, label, component)
+        self.register([key], key, label, app)
 
     def easy_unregister(self, key, label):
         '''
-        streamlined component unregistration
+        streamlined app unregistration
 
         @param key: key to lookup
         @param label: label to lookup
@@ -82,48 +82,48 @@ class Manager(AppStore):
 
     def get(self, label):
         '''
-        fetch component
+        fetch app
 
-        @param label: component or branch label
+        @param label: app or branch label
         '''
-        component = self.easy_lookup(AApp, label)
-        if component is None:
-            raise AppLookupError(component, label)
-        if ALazyApp.providedBy(component):
-            component = self.load(label, component.path)
-        return component
+        app = self.easy_lookup(AApp, label)
+        if app is None:
+            raise AppLookupError(app, label)
+        if ALazyApp.providedBy(app):
+            app = self.load(label, app.path)
+        return app
 
     def load(self, label, module):
         '''
-        load branch or component from appspace
+        load branch or app from appspace
 
-        @param label: component or branch label
-        @param module: Python module path
+        @param label: app or branch label
+        @param module: module path
         '''
         # register branch appspace from include
         if isinstance(module, tuple):
-            component = lazy_import(module[-1], self._label)
-        # register component
+            app = lazy_import(module[-1], self._label)
+        # register app
         else:
-            component = lazy_import(module)
-        self.set(label, component)
-        return component
+            app = lazy_import(module)
+        self.set(label, app)
+        return app
 
-    def set(self, label, component):
+    def set(self, label, app):
         '''
-        register branch or component in appspace
+        register branch or app in appspace
 
         @param label: appspace label
-        @param component: component to add to appspace
+        @param app: app to add to appspace
         '''
-        if isinstance(component, (basestring, tuple)):
-            component = LazyApp(component)
-        self.register([AApp], AApp, label, component)
+        if isinstance(app, (basestring, tuple)):
+            app = LazyApp(app)
+        self.register([AApp], AApp, label, app)
 
 
 class LazyApp(object):
 
-    '''lazy component loader'''
+    '''lazy app loader'''
 
     __slots__ = ['path']
 
@@ -138,7 +138,7 @@ class LazyApp(object):
         self.path = path
 
     def __repr__(self):
-        return 'component@{path}'.format(path=self.path)
+        return 'app@{path}'.format(path=self.path)
 
 
 # global appspace

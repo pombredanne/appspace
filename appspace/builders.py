@@ -36,15 +36,15 @@ class Appspace(object):
 
     '''interface with appspace'''
 
-    __slots__ = ['appspace']
+    __slots__ = ['manager']
 
     appifies(AAppspace)
 
-    def __init__(self, appspace):
+    def __init__(self, manager):
         '''
-        @param appspace: appspace
+        @param manager: appspace manager
         '''
-        self.appspace = appspace
+        self.manager = manager
 
     def __getattr__(self, label):
         try:
@@ -55,7 +55,7 @@ class Appspace(object):
     @lru_cache()
     def __getitem__(self, label):
         try:
-            return self.appspace.get(label)
+            return self.manager.get(label)
         except AppLookupError:
             raise NoAppError('%s' % label)
 
@@ -67,10 +67,10 @@ class Appspace(object):
             return result
 
     def __contains__(self, label):
-        return contains(self.appspace, label)
+        return contains(self.manager, label)
 
     def __repr__(self):
-        return self.appspace.__repr__()
+        return self.manager.__repr__()
 
 
 class Factory(object):
@@ -79,38 +79,45 @@ class Factory(object):
 
     def __init__(self, label, *args, **kw):
         '''
-        @param label: label for appspace
+        @param label: label for manager
         '''
-        # whether to use global appspace instead of local appspace
-        self._glob = kw.get('use_global', False)
-        # object with appspace configuration
-        self._mod = kw.get('mod', 'appconf')
-        # register apps in appspace
-        apper = self.appspace.set
+        # whether to use global manager instead of local manager
+        self._global = kw.get('use_global', False)
+        # object with manager configuration
+        self._module = kw.get('module', 'appconf')
+        # register apps in manager
+        apper = self.manager.set
         # add applications
         for arg in args:
             apper(*arg)
-        # add appspace
-        apper(label, Appspace(self.appspace))
+        # add manager
+        apper(label, Appspace(self.manager))
 
     @lazy
-    def which(self):
-        '''appspace builder'''
-        return global_appspace if self._glob else Manager(self._mod)
+    def manager(self):
+        '''manager builder'''
+        return global_appspace if self._global else Manager(self._module)
 
     def build(self):
-        '''build appspace'''
+        '''build manager'''
         return Appspace(self.which)
 
 
 class Patterns(object):
 
-    '''patterns for appspace configured in a class'''
+    '''patterns for manager configured in a class'''
+
+    @classmethod
+    def settings(cls, appconf, required, defaults):
+        settings = appconf.manager.settings
+        # attach settings
+        settings.required = required
+        settings.defaults = defaults
 
     @classmethod
     def build(cls, required, defaults):
         '''
-        build appspace configuration from class
+        build manager configuration from class
 
         @param required: required settings
         @param defaults: default settings
@@ -135,10 +142,7 @@ class Patterns(object):
                     tappend((k, v))
         # build configuration
         appconf = patterns(selfname(cls), *tuple(this))
-        settings = appconf.appspace.settings
-        # attach settings
-        settings.required = required
-        settings.defaults = defaults
+        cls.settings(appconf, required, defaults)
         return appconf
 
 
@@ -186,5 +190,5 @@ class Namespace(object):
         return this
 
 
-# global appspace shortcut
+# global manager shortcut
 app = Appspace(global_appspace)

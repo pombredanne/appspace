@@ -11,8 +11,8 @@ from stuf.utils import clsname
 from appspace.error import TraitError
 from appspace.utils import repr_type, class_of
 
-from .lang import Instance
 from .core import TraitType
+from .language import Instance
 
 SequenceTypes = (ListType, TupleType, set, frozenset)
 

@@ -54,19 +54,18 @@ the file COPYING, distributed as part of this software.
 '''
 
 __all__ = [
-    'TraitType', 'Bytes', 'CBytes', 'CUnicode', 'CheckedUnicode', 'List',
-    'Container', 'CaselessStrEnum', 'Any', 'Tuple', 'Dict', 'ObjectName',
-    'DottedObjectName', 'This', 'Instance', 'Type', 'Bool', 'CBool', 'Int',
-    'Unicode', 'Undefined', 'component', 'delegatable', 'delegated', 'on',
-    'lazy_component', 'NoDefaultSpecified',
+    'Any', 'Bool', 'Bytes', 'CBool', 'CBytes', 'CUnicode', 'CaselessStrEnum',
+    'CheckedUnicode', 'Container', 'Dict', 'DottedObjectName', 'Instance',
+    'Int', 'List', 'NoDefaultSpecified', 'ObjectName', 'This', 'TraitType',
+    'Tuple', 'Type', 'Undefined', 'Unicode',
 ]
 
 from .core import TraitType, Undefined, NoDefaultSpecified
 from .containers import (
     List, Container, CaselessStrEnum, Enum, Any, Tuple, Dict
 )
-from .lang import DottedObjectName, Instance, ObjectName, This, Type
 from .strings import Bytes, CBytes, CUnicode, CheckedUnicode, Unicode
+from .language import DottedObjectName, Instance, ObjectName, This, Type
 from .numbers import (
     Bool, CBool, CInt, CLong, CFloat, CComplex, Complex, Float, Int, Integer,
     Long,

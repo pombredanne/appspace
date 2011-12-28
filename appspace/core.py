@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 #@PydevCodeAnalysisIgnore
-
-'''appspace core keys'''
+'''appspace core'''
 
 from __future__ import absolute_import
 
@@ -29,7 +28,7 @@ class AAppspace(AppspaceKey):
 
     '''appspace key'''
 
-    appspace = Attribute('appspace manager')
+    manager = Attribute('appspace manager')
 
     def __call__(label, *args, **kw):
         '''@param label: label of app in appspace'''
@@ -46,7 +45,7 @@ class AAppspace(AppspaceKey):
 
 class AManager(AppspaceKey):
 
-    '''manager key'''
+    '''appspace key'''
 
     events = Attribute('event handler')
     settings = Attribute('settings for an appspace')

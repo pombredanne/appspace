@@ -134,7 +134,7 @@ class EventManager(object):
         @param event: event label
         @param priority: priority of event (default: 1)
         '''
-        class ANewEvent(AEvent):  # pylint: disable-msg=w0232
+        class ANewEvent(AEvent):
             '''new event key'''
         class NewEvent(Event):
             '''event'''

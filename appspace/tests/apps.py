@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import
 
-from appspace import patterns
+from manager import patterns
 
 appconf = patterns(
     '',

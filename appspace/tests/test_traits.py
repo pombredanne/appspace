@@ -19,8 +19,8 @@ except ImportError:
     import unittest
 
 from appspace.error import TraitError
-from appspace.traits import HasTraitsMixin, MetaHasTraits
-from appspace.properties import (
+from appspace.classes import HasTraits, MetaHasTraits
+from appspace.decorators import (
    TraitType, List, Any, CBytes, Int, Long, Integer, Float, Complex, Bytes,
    Unicode, Undefined, Type, This,  Instance, Tuple, ObjectName,
    DottedObjectName)
@@ -29,7 +29,7 @@ from appspace.properties import (
 # Helper classes for testing
 
 
-class HasTraitsStub(HasTraitsMixin):
+class HasTraitsStub(HasTraits):
 
     def _notify_trait(self, name, old, new):
         self._notify_name = name
@@ -43,7 +43,7 @@ class HasTraitsStub(HasTraitsMixin):
 class TestTraitType(unittest.TestCase):
 
     def test_get_undefined(self):
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             a = TraitType
         a = A()
         self.assertEquals(a.a, Undefined)
@@ -78,13 +78,13 @@ class TestTraitType(unittest.TestCase):
                     return value
                 self.error(obj, value)
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             tt = MyIntTT(10)
         a = A()
         self.assertEquals(a.tt, 10)
 
-        # Defaults are validated when the HasTraitsMixin is instantiated
-        class B(HasTraitsMixin):
+        # Defaults are validated when the HasTraits is instantiated
+        class B(HasTraits):
             tt = MyIntTT('bad default')
         self.assertRaises(TraitError, B)
 
@@ -93,7 +93,7 @@ class TestTraitType(unittest.TestCase):
             def is_valid_for(self, value):
                 return True
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             tt = MyTT
 
         a = A()
@@ -105,7 +105,7 @@ class TestTraitType(unittest.TestCase):
             def value_for(self, value):
                 return 20
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             tt = MyTT
 
         a = A()
@@ -113,19 +113,19 @@ class TestTraitType(unittest.TestCase):
         self.assertEquals(a.tt, 20)
 
     def test_info(self):
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             tt = TraitType
         a = A()
         self.assertEquals(A.tt.info(), 'any value')
 
     def test_error(self):
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             tt = TraitType
         a = A()
         self.assertRaises(TraitError, A.tt.error, a, 10)
 
     def test_dynamic_initializer(self):
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             x = Int(10)
 
             def _x_default(self):
@@ -165,9 +165,9 @@ class TestTraitType(unittest.TestCase):
 class TestHasTraitsMeta(unittest.TestCase):
 
     def test_metaclass(self):
-        self.assertEquals(type(HasTraitsMixin), MetaHasTraits)
+        self.assertEquals(type(HasTraits), MetaHasTraits)
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             a = Int
 
         a = A()
@@ -176,7 +176,7 @@ class TestHasTraitsMeta(unittest.TestCase):
         a.a = 10
         self.assertEquals(a.a, 10)
 
-        class B(HasTraitsMixin):
+        class B(HasTraits):
             b = Int()
 
         b = B()
@@ -184,7 +184,7 @@ class TestHasTraitsMeta(unittest.TestCase):
         b.b = 10
         self.assertEquals(b.b, 10)
 
-        class C(HasTraitsMixin):
+        class C(HasTraits):
             c = Int(30)
 
         c = C()
@@ -193,7 +193,7 @@ class TestHasTraitsMeta(unittest.TestCase):
         self.assertEquals(c.c, 10)
 
     def test_this_class(self):
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             t = This()
             tt = This()
 
@@ -220,7 +220,7 @@ class TestHasTraitsNotify(unittest.TestCase):
 
     def test_notify_all(self):
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             a = Int
             b = Float
 
@@ -244,7 +244,7 @@ class TestHasTraitsNotify(unittest.TestCase):
 
     def test_notify_one(self):
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             a = Int
             b = Float
 
@@ -258,7 +258,7 @@ class TestHasTraitsNotify(unittest.TestCase):
 
     def test_subclass(self):
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             a = Int
 
         class B(A):
@@ -274,7 +274,7 @@ class TestHasTraitsNotify(unittest.TestCase):
 
     def test_notify_subclass(self):
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             a = Int
 
         class B(A):
@@ -294,7 +294,7 @@ class TestHasTraitsNotify(unittest.TestCase):
 
     def test_static_notify(self):
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             a = Int
             _notify1 = []
 
@@ -335,7 +335,7 @@ class TestHasTraitsNotify(unittest.TestCase):
         def callback3(name, old, new):
             self.cb = (name, old, new)
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             a = Int
 
         a = A()
@@ -362,7 +362,7 @@ class TestHasTraitsNotify(unittest.TestCase):
 class TestHasTraits(unittest.TestCase):
 
     def test_trait_names(self):
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             i = Int
             f = Float
         a = A()
@@ -370,13 +370,13 @@ class TestHasTraits(unittest.TestCase):
         self.assertEquals(A.class_trait_names(), ['i', 'f'])
 
     def test_trait_metadata(self):
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             i = Int(config_key='MY_VALUE')
         a = A()
         self.assertEquals(a.trait_metadata('i', 'config_key'), 'MY_VALUE')
 
     def test_traits(self):
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             i = Int
             f = Float
         a = A()
@@ -384,7 +384,7 @@ class TestHasTraits(unittest.TestCase):
         self.assertEquals(A.class_traits(), dict(i=A.i, f=A.f))
 
     def test_traits_metadata(self):
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             i = Int(config_key='VALUE1', other_thing='VALUE2')
             f = Float(config_key='VALUE3', other_thing='VALUE2')
             j = Int(0)
@@ -399,7 +399,7 @@ class TestHasTraits(unittest.TestCase):
         self.assertEquals(traits, dict(i=A.i, f=A.f, j=A.j))
 
     def test_init(self):
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             i = Int()
             x = Float()
         a = A(i=1, x=10.0)
@@ -415,7 +415,7 @@ class TestType(unittest.TestCase):
     def test_default(self):
 
         class B(object): pass
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             klass = Type
 
         a = A()
@@ -429,7 +429,7 @@ class TestType(unittest.TestCase):
 
         class B(object): pass
         class C(object): pass
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             klass = Type(B)
 
         a = A()
@@ -442,7 +442,7 @@ class TestType(unittest.TestCase):
 
         class B(object): pass
         class C(B): pass
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             klass = Type(B, allow_none=False)
 
         a = A()
@@ -453,13 +453,13 @@ class TestType(unittest.TestCase):
 
     def test_validate_klass(self):
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             klass = Type('no strings allowed')
 
         self.assertRaises(ImportError, A)
 
         #pylint: disable-msg=e0102 
-        class A(HasTraitsMixin):  # @DuplicatedSignature
+        class A(HasTraits):  # @DuplicatedSignature
             klass = Type('rub.adub.Duck')
         #pylint: enable-msg=e0102 
 
@@ -468,19 +468,19 @@ class TestType(unittest.TestCase):
     def test_validate_default(self):
 
         class B(object): pass
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             klass = Type('bad default', B)
 
         self.assertRaises(ImportError, A)
 
-        class C(HasTraitsMixin):
+        class C(HasTraits):
             klass = Type(None, B, allow_none=False)
 
         self.assertRaises(TraitError, C)
 
     def test_str_klass(self):
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             klass = Type('IPython.utils.ipstruct.Struct')
 
         from IPython.utils.ipstruct import Struct
@@ -497,7 +497,7 @@ class TestInstance(unittest.TestCase):
         class Bar(Foo): pass
         class Bah(object): pass
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             inst = Instance(Foo)
 
         a = A()
@@ -512,7 +512,7 @@ class TestInstance(unittest.TestCase):
 
     def test_unique_default_value(self):
         class Foo(object): pass
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             inst = Instance(Foo, (), {})
 
         a = A()
@@ -528,18 +528,18 @@ class TestInstance(unittest.TestCase):
             def __init__(self, c, d):
                 self.c = c; self.d = d
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             inst = Instance(Foo, (10,))
         a = A()
         self.assertEquals(a.inst.c, 10)
 
-        class B(HasTraitsMixin):
+        class B(HasTraits):
             inst = Instance(Bah, args=(10,), kw=dict(d=20))
         b = B()
         self.assertEquals(b.inst.c, 10)
         self.assertEquals(b.inst.d, 20)
 
-        class C(HasTraitsMixin):
+        class C(HasTraits):
             inst = Instance(Foo)
         c = C()
         self.assert_(c.inst is None)
@@ -547,7 +547,7 @@ class TestInstance(unittest.TestCase):
     def test_bad_default(self):
         class Foo(object): pass
 
-        class A(HasTraitsMixin):
+        class A(HasTraits):
             inst = Instance(Foo, allow_none=False)
 
         self.assertRaises(TraitError, A)
@@ -556,7 +556,7 @@ class TestInstance(unittest.TestCase):
         class Foo(object): pass
 
         def inner():
-            class A(HasTraitsMixin):
+            class A(HasTraits):
                 inst = Instance(Foo())
 
         self.assertRaises(TraitError, inner)
@@ -565,7 +565,7 @@ class TestInstance(unittest.TestCase):
 class TestThis(unittest.TestCase):
 
     def test_this_class(self):
-        class Foo(HasTraitsMixin):
+        class Foo(HasTraits):
             this = This
 
         f = Foo()
@@ -576,7 +576,7 @@ class TestThis(unittest.TestCase):
         self.assertRaises(TraitError, setattr, f, 'this', 10)
 
     def test_this_inst(self):
-        class Foo(HasTraitsMixin):
+        class Foo(HasTraits):
             this = This()
 
         f = Foo()
@@ -584,7 +584,7 @@ class TestThis(unittest.TestCase):
         self.assert_(isinstance(f.this, Foo))
 
     def test_subclass(self):
-        class Foo(HasTraitsMixin):
+        class Foo(HasTraits):
             t = This()
         class Bar(Foo):
             pass
@@ -596,7 +596,7 @@ class TestThis(unittest.TestCase):
         self.assertEquals(b.t, f)
 
     def test_subclass_override(self):
-        class Foo(HasTraitsMixin):
+        class Foo(HasTraits):
             t = This()
         class Bar(Foo):
             t = This()
@@ -641,7 +641,7 @@ class TraitTestBase(unittest.TestCase):
             self.obj.value = self._default_value
 
 
-class AnyTrait(HasTraitsMixin):
+class AnyTrait(HasTraits):
 
     value = Any
 
@@ -655,7 +655,7 @@ class AnyTraitTest(TraitTestBase):
     _bad_values = []
 
 
-class IntTrait(HasTraitsMixin):
+class IntTrait(HasTraits):
 
     value = Int(99)
 
@@ -671,7 +671,7 @@ class TestInt(TraitTestBase):
     _bad_values.extend([10L, -10L, 10 * sys.maxint, -10 * sys.maxint])
 
 
-class LongTrait(HasTraitsMixin):
+class LongTrait(HasTraits):
 
     value = Long(99L)
 
@@ -692,7 +692,7 @@ class TestLong(TraitTestBase):
     _good_values.extend([10 * sys.maxint, -10 * sys.maxint])
 
 
-class IntegerTrait(HasTraitsMixin):
+class IntegerTrait(HasTraits):
     
     value = Integer(1)
 
@@ -706,7 +706,7 @@ class TestInteger(TestLong):
         return int(n)
 
 
-class FloatTrait(HasTraitsMixin):
+class FloatTrait(HasTraits):
 
     value = Float(99.0)
 
@@ -725,7 +725,7 @@ class TestFloat(TraitTestBase):
     _bad_values.extend([10L, -10L])
 
 
-class ComplexTrait(HasTraitsMixin):
+class ComplexTrait(HasTraits):
 
     value = Complex(99.0 - 99.0j)
 
@@ -743,7 +743,7 @@ class TestComplex(TraitTestBase):
     _bad_values.extend([10L, -10L])
 
 
-class BytesTrait(HasTraitsMixin):
+class BytesTrait(HasTraits):
 
     value = Bytes(b'string')
 
@@ -761,7 +761,7 @@ class TestBytes(TraitTestBase):
         ['ten'], {'ten': 10}, (10,), None, u'string']
 
 
-class UnicodeTrait(HasTraitsMixin):
+class UnicodeTrait(HasTraits):
 
     value = Unicode(u'unicode')
 
@@ -779,7 +779,7 @@ class TestUnicode(TraitTestBase):
     ]
 
 
-class ObjectNameTrait(HasTraitsMixin):
+class ObjectNameTrait(HasTraits):
     value = ObjectName('abc')
 
 
@@ -797,7 +797,7 @@ class TestObjectName(TraitTestBase):
         _good_values.append(u'þ')  # þ=1 is valid in Python 3 (PEP 3131).
 
 
-class DottedObjectNameTrait(HasTraitsMixin):
+class DottedObjectNameTrait(HasTraits):
 
     value = DottedObjectName('a.b')
 
@@ -816,7 +816,7 @@ class TestDottedObjectName(TraitTestBase):
         _good_values.append(u't.þ')
 
 
-class ListTrait(HasTraitsMixin):
+class ListTrait(HasTraits):
 
     value = List(Int)
 
@@ -830,7 +830,7 @@ class TestList(TraitTestBase):
     _bad_values = [10, [1, 'a'], 'a', (1, 2)]
 
 
-class LenListTrait(HasTraitsMixin):
+class LenListTrait(HasTraits):
 
     value = List(Int, [0], minlen=1, maxlen=2)
 
@@ -844,7 +844,7 @@ class TestLenList(TraitTestBase):
     _bad_values = [10, [1, 'a'], 'a', (1, 2), [], range(3)]
 
 
-class TupleTrait(HasTraitsMixin):
+class TupleTrait(HasTraits):
 
     value = Tuple(Int)
 
@@ -863,7 +863,7 @@ class TestTupleTrait(TraitTestBase):
         t = Tuple(Int, CBytes, default_value=(1, 5))
 
 
-class LooseTupleTrait(HasTraitsMixin):
+class LooseTupleTrait(HasTraits):
 
     value = Tuple((1, 2, 3))
 
@@ -884,7 +884,7 @@ class TestLooseTupleTrait(TraitTestBase):
         t = Tuple(Int, CBytes, default_value=(1, 5))
 
 
-class MultiTupleTrait(HasTraitsMixin):
+class MultiTupleTrait(HasTraits):
 
     value = Tuple(Int, Bytes, default_value=[99, b'bottles'])
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace query'''
+'''manager query'''
 
 from __future__ import absolute_import
 
@@ -9,10 +9,10 @@ from functools import partial, update_wrapper
 
 from stuf.utils import OrderedDict, getter, selfname, setter
 
-from appspace.error import NoAppError, ConfigurationError
 from .core import AAppspace, ADelegated
-from .builders import Appspace, Patterns, Manager, patterns
-from .utils import getcls, itermembers, isrelated, lazy_import
+from .utils import getcls, isrelated, itermembers
+from .error import NoAppError, ConfigurationError
+from .builders import Appspace, Manager, Patterns, patterns
 
 
 def delegatable(**metadata):
@@ -30,7 +30,6 @@ def lazy_component(branch=''):
     '''
     marks method as a lazily loaded component
 
-    @param label: component label
     @param branch: component branch (default: None)
     '''
     def wrapped(func):
@@ -43,7 +42,7 @@ def on(*events):
     marks method as being a lazy component
 
     @param label: component label
-    @param branch: component branch (default: None)
+    @param *events: list of properties
     '''
     def wrapped(func):
         return On(func, *events)
@@ -52,11 +51,11 @@ def on(*events):
 
 class Query(deque):
 
-    '''appspace query'''
+    '''manager query'''
 
     def __init__(self, appspace, *args, **kw):
         '''
-        @param appspace: an appspace
+        @param manager: an manager
         '''
         self.this = kw.pop('this', None)
         if AAppspace.providedBy(appspace):
@@ -74,72 +73,76 @@ class Query(deque):
     def __call__(self, *args):
         return getcls(self)(self.appspace, *args, **dict(this=self.this))
 
+    def _freshen(self, this):
+        '''
+        clear and put one thing in queue
+
+        @param this: the thing
+        '''
+        # clear
+        self.clear()
+        # append to queue
+        self.append(this)
+        return self
+
     def api(self, that):
+        '''
+        fetch api matching type of class
+
+        @param that: class to filter by
+        '''
         combined = OrderedDict()
         for meths in self.filter(that):
             combined.update(meths)
         this = self.this
-        branch = self(self.branchset(self.key().one()))
+        branch = self(self.branch(self.key().one()))
         self.clear()
         for k, v in combined.iteritems():
-            branch.appset(k, v.__get__(None, this))
+            branch.app(k, v.__get__(None, this))
             self.append((k, v))
         return self
 
-    def appget(self, label, branch=''):
+    def app(self, label, branch='', component=''):
         '''
-        fetch component from appspace
+        add or get app from appspace
 
-        @param label: label for appspace
-        @param branch: label for branch (default: '')
+        @param label: app label
+        @param branch: branch label (default: '')
+        @param component: new component (default: '')
         '''
-        self.clear()
-        self.append(
-            self.appspace[branch][label] if branch else self.appspace[label]
-        )
-        return self
+        try:
+            if branch:
+                return self.appspace[branch][label]
+            return self.appspace[label]
+        except NoAppError:
+            if component:
+                if branch:
+                    manager = self.branch(branch).one().manager
+                else:
+                    manager = self.appspace.manager
+                manager.set(label, component)
+                return self._freshen(component)
+        raise ConfigurationError('invalid application')
 
-    def appset(self, component, label, branch=''):
+    def branch(self, label):
         '''
-        add new component to appspace
-
-        @param component: new component
-        @param label: label for branch appspace
-        @param branch: branch to add component to (default: '')
-        '''
-        if branch:
-            appspace = self.branchget(branch).root().one()
-        else:
-            appspace = self.root().one()
-        appspace.set(label, component)
-        self.clear()
-        self.append(component)
-        return self
-
-    def branchget(self, branch):
-        '''
-        fetch branch appspace
-
-        @param branch: label for branch
-        '''
-        return self.freshen(self.appspace[branch])
-
-    def branchset(self, label):
-        '''
-        add branch appspace to parent appspace
+        add or get branch appspace
 
         @param label: label of new appspace
         '''
-        new_appspace = Appspace(Manager())
-        self.root().one().set(label, new_appspace)
-        return self.freshen(new_appspace)
+        try:
+            return self._freshen(self.appspace[label])
+        except NoAppError:
+            new_appspace = Appspace(Manager())
+            self.appspace.manager.set(label, new_appspace)
+            return self._freshen(new_appspace)
 
     @classmethod
     def create(cls, pattern, required, defaults, *args, **kw):
         '''
         build new appspace
 
-        @param pattern: pattern configuration class or name of appspace
+        @param pattern: pattern configuration class or label of appspace
         @param required: required settings
         @param defaults: default settings
         @param *args: tuple of module paths or component inclusions
@@ -147,20 +150,23 @@ class Query(deque):
         if isinstance(patterns, Patterns):
             return cls(pattern.build(required, defaults))
         elif isinstance(pattern, basestring) and args:
-            return cls(patterns(pattern, *args, **kw))
+            appconf = patterns(pattern, *args, **kw)
+            return cls(Patterns.settings(appconf, required, defaults))
         raise ConfigurationError('patterns not found')
 
     def delegated(self):
+        '''list delegated attributes'''
         combined = {}
         for meths in self.filter(delegated).one():
             combined.update(self(meths).delegatable.one())
         keys = set()
         for k in combined.iterkeys():
             keys.add(k)
-        self.settings().one().delegates[self.key().one()] = keys
+        self.appspace.manager.settings.delegates[self.key().one()] = keys
         return self
 
     def delegatable(self):
+        '''list delegatable attributes'''
         self.api(Delegatable)
         return self
 
@@ -177,16 +183,21 @@ class Query(deque):
         )
         return self
 
-    def freshen(self, this):
-        self.clear()
-        self.append(this)
-        return self
-
     def get(self, key, default=None):
-        return self.freshen(self.settings.get(key, default))
+        '''
+        get a setting's value
+
+        @param key: setting key
+        @param default: setting value (default: None)
+        '''
+        return self._freshen(self.settings.get(key, default))
 
     def localize(self, **kw):
-        '''generate local settings for component'''
+        '''
+        generate local settings for component
+
+        **kw: settings to add to local settings
+        '''
         this = self.this
         local = self.settings().one().local
         key = self.key()
@@ -197,13 +208,17 @@ class Query(deque):
           ] + [this.Meta]
         )
         local_settings.update(kw)
-        return self.freshen(local_settings)
+        return self._freshen(local_settings)
 
     def key(self):
         '''identifier for component'''
-        return self.freshen(
+        return self._freshen(
             '_'.join([self.this.__module__, selfname(self.this)])
         )
+
+    def manager(self):
+        '''fetch appspace manager'''
+        return self._freshen(self.appspace.manager)
 
     def one(self):
         '''fetch one result'''
@@ -213,31 +228,36 @@ class Query(deque):
             return []
 
     def ons(self):
+        '''list of events'''
         return self.api(On)
 
     first = one
 
     def register(self, appspaced):
         '''
-        add appspace to appspaced class
+        add appspace to class
 
-        @param appspaced: class to add appspace to
+        @param appspaced: class to be appspaced
         '''
-        # attach appspace
+        # attach manager
         setter(appspaced, 'a', self.appspace)
-        # attach appspace settings
-        setter(appspaced, 's', self.appspace.appspace.settings)
-        return self.freshen(appspaced)
-
-    def root(self):
-        return self.freshen(self.appspace.appspace)
+        # attach manager settings
+        setter(appspaced, 's', self.appspace.manager.settings)
+        return self._freshen(appspaced)
 
     def set(self, key, value):
-        self.settings.set(key, value)
+        '''
+        change setting in application settings
+
+        @param key: name of settings
+        @param value: value in settings
+        '''
+        self.appspace.manager.settings.set(key, value)
         return self
 
     def settings(self):
-        return self.freshen(self.appspace.appspace.settings)
+        '''appspace settings'''
+        return self._freshen(self.appspace.manager.settings)
 
 
 class component(object):
@@ -267,7 +287,7 @@ class component(object):
 
     def component(self, this, that):
         '''
-        get component from appspace
+        get component from manager
 
         @param this: an instance
         @param that: the instance's class
@@ -294,13 +314,13 @@ class LazyComponent(component):
         update_wrapper(self, method)
 
     def compute(self, this, that):
-        __(that).appset(self.method(this), self.label, self.branch)
+        __(that).app(self.label, self.branch, self.method(this))
         return super(LazyComponent, self).compute(this, that)
 
 
 class Delegatable(LazyComponent):
 
-    '''appspace component that can be delegated to another class'''
+    '''manager component that can be delegated to another class'''
 
     def compute(self, this, that):
         method = self.method
@@ -324,7 +344,7 @@ class On(LazyComponent):
         self.events = events
 
     def compute(self, this, that):
-        ebind = __(that).root().one().events.bind
+        ebind = __(that).manager().one().events.bind
         method = self.method
         for arg in self.events:
             ebind(arg, method)

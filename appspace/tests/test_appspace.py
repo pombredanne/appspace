@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace tests'''
+'''manager tests'''
 
 from __future__ import absolute_import
 try:
@@ -216,7 +216,7 @@ class TestAppconf(unittest.TestCase):
         from appspace import patterns, include
         patterns(
             'helpers', 
-            ('misc', include('appspace.tests.apps')), 
+            ('misc', include('manager.tests.apps')), 
             use_global=True,
         )
 

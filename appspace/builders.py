@@ -100,7 +100,7 @@ class Factory(object):
 
     def build(self):
         '''build manager'''
-        return Appspace(self.which)
+        return Appspace(self.manager)
 
 
 class Patterns(object):

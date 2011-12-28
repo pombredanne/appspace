@@ -216,7 +216,7 @@ class TestAppconf(unittest.TestCase):
         from appspace import patterns, include
         patterns(
             'helpers', 
-            ('misc', include('manager.tests.apps')), 
+            ('misc', include('appspace.tests.apps')), 
             use_global=True,
         )
 
@@ -281,7 +281,7 @@ class TestBuildFunctions(unittest.TestCase):
     def _make_multiple():
         from appspace import patterns, __
         plug = patterns('helpers', ('get', 'math.sqrt'))
-        __(plug).branchset('branch').appset('math.fabs', 'fabulous', 'branch')
+        __(plug).branch('branch').app('fabulous', 'branch', 'math.fabs')
         return plug
 
     def test_attr_multiple(self):

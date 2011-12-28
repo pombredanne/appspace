@@ -33,6 +33,9 @@ class NamedQueue(object):
     def __len__(self):
         return len(self._queue)
 
+    def __repr__(self):
+        return str(self._queue)
+
     def add_args_left(self, key, *args, **kw):
         '''
         add arguments to left side of queue

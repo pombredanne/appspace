@@ -7,7 +7,8 @@ from collections import deque
 from inspect import getmro, ismethod
 from functools import partial, update_wrapper
 
-from stuf.utils import OrderedDict, getter, selfname, setter
+from stuf import stuf
+from stuf.utils import OrderedDict, getter, selfname, setter, get_or_default
 
 from .core import AAppspace
 from .utils import getcls, isrelated, itermembers
@@ -109,8 +110,8 @@ class Query(deque):
         '''
         try:
             if branch:
-                return self.appspace[branch][label]
-            return self.appspace[label]
+                return self._freshen(self.appspace[branch][label])
+            return self._freshen(self.appspace[label])
         except NoAppError:
             if component:
                 if branch:
@@ -120,6 +121,9 @@ class Query(deque):
                 manager.set(label, component)
                 return self._freshen(component)
         raise ConfigurationError('invalid application')
+
+    def apply(self, label, branch='', *args, **kw):
+        return self._freshen(self.appspace[branch][label](*args, **kw))
 
     def branch(self, label):
         '''
@@ -135,11 +139,11 @@ class Query(deque):
             return self._freshen(new_appspace)
 
     @classmethod
-    def create(cls, pattern, required, defaults, *args, **kw):
+    def create(cls, pattern, required=None, defaults=None, *args, **kw):
         '''
         build new appspace
 
-        @param pattern: pattern configuration class or label of appspace
+        @param pattern: pattern configuration class or appspace label
         @param required: required settings
         @param defaults: default settings
         @param *args: tuple of module paths or component inclusions
@@ -187,7 +191,7 @@ class Query(deque):
         @param key: setting key
         @param default: setting value (default: None)
         '''
-        return self._freshen(self.settings().get(key, default))
+        return self._freshen(self.appspace.manager.settings.get(key, default))
 
     def localize(self, **kw):
         '''
@@ -197,12 +201,14 @@ class Query(deque):
         '''
         this = self.this
         local = self.settings().one().local
-        key = self.key()
+        key = self.key().one()
+        metas = [b.Meta for b in getmro(getcls(this)) if hasattr(b, 'Meta')]
+        meta = get_or_default(this, 'Meta')
+        if meta:
+            metas.extend(meta)
         local_settings = local[key] = dict(
-          dict((k, v) for k, v in vars(m).iteritems() if not k.startswith('_'))
-          for m in [
-              b.Meta for b in getmro(getcls(this)) if hasattr(b, 'Meta')
-          ] + [this.Meta]
+            stuf((k, v) for k, v in vars(m).iteritems()
+            if not k.startswith('_')) for m in metas
         )
         local_settings.update(kw)
         return self._freshen(local_settings)
@@ -210,7 +216,7 @@ class Query(deque):
     def key(self):
         '''identifier for component'''
         return self._freshen(
-            '_'.join([self.this.__module__, selfname(self.this)])
+            '_'.join([self.this.__module__, selfname(self.this)]).lower()
         )
 
     def manager(self):
@@ -270,6 +276,9 @@ class component(object):
         self.branch = branch
         self._appspace = False
 
+    def __repr__(self, *args, **kwargs):
+        return '{label}@{branch}'.format(label=self.label, branch=self.branch)
+
     def __get__(self, this, that):
         return self.calculate(this, that)
 
@@ -289,7 +298,7 @@ class component(object):
         @param this: an instance
         @param that: the instance's class
         '''
-        return __(that).get(self.label, self.branch)
+        return __(that).app(self.label, self.branch).one()
 
 
 class delegated(component):

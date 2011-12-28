@@ -30,6 +30,9 @@ class Settings(ResetMixin):
         # required settings
         self._required = stuf()
 
+    def __repr__(self, *args, **kwargs):
+        return str(self._final)
+
     @lazy
     def d(self):
         '''get default settings separately'''
@@ -105,7 +108,7 @@ class Settings(ResetMixin):
         @param key: key in settings
         @param default: default value (default: None)
         '''
-        return deepget(key, self._final, deepget(self._default, key, default))
+        return deepget(self._final, key, default)
 
     def set(self, key, value):
         '''

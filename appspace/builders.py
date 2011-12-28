@@ -93,6 +93,9 @@ class Factory(object):
         # add manager
         apper(label, Appspace(self.manager))
 
+    def __repr__(self):
+        return self.manager.__repr__()
+
     @lazy
     def manager(self):
         '''manager builder'''
@@ -106,6 +109,31 @@ class Factory(object):
 class Patterns(object):
 
     '''patterns for manager configured in a class'''
+
+    def __repr__(self):
+        return str(self._gather())
+
+    @classmethod
+    def _gather(cls):
+        this = list()
+        tappend = this.append
+        textend = this.extend
+        # filters
+        anamespace = ANamespace.implementedBy
+        branch = ABranch.implementedBy
+        for k, v in vars(cls).iteritems():
+            # filter private and hidden
+            if not k.startswith('_'):
+                # handle namespace
+                if anamespace(v):
+                    textend(i for i in v.build())
+                # handle branches
+                elif branch(v):
+                    textend(v.build())
+                # handle anything else
+                else:
+                    tappend((k, v))
+        return this
 
     @classmethod
     def settings(cls, appconf, required, defaults):
@@ -141,7 +169,7 @@ class Patterns(object):
                 else:
                     tappend((k, v))
         # build configuration
-        appconf = patterns(selfname(cls), *tuple(this))
+        appconf = patterns(selfname(cls), *tuple(cls._gather()))
         if required is not None and defaults is not None:
             cls.settings(appconf, required, defaults)
         return appconf

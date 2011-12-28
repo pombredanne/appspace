@@ -29,6 +29,11 @@ class Event(object):
         for k, v in kw.iteritems():
             setter(self, k, v)
 
+    def __repr__(self):
+        return 'Event{label}@Priority{priority}'.format(
+            label=self.label, priority=self.priority,
+        )
+
 
 class EventManager(object):
 
@@ -46,6 +51,9 @@ class EventManager(object):
         '''
         self.a = appspace
         self._enabled = True
+
+    def __repr__(self):
+        return str(self.appspace.manager.lookupAll(AEvent, AEvent))
 
     @property
     def enabled(self):

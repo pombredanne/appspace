@@ -42,7 +42,9 @@ class Hosted(ResetMixin):
         @param label: component label
         @param branch: component branch (default: None)
         '''
-        return setter(getcls(self), name, self.__(self).app(label, branch))
+        return setter(
+            getcls(self), name, self.__(self).app(label, branch).one()
+        )
 
 
 class Delegated(Hosted):

@@ -40,7 +40,7 @@ class Manager(AppStore):
         return contains(self.names((), AApp), label)
 
     def __repr__(self):
-        return str(self.lookupAll((), AApp))
+        return str(self.lookupAll([AApp], AApp))
 
     @lazy
     def events(self):

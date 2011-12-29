@@ -116,19 +116,16 @@ class Query(deque):
         @param branch: branch label (default: '')
         @param app: new application (default: '')
         '''
-        try:
+        if app:
             if branch:
-                return self._freshen(self._appspace[branch][label])
-            return self._freshen(self._appspace[label])
-        except NoAppError:
-            if app:
-                if branch:
-                    manager = self.branch(branch).manager
-                else:
-                    manager = self.manager
-                manager.set(label, app)
-                return self._freshen(app)
-        raise ConfigurationError('invalid application')
+                manager = self.branch(branch).one().manager
+            else:
+                manager = self.manager
+            manager.set(label, app)
+            return self._freshen(app)
+        if branch:
+            return self._freshen(self._appspace[branch][label])
+        return self._freshen(self._appspace[label])
 
     def apply(self, label, branch='', *args, **kw):
         '''
@@ -188,7 +185,7 @@ class Query(deque):
 
     def filter(self, that):
         '''
-        filter object members by class
+        filter object members by a class
 
         @param that: class to filter by
         '''

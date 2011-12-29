@@ -6,7 +6,7 @@ from collections import deque
 
 from stuf.utils import deleter, lazy, lazybase
 
-from .utils import getcls
+from appspace.utils import getcls
 
 
 class NamedQueue(object):

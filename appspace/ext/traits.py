@@ -7,9 +7,9 @@ from types import FunctionType
 
 from stuf.utils import clsname, either, getter, deleter, setter
 
-from .error import TraitError
-from .decorators import TraitType
-from .utils import get_members, getcls
+from appspace.error import TraitError
+from appspace.decorators import TraitType
+from appspace.utils import get_members, getcls
 
 
 class _SimpleTest:

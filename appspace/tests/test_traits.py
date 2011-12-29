@@ -19,7 +19,7 @@ except ImportError:
     import unittest
 
 from appspace.error import TraitError
-from appspace.classes import HasTraits, MetaHasTraits
+from appspace.ext.classes import HasTraits, MetaHasTraits
 from appspace.decorators import (
    TraitType, List, Any, CBytes, Int, Long, Integer, Float, Complex, Bytes,
    Unicode, Undefined, Type, This,  Instance, Tuple, ObjectName,

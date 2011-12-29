@@ -8,12 +8,15 @@ from inspect import getmro, ismethod
 from functools import partial, update_wrapper
 
 from stuf import stuf
-from stuf.utils import OrderedDict, getter, selfname, setter, get_or_default
+from stuf.utils import (
+    OrderedDict, clsname, getter, get_or_default, selfname, setter,
+)
 
-from .core import AAppspace
-from .utils import getcls, isrelated, itermembers
-from .error import NoAppError, ConfigurationError
-from .builders import Appspace, Manager, Patterns, patterns
+from appspace.core import AAppspace
+from appspace.decorators import NoDefaultSpecified
+from appspace.error import NoAppError, ConfigurationError
+from appspace.utils import getcls, isrelated, itermembers, modname
+from appspace.builders import Appspace, Manager, Patterns, patterns
 
 
 def delegatable(**metadata):
@@ -31,7 +34,7 @@ def lazy_component(branch=''):
     '''
     marks method as a lazily loaded component
 
-    @param branch: component branch (default: None)
+    @param branch: component branch (default: '')
     '''
     def wrapped(func):
         return LazyComponent(func, branch)
@@ -42,7 +45,6 @@ def on(*events):
     '''
     marks method as being a lazy component
 
-    @param label: component label
     @param *events: list of properties
     '''
     def wrapped(func):
@@ -58,18 +60,21 @@ class Query(deque):
         '''
         @param manager: an manager
         '''
-        self.this = kw.pop('this', None)
-        if AAppspace.providedBy(appspace):
-            self.appspace = appspace
-        elif hasattr(appspace, 'a') and AAppspace.providedBy(appspace.a):
-            self.this = appspace
-            self.appspace = appspace.a
-        else:
-            raise NoAppError('appspace not found')
-        deque.__init__(self, args)
+        try:
+            appspace = appspace.a
+            self._this = appspace
+        except (AttributeError, NoAppError):
+            if AAppspace.providedBy(appspace):
+                self._appspace = appspace
+                self._this = kw.pop('this', None)
+            else:
+                raise NoAppError('appspace not found')
+        self.manager = appspace.manager
+        self.settings = appspace.manager.settings
+        deque.__init__(self, *args)
 
     def __call__(self, *args):
-        return getcls(self)(self.appspace, *args, **dict(this=self.this))
+        return getcls(self)(self._appspace, *args, **dict(this=self._this))
 
     def _freshen(self, this):
         '''
@@ -80,7 +85,7 @@ class Query(deque):
         # clear
         self.clear()
         # append to queue
-        self.append(this)
+        self.appendleft(this)
         return self
 
     def api(self, that):
@@ -90,56 +95,52 @@ class Query(deque):
         @param that: class to filter by
         '''
         combined = OrderedDict()
+        cupdate = combined.update
         for meths in self.filter(that):
-            combined.update(meths)
-        this = self.this
+            cupdate(meths)
         branch = self(self.branch(self.key().one()))
+        sappend = self.append
+        bapp = branch.app
+        this = self._this
         self.clear()
         for k, v in combined.iteritems():
-            branch.app(k, v.__get__(None, this))
-            self.append((k, v))
+            bapp(k, v.__get__(None, this))
+            sappend((k, v))
         return self
 
     def app(self, label, branch='', app=''):
         '''
-        add or get app from appspace
+        add or get application from appspace
 
-        @param label: app label
+        @param label: application label
         @param branch: branch label (default: '')
-        @param component: new component (default: '')
+        @param app: new application (default: '')
         '''
         try:
             if branch:
-                return self._freshen(self.appspace[branch][label])
-            return self._freshen(self.appspace[label])
+                return self._freshen(self._appspace[branch][label])
+            return self._freshen(self._appspace[label])
         except NoAppError:
             if app:
                 if branch:
-                    manager = self.branch(branch).one().manager
+                    manager = self.branch(branch).manager
                 else:
-                    manager = self.appspace.manager
+                    manager = self.manager
                 manager.set(label, app)
                 return self._freshen(app)
         raise ConfigurationError('invalid application')
 
     def apply(self, label, branch='', *args, **kw):
-        return self._freshen(self.appspace[branch][label](*args, **kw))
-
-    def branch(self, label):
         '''
-        add or get branch appspace
+        call application from appspace
 
-        @param label: label of new appspace
+        @param label: application label
+        @param branch: branch label (default: '')
         '''
-        try:
-            return self._freshen(self.appspace[label])
-        except NoAppError:
-            new_appspace = Appspace(Manager())
-            self.appspace.manager.set(label, new_appspace)
-            return self._freshen(new_appspace)
+        return self._freshen(self._appspace[branch][label](*args, **kw))
 
     @classmethod
-    def create(cls, pattern, required=None, defaults=None, *args, **kw):
+    def appspace(cls, pattern, required=None, defaults=None, *args, **kw):
         '''
         build new appspace
 
@@ -155,15 +156,28 @@ class Query(deque):
             return cls(Patterns.settings(appconf, required, defaults))
         raise ConfigurationError('patterns not found')
 
+    def branch(self, label):
+        '''
+        add or get branch appspace
+
+        @param label: label of appspace
+        '''
+        try:
+            return self._freshen(self._appspace[label])
+        except NoAppError:
+            new_appspace = Appspace(Manager())
+            self.manager.set(label, new_appspace)
+            return self._freshen(new_appspace)
+        raise ConfigurationError('invalid branch configuration')
+
     def delegated(self):
         '''list delegated attributes'''
         combined = {}
+        cupdate = combined.update
         for meths in self.filter(delegated).one():
-            combined.update(self(meths).delegatable.one())
-        keys = set()
-        for k in combined.iterkeys():
-            keys.add(k)
-        self.appspace.manager.settings.delegates[self.key().one()] = keys
+            cupdate(self(meths).delegatable.one())
+        keys = set(k for k in combined)
+        self.settings.delegates[self.key().one()] = keys
         return self
 
     def delegatable(self):
@@ -179,19 +193,10 @@ class Query(deque):
         '''
         self.clear()
         self.extend(
-            (k, v) for k, v in itermembers(self.this, ismethod)
+            (k, v) for k, v in itermembers(self._this, ismethod)
             if isrelated(v, that)
         )
         return self
-
-    def get(self, key, default=None):
-        '''
-        get a setting's value
-
-        @param key: setting key
-        @param default: setting value (default: None)
-        '''
-        return self._freshen(self.appspace.manager.settings.get(key, default))
 
     def localize(self, **kw):
         '''
@@ -199,15 +204,14 @@ class Query(deque):
 
         **kw: settings to add to local settings
         '''
-        this = self.this
-        local = self.settings().one().local
-        key = self.key().one()
+        this = self._this
         metas = [b.Meta for b in getmro(getcls(this)) if hasattr(b, 'Meta')]
         meta = get_or_default(this, 'Meta')
         if meta:
-            metas.extend(meta)
-        local_settings = local[key] = dict(
-            stuf((k, v) for k, v in vars(m).iteritems()
+            metas.append(meta)
+        key = self.key().one()
+        local_settings = self.settings.local[key] = stuf(
+            dict((k, v) for k, v in vars(m).iteritems()
             if not k.startswith('_')) for m in metas
         )
         local_settings.update(kw)
@@ -216,12 +220,8 @@ class Query(deque):
     def key(self):
         '''identifier for component'''
         return self._freshen(
-            '_'.join([self.this.__module__, selfname(self.this)]).lower()
+            '_'.join([modname(self._this), clsname(self._this)]).lower()
         )
-
-    def manager(self):
-        '''fetch appspace manager'''
-        return self._freshen(self.appspace.manager)
 
     def one(self):
         '''fetch one result'''
@@ -243,29 +243,28 @@ class Query(deque):
         @param appspaced: class to be appspaced
         '''
         # attach manager
-        setter(appspaced, 'a', self.appspace)
+        setter(appspaced, 'a', self._appspace)
         # attach manager settings
-        setter(appspaced, 's', self.appspace.manager.settings)
+        setter(appspaced, 's', self.settings)
         return self._freshen(appspaced)
 
-    def set(self, key, value):
+    def setting(self, key, value=NoDefaultSpecified, default=None):
         '''
         change setting in application settings
 
         @param key: name of settings
         @param value: value in settings
+        @param default: setting value (default: None)
         '''
-        self.appspace.manager.settings.set(key, value)
-        return self
-
-    def settings(self):
-        '''appspace settings'''
-        return self._freshen(self.appspace.manager.settings)
+        if not isinstance(value, NoDefaultSpecified):
+            self.settings.set(key, value)
+            return self
+        return self._freshen(self.settings.get(key, default))
 
 
 class component(object):
 
-    '''attach appspaced component directly to class'''
+    '''attach appspaced component to class'''
 
     def __init__(self, label, branch=''):
         '''
@@ -276,9 +275,6 @@ class component(object):
         self.branch = branch
         self._appspace = False
 
-    def __repr__(self, *args, **kwargs):
-        return '{label}@{branch}'.format(label=self.label, branch=self.branch)
-
     def __get__(self, this, that):
         return self.calculate(that)
 
@@ -288,6 +284,9 @@ class component(object):
     def __delete__(self, this):
         raise AttributeError('attribute is read only')
 
+    def __repr__(self, *args, **kwargs):
+        return '{label}@{branch}'.format(label=self.label, branch=self.branch)
+
     def calculate(self, that):
         return setter(that, self.label, self.component(that))
 
@@ -295,7 +294,6 @@ class component(object):
         '''
         get component from manager
 
-        @param this: an instance
         @param that: the instance's class
         '''
         return __(that).app(self.label, self.branch).one()
@@ -304,6 +302,8 @@ class component(object):
 class delegated(component):
 
     '''delegated component'''
+
+    delegated = True
 
 
 class LazyComponent(component):
@@ -350,7 +350,7 @@ class On(LazyComponent):
         self.events = events
 
     def compute(self, this, that):
-        ebind = __(that).manager().one().events.bind
+        ebind = __(that).manager.events.bind
         method = self.method
         for arg in self.events:
             ebind(arg, method)

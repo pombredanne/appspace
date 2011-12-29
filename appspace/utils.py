@@ -78,13 +78,14 @@ def itermembers(that, predicate=None):
     @param predicate: filter for members (default: None)
     '''
     for key in dir(that):
-        try:
-            value = getter(that, key)
-        except AttributeError:
-            pass
-        else:
-            if not predicate or predicate(value):
-                yield key, value
+        if not key.startswith('_'):
+            try:
+                value = getter(that, key)
+            except AttributeError:
+                pass
+            else:
+                if not predicate or predicate(value):
+                    yield key, value
 
 
 def lazy_import(path, attribute=None):
@@ -136,6 +137,15 @@ def lru_cache(max_length=100):
             return result
         return wrapper
     return wrapped
+
+
+def modname(this):
+    '''
+    module name
+
+    @param this: an object
+    '''
+    return getter(this, '__module__')
 
 
 def object_walk(this):

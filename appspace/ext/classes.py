@@ -7,12 +7,12 @@ from inspect import isclass
 
 from stuf.utils import either, setter, lazy
 
-from .utils import getcls
 from .traits import Traits
-from .query import __, component
-from .decorators import TraitType
-from .core import AHosted, appifies
+from appspace.utils import getcls
 from .containers import ResetMixin, Sync
+from appspace.decorators import TraitType
+from appspace.core import AHosted, appifies
+from .query import __, component, delegated
 
 
 class Hosted(ResetMixin):
@@ -25,20 +25,20 @@ class Hosted(ResetMixin):
 
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
-        cls.__(cls).ons()
+        __(cls).ons()
         new = super(Hosted, cls).__new__
         if new == object.__new__:
             return new(cls)
         return new(cls, *args, **kw)
 
     @either
-    def __(self):
-        return __(self)
-
-    @either
     def c(self):
         '''local appspaced settings'''
-        return self.__.localize().one()
+        return self.q.localize().one()
+
+    @either
+    def q(self):
+        return __(self)
 
     def _instance_component(self, name, label, branch=''):
         '''
@@ -48,18 +48,15 @@ class Hosted(ResetMixin):
         @param label: component label
         @param branch: component branch (default: None)
         '''
-        return setter(
-            getcls(self), name, self.__.app(label, branch).one()
-        )
+        return setter(getcls(self), name, self.q.app(label, branch).one())
 
 
 class Delegated(Hosted):
 
     '''attributes and methods can be delegated to appspaced components'''
 
-    __ = __
-    _delegates = {}
-    _descriptor = component
+    _delegated = {}
+    _descriptor = delegated
 
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
@@ -70,10 +67,10 @@ class Delegated(Hosted):
         try:
             return object.__getattribute__(self, key)
         except AttributeError:
-            if self.s.delegates:
-                nkey = self.__.key()
-                if key in self.s.delegates[nkey]:
-                    return self.__.app(key, nkey)
+            func = self.q
+            nkey = func.key()
+            if key in self.s.delegates[nkey]:
+                return func.app(key, nkey)
 
 
 class Synched(Hosted):

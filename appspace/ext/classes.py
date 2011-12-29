@@ -60,7 +60,7 @@ class Delegated(Hosted):
 
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
-        cls.__(cls).delegated()
+        cls.q.delegated()
         return super(Delegated, cls).__new__(cls, *args, **kw)
 
     def __getattr__(self, key):

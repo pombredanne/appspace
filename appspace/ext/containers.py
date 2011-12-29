@@ -196,6 +196,8 @@ class ResetMixin(object):
 
 class Sync(ResetMixin):
 
+    '''synchronizing class'''
+
     def __init__(self, original=None, **kw):
         super(Sync, self).__init__()
         self.original = original if original is not None else {}

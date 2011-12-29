@@ -152,8 +152,9 @@ class Query(deque):
         if issubclass(pattern, Patterns):
             return cls(pattern.build(required, defaults))
         elif isinstance(pattern, basestring) and args:
-            appconf = patterns(pattern, *args, **kw)
-            return cls(Patterns.settings(appconf, required, defaults))
+            return cls(Patterns.settings(
+                patterns(pattern, *args, **kw), required, defaults,
+            ))
         raise ConfigurationError('patterns not found')
 
     def branch(self, label):

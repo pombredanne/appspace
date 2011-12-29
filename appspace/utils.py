@@ -78,7 +78,7 @@ def itermembers(that, predicate=None):
     @param predicate: filter for members (default: None)
     '''
     for key in dir(that):
-        if not key.startswith('_'):
+        if not key.startswith('__'):
             try:
                 value = getter(that, key)
             except AttributeError:

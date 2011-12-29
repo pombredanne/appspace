@@ -7,17 +7,18 @@ from inspect import isclass
 
 from stuf.utils import either, setter, lazy
 
-from .traits import Traits
 from appspace.utils import getcls
-from .containers import ResetMixin, Sync
 from appspace.decorators import TraitType
 from appspace.core import AHosted, appifies
+
+from .traits import Traits
+from .containers import ResetMixin, Sync
 from .query import __, component, delegated
 
 
 class Hosted(ResetMixin):
 
-    '''attributes and methods can be delegated to appspaced components'''
+    '''can have appspaced components attached'''
 
     appifies(AHosted)
 
@@ -25,7 +26,7 @@ class Hosted(ResetMixin):
 
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
-        __(cls).ons()
+        cls.q.ons()
         new = super(Hosted, cls).__new__
         if new == object.__new__:
             return new(cls)
@@ -38,6 +39,7 @@ class Hosted(ResetMixin):
 
     @either
     def q(self):
+        '''query instance'''
         return __(self)
 
     def _instance_component(self, name, label, branch=''):
@@ -55,7 +57,6 @@ class Delegated(Hosted):
 
     '''attributes and methods can be delegated to appspaced components'''
 
-    _delegated = {}
     _descriptor = delegated
 
     def __new__(cls, *args, **kw):
@@ -68,9 +69,7 @@ class Delegated(Hosted):
             return object.__getattribute__(self, key)
         except AttributeError:
             func = self.q
-            nkey = func.key()
-            if key in self.s.delegates[nkey]:
-                return func.app(key, nkey)
+            return func.app(key, func.key().one()).one()
 
 
 class Synched(Hosted):

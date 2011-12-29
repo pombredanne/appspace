@@ -4,8 +4,8 @@
 from __future__ import absolute_import
 
 from collections import deque
-from inspect import getmro, ismethod
 from functools import partial, update_wrapper
+from inspect import getmro, ismethod
 
 from stuf import stuf
 from stuf.utils import (
@@ -19,14 +19,14 @@ from appspace.utils import getcls, isrelated, itermembers, modname
 from appspace.builders import Appspace, Manager, Patterns, patterns
 
 
-def delegatable(**metadata):
+def delegatable(*metadata):
     '''
     marks method as delegatable
 
-    @param **metadata: metadata to set on decorated method
+    @param *metadata: metadata to set on decorated method
     '''
     def wrapped(func):
-        return Delegatable(func, **metadata)
+        return Delegatable(func, *metadata)
     return wrapped
 
 
@@ -61,7 +61,7 @@ class Query(deque):
         @param manager: an manager
         '''
         try:
-            appspace = appspace.a
+            self._appspace = appspace.a
             self._this = appspace
         except (AttributeError, NoAppError):
             if AAppspace.providedBy(appspace):
@@ -69,8 +69,8 @@ class Query(deque):
                 self._this = kw.pop('this', None)
             else:
                 raise NoAppError('appspace not found')
-        self.manager = appspace.manager
-        self.settings = appspace.manager.settings
+        self.manager = self._appspace.manager
+        self.settings = self._appspace.manager.settings
         deque.__init__(self, *args)
 
     def __call__(self, *args):
@@ -98,14 +98,15 @@ class Query(deque):
         cupdate = combined.update
         for meths in self.filter(that):
             cupdate(meths)
-        branch = self(self.branch(self.key().one()))
-        sappend = self.append
-        bapp = branch.app
-        this = self._this
-        self.clear()
-        for k, v in combined.iteritems():
-            bapp(k, v.__get__(None, this))
-            sappend((k, v))
+        if combined:
+            branch = self(self.branch(self.key().one()))
+            sappend = self.append
+            bapp = branch.app
+            this = self._this
+            self.clear()
+            for k, v in combined.iteritems():
+                bapp(k, v.__get__(None, this))
+                sappend((k, v.__get__(None, this)))
         return self
 
     def app(self, label, branch='', app=''):
@@ -172,16 +173,17 @@ class Query(deque):
         '''list delegated attributes'''
         combined = {}
         cupdate = combined.update
-        for meths in self.filter(delegated).one():
-            cupdate(self(meths).delegatable.one())
-        keys = set(k for k in combined)
-        self.settings.delegates[self.key().one()] = keys
+        for meths in self.filter(delegated):
+            cupdate(i for i in self(meths).delegatable())
+        if combined:
+            keys = set(k for k in combined)
+            self.settings.delegates[self.key().one()] = keys
+            return self._freshen(keys)
         return self
 
     def delegatable(self):
         '''list delegatable attributes'''
-        self.api(Delegatable)
-        return self
+        return self.api(Delegatable)
 
     def filter(self, that):
         '''
@@ -190,10 +192,8 @@ class Query(deque):
         @param that: class to filter by
         '''
         self.clear()
-        self.extend(
-            (k, v) for k, v in itermembers(self._this, ismethod)
-            if isrelated(v, that)
-        )
+        irel = partial(isrelated, that=that)
+        self.extend((k, v) for k, v in itermembers(self._this, irel))
         return self
 
     def localize(self, **kw):
@@ -286,7 +286,7 @@ class component(object):
         return '{label}@{branch}'.format(label=self.label, branch=self.branch)
 
     def calculate(self, that):
-        return setter(that, self.label, self.component(that))
+        return self.component(that)
 
     def component(self, that):
         '''
@@ -326,13 +326,16 @@ class Delegatable(LazyComponent):
 
     '''manager component that can be delegated to another class'''
 
+    def __init__(self, method, branch='', *metadata):
+        super(Delegatable, self).__init__(method, branch)
+        self.metadata = metadata
+
     def compute(self, this, that):
         method = self.method
-        delegates = that._delegates
+        delegates = self.metadata
         if delegates:
             kw = dict(
-                (k, getter(that, v)) for k, v in delegates.iteritems()
-                if hasattr(that, k)
+                (k, getter(that, k)) for k in delegates if hasattr(that, k)
             )
             if kw:
                 method = partial(method, **kw)
@@ -344,7 +347,7 @@ class On(LazyComponent):
     '''attach events to method'''
 
     def __init__(self, method, branch='', *events):
-        super(On, self).__init__(method, selfname(method), branch)
+        super(On, self).__init__(method, branch)
         self.events = events
 
     def compute(self, this, that):

@@ -1,53 +1,19 @@
 # -*- coding: utf-8 -*-
-'''manager query'''
+'''appspace extension query'''
 
 from __future__ import absolute_import
 
 from inspect import getmro
 from collections import deque
-from functools import partial, update_wrapper
 
 from stuf import stuf
-from stuf.utils import clsname, getter, get_or_default, selfname, setter
+from stuf.utils import clsname, get_or_default, setter
 
 from appspace.core import AAppspace
 from appspace.decorators import NoDefaultSpecified
 from appspace.utils import getcls, itermembers, modname
 from appspace.error import NoAppError, ConfigurationError
 from appspace.builders import Appspace, Manager, Patterns, patterns
-
-
-def delegatable(*metadata):
-    '''
-    marks method as delegatable
-
-    @param *metadata: metadata to set on decorated method
-    '''
-    def wrapped(func):
-        return Delegatable(func, *metadata)
-    return wrapped
-
-
-def lazy_component(branch=''):
-    '''
-    marks method as a lazily loaded component
-
-    @param branch: component branch (default: '')
-    '''
-    def wrapped(func):
-        return LazyComponent(func, branch)
-    return wrapped
-
-
-def on(*events):
-    '''
-    marks method as being a lazy component
-
-    @param *events: list of properties
-    '''
-    def wrapped(func):
-        return On(func, *events)
-    return wrapped
 
 
 class Query(deque):
@@ -74,37 +40,15 @@ class Query(deque):
     def __call__(self, *args):
         return getcls(self)(self._appspace, *args, **dict(this=self._this))
 
-    def _freshen(self, this):
+    def _tail(self, this):
         '''
         clear and put one thing in queue
 
         @param this: the thing
         '''
-        # clear
         self.clear()
         # append to queue
         self.appendleft(this)
-        return self
-
-    def api(self, that):
-        '''
-        fetch api matching type of class
-
-        @param that: class to filter by
-        '''
-        combined = []
-        cextend = combined.extend
-        for meths in self.filter(that):
-            cextend(meths)
-        if combined:
-            branch = self(self.branch(self.key().one()))
-            sappend = self.appendleft
-            bapp = branch.app
-            this = self._this
-            for k, v in combined:
-                new = v.__get__(None, this)
-                bapp(k, new)
-                sappend((k, new))
         return self
 
     def app(self, label, branch='', app=''):
@@ -121,10 +65,10 @@ class Query(deque):
             else:
                 manager = self.manager
             manager.set(label, app)
-            return self._freshen(app)
+            return self._tail(app)
         if branch:
-            return self._freshen(self._appspace[branch][label])
-        return self._freshen(self._appspace[label])
+            return self._tail(self._appspace[branch][label])
+        return self._tail(self._appspace[label])
 
     def apply(self, label, branch='', *args, **kw):
         '''
@@ -133,7 +77,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: '')
         '''
-        return self._freshen(self._appspace[branch][label](*args, **kw))
+        return self._tail(self._appspace[branch][label](*args, **kw))
 
     @classmethod
     def appspace(cls, pattern, required=None, defaults=None, *args, **kw):
@@ -160,30 +104,12 @@ class Query(deque):
         @param label: label of appspace
         '''
         try:
-            return self._freshen(self._appspace[label])
+            return self._tail(self._appspace[label])
         except NoAppError:
             new_appspace = Appspace(Manager())
             self.manager.set(label, new_appspace)
-            return self._freshen(new_appspace)
+            return self._tail(new_appspace)
         raise ConfigurationError('invalid branch configuration')
-
-    def delegated(self):
-        '''list delegated attributes'''
-        self.clear()
-        combined = []
-        cextend = combined.extend
-        for meths in self.filter('_delegatedable'):
-            cextend(i for i in self(meths).delegatable())
-        if combined:
-            keys = set(k[0] for k in combined)
-            self.settings.delegates[self.key().one()] = keys
-            return self._freshen(keys)
-        return self
-
-    def delegatable(self):
-        '''list delegatable attributes'''
-        self.clear()
-        return self.api('_delegatableable')
 
     def filter(self, that):
         '''
@@ -191,13 +117,20 @@ class Query(deque):
 
         @param that: class to filter by
         '''
-        test = lambda x: hasattr(x, that)
+        test = lambda x: isinstance(x, that)
         self.extendleft(i for i in itermembers(self._this, test))
         return self
+    
+    def last(self):
+        '''fetch one last result'''
+        try:
+            return self.pop()
+        except IndexError:
+            return []
 
     def localize(self, **kw):
         '''
-        generate local settings for component
+        generate local component settings
 
         **kw: settings to add to local settings
         '''
@@ -207,44 +140,38 @@ class Query(deque):
         if meta:
             metas.append(meta)
         key = self.key().one()
-        local_settings = self.settings.local[key] = stuf(
-            dict((k, v) for k, v in vars(m).iteritems()
-            if not k.startswith('_')) for m in metas
-        )
+        local_settings = self.settings.local[key] = stuf(dict(
+            (k, v) for k, v in itermembers(m) if not k.startswith('_')
+        ) for m in metas)
         local_settings.update(kw)
-        return self._freshen(local_settings)
+        return self._tail(local_settings)
 
     def key(self):
         '''identifier for component'''
-        return self._freshen(
+        return self._tail(
             '_'.join([modname(self._this), clsname(self._this)]).lower()
         )
 
     def one(self):
         '''fetch one result'''
         try:
-            return self[0]
+            return self.popleft()
         except IndexError:
             return []
 
-    def ons(self):
-        '''list of events'''
-        self.clear()
-        return self.api('_onable')
-
     first = one
 
-    def register(self, appspaced):
+    def register(self, model):
         '''
-        add appspace to class
+        register model in appspace
 
-        @param appspaced: class to be appspaced
+        @param model: class to be model
         '''
         # attach manager
-        setter(appspaced, 'A', self._appspace)
+        setter(model, 'A', self._appspace)
         # attach manager settings
-        setter(appspaced, 'S', self.settings)
-        return self._freshen(appspaced)
+        setter(model, 'S', self.settings)
+        return self._tail(model)
 
     def setting(self, key, value=NoDefaultSpecified, default=None):
         '''
@@ -254,112 +181,10 @@ class Query(deque):
         @param value: value in settings
         @param default: setting value (default: None)
         '''
-        if not isinstance(value, NoDefaultSpecified):
+        if value is not NoDefaultSpecified:
             self.settings.set(key, value)
             return self
-        return self._freshen(self.settings.get(key, default))
-
-
-class component(object):
-
-    '''attach appspaced component to class'''
-
-    def __init__(self, label, branch=''):
-        '''
-        @param label: component label
-        @param branch: component branch (default: '')
-        '''
-        self.label = label
-        self.branch = branch
-        self._appspace = False
-
-    def __get__(self, this, that):
-        return self.calculate(that)
-
-    def __set__(self, this, value):
-        raise AttributeError('attribute is read only')
-
-    def __delete__(self, this):
-        raise AttributeError('attribute is read only')
-
-    def __repr__(self, *args, **kwargs):
-        return '{label}@{branch}'.format(label=self.label, branch=self.branch)
-
-    def calculate(self, that):
-        return self.component(that)
-
-    def component(self, that):
-        '''
-        get component from manager
-
-        @param that: the instance's class
-        '''
-        return __(that).app(self.label, self.branch).one()
-
-
-class delegated(component):
-
-    '''delegated component'''
-
-    _delegatedable = True
-
-
-class LazyComponent(component):
-
-    '''lazily load appspaced component'''
-
-    def __init__(self, method, branch=''):
-        '''
-        @param label: component label
-        @param branch: component branch (default: '')
-        '''
-        super(LazyComponent, self).__init__(selfname(method), branch)
-        self.method = method
-        update_wrapper(self, method)
-
-    def compute(self, this, that):
-        __(that).app(self.label, self.branch, self.method(this))
-        return super(LazyComponent, self).compute(this, that)
-
-
-class Delegatable(LazyComponent):
-
-    '''manager component that can be delegated to another class'''
-
-    _delegatableable = True
-
-    def __init__(self, method, branch='', *metadata):
-        super(Delegatable, self).__init__(method, branch)
-        self.metadata = metadata
-
-    def compute(self, this, that):
-        method = self.method
-        delegates = self.metadata
-        if delegates:
-            kw = dict(
-                (k, getter(that, k)) for k in delegates if hasattr(that, k)
-            )
-            if kw:
-                method = partial(method, **kw)
-        return setter(that, self.label, method)
-
-
-class On(LazyComponent):
-
-    '''attach events to method'''
-
-    _onable = True
-
-    def __init__(self, method, branch='', *events):
-        super(On, self).__init__(method, branch)
-        self.events = events
-
-    def compute(self, this, that):
-        ebind = __(that).manager.events.bind
-        method = self.method
-        for arg in self.events:
-            ebind(arg, method)
-        return setter(that, self.label, self.method)
+        return self._tail(self.settings.get(key, default))
 
 
 # shortcut

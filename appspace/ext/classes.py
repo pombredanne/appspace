@@ -11,10 +11,11 @@ from appspace.utils import getcls
 from appspace.decorators import TraitType
 from appspace.core import AHosted, appifies
 
+from .query import __
 from .traits import Traits
+from .utils import component, delegated
 from .containers import ResetMixin, Sync
-from .query import __, component, delegated
-from appspace.error import NoAppError
+from appspace.ext.utils import Delegatable, On
 
 
 class Hosted(ResetMixin):
@@ -26,9 +27,10 @@ class Hosted(ResetMixin):
     _descriptor = component
 
     def __new__(cls, *args, **kw):
-        # needed because Python 2.6 object.__new__ only accepts cls argument
-        cls.Q.ons()
+        for _, v in cls.Q.filter(On):
+            v.__get__(None, cls)
         new = super(Hosted, cls).__new__
+        # needed because Python 2.6 object.__new__ only accepts cls argument
         if new == object.__new__:
             return new(cls)
         return new(cls, *args, **kw)
@@ -43,16 +45,6 @@ class Hosted(ResetMixin):
         '''query instance'''
         return __(self)
 
-    def I(self, name, label, branch=''):
-        '''
-        inject appspaced component as instance attribute
-
-        @param name: instance attribute label
-        @param label: component label
-        @param branch: component branch (default: None)
-        '''
-        return setter(getcls(self), name, self.Q.app(label, branch).one())
-
 
 class Delegated(Hosted):
 
@@ -60,19 +52,16 @@ class Delegated(Hosted):
 
     _descriptor = delegated
 
-    def __new__(cls, *args, **kw):
-        # needed because Python 2.6 object.__new__ only accepts cls argument
-        return super(Delegated, cls).__new__(cls, *args, **kw)
-
     def __getattr__(self, key):
         try:
             return object.__getattribute__(self, key)
         except AttributeError:
-            try:
-                return self.Q.app(key, self.K).one()
-            except NoAppError:
-                self.Q.delegated()
-                return self.Q.app(key, self.K).one()
+            for k, v in self.Q.filter(delegated):
+                for k, v in __(v).filter(Delegatable):
+                    if k == key:
+                        return setter(getcls(self), key, v)
+            else:
+                raise AttributeError('{0} not found'.format(key))
 
     @lazy_class
     def K(self):

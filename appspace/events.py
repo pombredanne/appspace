@@ -69,14 +69,14 @@ class EventManager(object):
         '''
         self._enabled = value
 
-    def bind(self, label, component):
+    def bind(self, label, app):
         '''
-        bind component to event
+        bind app to event
 
         @param label: event label
-        @param component: object to bind to event
+        @param app: object to bind to event
         '''
-        self.appspace.subscribe(AEvent, self.appspace.get(label), component)
+        self.appspace.subscribe(AEvent, self.appspace.get(label), app)
 
     def burst(self, label, queue):
         '''
@@ -149,6 +149,7 @@ class EventManager(object):
         new_event = NewEvent(priority, **kw)
         apped(NewEvent, ANewEvent)
         self.appspace.easy_register(AEvent, label, new_event)
+        return new_event
 
     def trait(self, label, old_value, new_value):
         '''
@@ -189,14 +190,14 @@ class EventManager(object):
                 else:
                     raise TraitError('trait changed callback must be callable')
 
-    def unbind(self, label, component):
+    def unbind(self, label, app):
         '''
-        unbind component from event
+        unbind app from event
 
         @param label: event label
-        @param component: object to unbind from event
+        @param app: object to unbind from event
         '''
-        self.appspace.unsubscribe(AEvent, self.appspace.get(label), component)
+        self.appspace.unsubscribe(AEvent, self.appspace.get(label), app)
 
     def unregister(self, label):
         '''

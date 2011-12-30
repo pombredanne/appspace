@@ -5,14 +5,15 @@ from __future__ import absolute_import
 
 from inspect import getmro
 from collections import deque
+from itertools import ifilter, imap
 
 from stuf import stuf
 from stuf.utils import clsname, get_or_default, setter
 
 from appspace.core import AAppspace
 from appspace.decorators import NoDefaultSpecified
-from appspace.utils import getcls, itermembers, modname
 from appspace.error import NoAppError, ConfigurationError
+from appspace.utils import getcls, itermembers, modname, isrelated
 from appspace.builders import Appspace, Manager, Patterns, patterns
 
 
@@ -25,9 +26,12 @@ class Query(deque):
         @param manager: an manager
         '''
         try:
+            # fetch appspace from class
             self._appspace = appspace.A
+            # save the host class
             self._this = appspace
         except (AttributeError, NoAppError):
+            # standalone appspace
             if AAppspace.providedBy(appspace):
                 self._appspace = appspace
                 self._this = kw.pop('this', None)
@@ -35,6 +39,7 @@ class Query(deque):
                 raise NoAppError('appspace not found')
         self.manager = self._appspace.manager
         self.settings = self._appspace.manager.settings
+        self._enable = True
         deque.__init__(self, *args)
 
     def __call__(self, *args):
@@ -51,13 +56,13 @@ class Query(deque):
         self.appendleft(this)
         return self
 
-    def app(self, label, branch='', app=''):
+    def app(self, label, branch=False, app=False):
         '''
         add or get application from appspace
 
         @param label: application label
-        @param branch: branch label (default: '')
-        @param app: new application (default: '')
+        @param branch: branch label (default: False)
+        @param app: new application (default: False)
         '''
         if app:
             if branch:
@@ -75,7 +80,7 @@ class Query(deque):
         call application from appspace
 
         @param label: application label
-        @param branch: branch label (default: '')
+        @param branch: branch label (default: False)
         '''
         return self._tail(self._appspace[branch][label](*args, **kw))
 
@@ -97,6 +102,18 @@ class Query(deque):
             ))
         raise ConfigurationError('patterns not found')
 
+    def bind(self, event, label, branch=False):
+        '''
+        bind app to event
+
+        @param event: event label
+        @param label: label of app
+        @param branch: branch label (default: False)
+        '''
+        app = self.app(label, branch)
+        self.manager.events.bind(event, app)
+        return self
+
     def branch(self, label):
         '''
         add or get branch appspace
@@ -111,15 +128,46 @@ class Query(deque):
             return self._tail(new_appspace)
         raise ConfigurationError('invalid branch configuration')
 
+    def burst(self, label, queue):
+        '''
+        run event subscribers on contents of queue
+
+        @param label: event label
+        @param queue: queued arguments
+        '''
+        return self._tail(self.manager.events.burst(label, queue))
+
+    def event(self, label, priority=None, **kw):
+        '''
+        create new event
+
+        @param event: event label
+        @param priority: priority of event
+        '''
+        if priority is None or not kw:
+            self.manager.unregister(label)
+            return self
+        event = self.manager.register(label, priority, **kw)
+        return self._tail((label, event))
+
     def filter(self, that):
         '''
-        filter object members by a class
+        filter object members by their class
 
         @param that: class to filter by
         '''
-        test = lambda x: isinstance(x, that)
-        self.extendleft(i for i in itermembers(self._this, test))
+        self.extendleft(ifilter(
+            lambda x: isrelated(x, that), (i for i in itermembers(self._this)),
+        ))
         return self
+    
+    def fire(self, event, *args, **kw):
+        '''
+        fire event, passing in arbitrary positional arguments and keywords
+
+        @param event: event label
+        '''
+        return self._tail(self.manager.events.fire(event, *args, **kw))
     
     def last(self):
         '''fetch one last result'''
@@ -151,6 +199,17 @@ class Query(deque):
         return self._tail(
             '_'.join([modname(self._this), clsname(self._this)]).lower()
         )
+        
+    def map(self, iterable, label, branch=False):
+        '''
+        apply app in appspace to each item in iterable
+
+        @param iterable: iterable to reduce
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        app = self.app(label, branch).one()
+        return self(i for i in imap(app, iterable))
 
     def one(self):
         '''fetch one result'''
@@ -160,6 +219,16 @@ class Query(deque):
             return []
 
     first = one
+    
+    def reduce(self, iterable, label, branch=False):
+        '''
+        reduce iterable to single value with app in appspace
+
+        @param iterable: iterable to reduce
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        return self._tail(reduce(self.app(label, branch).one(), iterable))
 
     def register(self, model):
         '''
@@ -185,7 +254,28 @@ class Query(deque):
             self.settings.set(key, value)
             return self
         return self._tail(self.settings.get(key, default))
+    
+    def enable(self):
+        self._enable = not self._enable
+    
+    def trigger(self, label):
+        '''
+        returns objects bound to an event
 
+        @param label: event label
+        '''
+        return self._tail(self.manager.events.react(label))
+
+    def unbind(self, event, label, branch=False):
+        '''
+        unbind app from event
+
+        @param event: event label
+        @param label: label of app
+        @param branch: branch label (default: False)
+        '''
+        self.manager.events.unbind(event, self.app(label, branch).one())
+        return self
 
 # shortcut
 __ = Query

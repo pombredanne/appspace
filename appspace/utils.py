@@ -70,7 +70,7 @@ def isrelated(this, that):
     return issubclass(this, that) if isclass(this) else isinstance(this, that)
 
 
-def itermembers(that, predicate=None):
+def itermembers(that):
     '''
     iterate object members
 
@@ -84,8 +84,7 @@ def itermembers(that, predicate=None):
             except AttributeError:
                 pass
             else:
-                if not predicate or predicate(value):
-                    yield key, value
+                yield key, value
 
 
 def lazy_import(path, attribute=None):

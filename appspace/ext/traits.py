@@ -35,16 +35,16 @@ class Traits(object):
     @staticmethod
     def _filter(traits, **md):
         '''
-        get a list of all the traits of this class.
+        get A list of all the traits of this class.
 
-        This method a class method equivalent of the `traits` method.
+        This method A class method equivalent of the `traits` method.
 
         The traits returned know nothing about the values that HasTrait's
         instances are holding.
 
         This follows the same algorithm as traits does and does not allow for
-        any simple way of specifying merely that a metadata name exists, but
-        has any value.  This is because get_metadata returns None if a metadata
+        any simple way of specifying merely that A metadata name exists, but
+        has any value.  This is because get_metadata returns None if A metadata
         key doesn't exist.
         '''
         if not md:
@@ -71,16 +71,16 @@ class Traits(object):
     @classmethod
     def class_filter(cls, **md):
         '''
-        get a list of all the traits of this class.
+        get A list of all the traits of this class.
 
-        This method a class method equivalent of the `traits` method.
+        This method A class method equivalent of the `traits` method.
 
         The traits returned know nothing about the values that HasTrait's
         instances are holding.
 
         This follows the same algorithm as traits does and does not allow for
-        any simple way of specifying merely that a metadata name exists, but
-        has any value.  This is because get_metadata returns None if a metadata
+        any simple way of specifying merely that A metadata name exists, but
+        has any value.  This is because get_metadata returns None if A metadata
         key doesn't exist.
         '''
         return cls._filter(cls._traits, **md)
@@ -88,7 +88,7 @@ class Traits(object):
     @classmethod
     def class_names(cls, **md):
         '''
-        Get a list of all the names of this classes traits.
+        Get A list of all the names of this classes traits.
 
         This method is just like the :meth:`trait_names` method, but is unbound
         '''
@@ -106,8 +106,8 @@ class Traits(object):
         HasTrait's instances are holding.
 
         This follows the same algorithm as traits does and does not allow for
-        any simple way of specifying merely that a metadata name exists, but
-        has any value.  This is because get_metadata returns None if a metadata
+        any simple way of specifying merely that A metadata name exists, but
+        has any value.  This is because get_metadata returns None if A metadata
         key doesn't exist.
         '''
         return self._filter(self._traits, **md)
@@ -159,7 +159,7 @@ class Traits(object):
         Parameters
         ----------
         trait_change_notify : Boolean
-            If **True** (the default), then each value assigned may generate a
+            If **True** (the default), then each value assigned may generate A
             trait change notification. If **False**, then no trait change
             notifications will be generated. (see also: trait_setq)
         traits: list of key/value pairs
@@ -172,11 +172,11 @@ class Traits(object):
 
         Description
         -----------
-        Treats each keyword argument to the method as the name of a trait
+        Treats each keyword argument to the method as the name of A trait
         attribute and sets the corresponding trait attribute to the value
-        specified. This is a useful shorthand when a number of trait attributes
-        need to be set on an object, or a trait attribute value needs to be set
-        in a lambda function. For example, you can write::
+        specified. This is A useful shorthand when A number of trait attributes
+        need to be set on an object, or A trait attribute value needs to be set
+        in A lambda function. For example, you can write::
 
             person.trait_set(name='Bill', age=27)
 
@@ -187,12 +187,12 @@ class Traits(object):
         '''
         this = self.this
         if not notify:
-            this.a.events.enabled = False
+            this.A.events.enabled = False
             try:
                 for name, value in traits.iteritems():
                     setter(this, name, value)
             finally:
-                this.a.events.enabled = True
+                this.A.events.enabled = True
             return self
         for name, value in traits.items():
             setter(this, name, value)

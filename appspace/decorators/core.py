@@ -52,7 +52,7 @@ class TraitType(object):
 
         Default values are instantiated when `HasTraits.__new__` is called.
         Thus by the time this method gets called either the default value or
-        a user defined value (they called `__set__`) in the `HasTraits`
+        A user defined value (they called `__set__`) in the `HasTraits`
         instance.
         '''
         if this is None:
@@ -61,7 +61,7 @@ class TraitType(object):
             try:
                 value = this._trait_values[self.name]
             except KeyError:
-                # Check for a dynamic initializer.
+                # Check for A dynamic initializer.
                 if self.name in this._trait_dyn_inits:
                     value = this._trait_dyn_inits[self.name](this)
                     value = self._validate(this, value)
@@ -84,7 +84,7 @@ class TraitType(object):
         if old_value != new_value:
             this._sync.update_current({self.name: new_value})
             this._trait_values[self.name] = new_value
-            this.a.trait(self.name, old_value, new_value)
+            this.A.trait(self.name, old_value, new_value)
 
     def _validate(self, this, value):
         if hasattr(self, 'validate'):
@@ -103,13 +103,13 @@ class TraitType(object):
                 self.name, class_of(this), self.info(), repr_type(value)
             )
         else:
-            e = '%s trait must be %s, but a value of %r was specified' % (
+            e = '%s trait must be %s, but A value of %r was specified' % (
                 self.name, self.info(), repr_type(value)
             )
         raise TraitError(e)
 
     def get_default_value(self):
-        '''create a new instance of the default value'''
+        '''create A new instance of the default value'''
         return self.default_value
 
     def get_metadata(self, key):
@@ -140,14 +140,14 @@ class TraitType(object):
 
     def set_default_value(self, this):
         '''
-        set the default value on a per instance basis.
+        set the default value on A per instance basis.
 
         This method is called by instance_init to create and validate the
         default value.  The creation and validation of default values must be
         delayed until the parent :class:`HasTraits` class has been
         instantiated.
         '''
-        # Check for a deferred initializer defined in the same class as the
+        # Check for A deferred initializer defined in the same class as the
         # trait declaration or above.
         mro = type(this).mro()
         cls = None

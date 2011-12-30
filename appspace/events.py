@@ -39,7 +39,7 @@ class EventManager(object):
 
     '''appspace event manager'''
 
-    __slots__ = ['a', '_enabled']
+    __slots__ = ['A', '_enabled']
 
     appifies(AEventManager)
 
@@ -49,7 +49,7 @@ class EventManager(object):
 
         @param appspace: appspace to store events in
         '''
-        self.a = appspace
+        self.A = appspace
         self._enabled = True
 
     def __repr__(self):

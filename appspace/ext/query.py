@@ -3,7 +3,8 @@
 
 from __future__ import absolute_import
 
-from collections import deque
+from operator import attrgetter, itemgetter
+from collections import Sequence, Mapping, deque
 from inspect import getmro, ismethod, isclass, isfunction
 from itertools import ifilter, imap, groupby, ifilterfalse
 
@@ -59,6 +60,9 @@ class Query(deque):
         # append to queue
         self.append(this)
         return self
+
+    def any(self, data, label, branch=False):
+        pass
 
     def app(self, label, branch=False, app=False):
         '''
@@ -150,6 +154,17 @@ class Query(deque):
         '''
         return self._tail(self.manager.events.burst(label, queue))
 
+    def each(self, data, label, branch=False):
+        '''
+        run app in appsoace on each item in data
+
+        @param data: data to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        app = self.get(label, branch)
+        return self(app(i) for i in data)
+
     def event(self, label, priority=False, **kw):
         '''
         create new event
@@ -176,7 +191,8 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        for item in ifilter(self.app(label, branch).one(), data):
+        app = self.get(label, branch)
+        for item in ifilter(app, data):
             return self._tail(item)
 
     def filter(self, data, label, branch=False):
@@ -187,7 +203,8 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        return self(i for i in ifilter(self.app(label, branch).one(), data))
+        app = self.get(label, branch)
+        return self(ifilter(app, data))
 
     def fire(self, event, *args, **kw):
         '''
@@ -197,6 +214,15 @@ class Query(deque):
         '''
         return self._tail(self.manager.events.fire(event, *args, **kw))
 
+    def get(self, label, branch=False):
+        '''
+        get application from appspace
+
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        return self.app(label, branch).one()
+
     def groupby(self, data, label, branch=False):
         '''
         group items from data by criteria of app in appspace
@@ -205,7 +231,26 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        return self(i for i in groupby(data, self.app(label, branch).one()))
+        app = self.get(label, branch)
+        return self(groupby(data, app))
+
+    def invoke(self, data, label, branch=False, *args, **kw):
+        '''
+        run app in appsoace on each item in data plus arbitrary args and
+        keywords
+
+        @param data: data to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        app = self.app(label, branch).one()
+        return self(app(i, *args, **kw) for i in data)
+
+    def key(self):
+        '''identifier for component'''
+        return self._tail(
+            '_'.join([modname(self._this), clsname(self._this)]).lower()
+        )
 
     def last(self):
         '''fetch one last result'''
@@ -225,18 +270,11 @@ class Query(deque):
         meta = get_or_default(this, 'Meta')
         if meta:
             metas.append(meta)
-        key = self.key().one()
-        local_settings = self.settings.local[key] = stuf(dict(
+        local_settings = self.settings.local[self.key().one()] = stuf(dict(
             (k, v) for k, v in self.members(m, lambda x: not x.startswith('_'))
         ) for m in metas)
         local_settings.update(kw)
         return self._tail(local_settings)
-
-    def key(self):
-        '''identifier for component'''
-        return self._tail(
-            '_'.join([modname(self._this), clsname(self._this)]).lower()
-        )
 
     def map(self, data, label, branch=False):
         '''
@@ -246,7 +284,19 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        return self(i for i in imap(self.app(label, branch).one(), data))
+        app = self.get(label, branch)
+        return self(imap(app, data))
+    
+    def max(self, data, label, branch=False):
+        '''
+        find maximum by key function in appspace
+
+        @param data: data to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''        
+        app = self.get(label, branch)
+        return self._tail(max(data, key=app))
 
     def members(self, tester=False):
         '''
@@ -261,9 +311,18 @@ class Query(deque):
                 test = tester
         else:
             test = ismethod
-        return self(
-            i for i in ifilter(test, (i for i in itermembers(self._this)))
-        )
+        return self(ifilter(test, (i for i in itermembers(self._this))))
+    
+    def min(self, data, label, branch=False):
+        '''
+        find minimum value by key function in appspace
+
+        @param data: data to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''        
+        app = self.get(label, branch)
+        return self._tail(min(data, key=app))
 
     def one(self):
         '''fetch one result'''
@@ -273,6 +332,19 @@ class Query(deque):
             return []
 
     first = one
+    
+    def pluck(self, key, data):
+        '''
+        get items from data by key
+
+        @param key: key to search for
+        @param data: data to process
+        '''
+        if isinstance(object, (Mapping, Sequence)):
+            getit = itemgetter(key)
+        else:
+            getit = attrgetter(key)
+        return self(getit(i) for i in itermembers(data))
 
     def reduce(self, data, label, branch=False, initial=None):
         '''
@@ -283,7 +355,8 @@ class Query(deque):
         @param branch: branch label (default: False)
         @param initial: initial value (default: None)
         '''
-        return self._tail(reduce(self.app(label, branch).one(), data, initial))
+        app = self.get(label, branch)
+        return self._tail(reduce(app, data, initial))
 
     def register(self, model):
         '''
@@ -305,9 +378,8 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        return self(
-            i for i in ifilterfalse(self.app(label, branch).one(), data)
-        )
+        app = self.get(label, branch)
+        return self(ifilterfalse(app, data))
     
     def right_reduce(self, data, label, branch=False, initial=None):
         '''
@@ -318,24 +390,32 @@ class Query(deque):
         @param branch: branch label (default: False)
         @param initial: initial value (default: None)
         '''
-        return self._tail(reduce(
-            lambda x, y: self.app(label, branch).one()(y, x), 
-            reversed(data),
-            initial,
-        ))
+        app = lambda x, y: self.get(label, branch)(y, x)
+        return self._tail(reduce(app, reversed(data), initial))
 
-    def setting(self, key, value=NoDefaultSpecified, default=None):
+    def setting(self, label, value=NoDefaultSpecified, default=None):
         '''
         change setting in application settings
 
-        @param key: setting key
+        @param label: setting label
         @param value: value in settings (default: NoDefaultSpecified)
         @param default: setting value (default: None)
         '''
         if value is not NoDefaultSpecified:
-            self.settings.set(key, value)
+            self.settings.set(label, value)
             return self
-        return self._tail(self.settings.get(key, default))
+        return self._tail(self.settings.get(label, default))
+    
+    def sorted(self, data, label, branch=False):
+        '''
+        sort by key function in appspace
+
+        @param data: data to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''        
+        app = self.get(label, branch)
+        return self(sorted(data, key=app))
 
     def trigger(self, label):
         '''
@@ -353,7 +433,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        self.manager.events.unbind(event, self.app(label, branch).one())
+        self.manager.events.unbind(event, app = self.get(label, branch))
         return self
 
 

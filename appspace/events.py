@@ -162,26 +162,26 @@ class EventManager(object):
             # First dynamic ones
             callables = self.react(label)
             # Call them all now
-            for c in callables:
+            for C in callables:
                 # Traits catches and logs errors here.  I allow them to raise
-                if callable(c):
-                    argspec = getargspec(c)
+                if callable(C):
+                    argspec = getargspec(C)
                     nargs = len(argspec[0])
                     # Bound methods have an additional 'self' argument
                     # I don't know how to treat unbound methods, but they
                     # can't really be used for callbacks.
-                    if ismethod(c):
+                    if ismethod(C):
                         offset = -1
                     else:
                         offset = 0
                     if nargs + offset == 0:
-                        c()
+                        C()
                     elif nargs + offset == 1:
-                        c(label)
+                        C(label)
                     elif nargs + offset == 2:
-                        c(label, new_value)
+                        C(label, new_value)
                     elif nargs + offset == 3:
-                        c(label, old_value, new_value)
+                        C(label, old_value, new_value)
                     else:
                         raise TraitError(
                             'trait changed callback must have 0-3 arguments'

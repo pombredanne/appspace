@@ -147,15 +147,15 @@ class TestTraitType(unittest.TestCase):
         self.assertEquals(b._trait_values, {'x': 20})
         self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
         self.assertEquals(b.x, 20)
-        c = C()
-        self.assertEquals(c._trait_values, {})
+        C = C()
+        self.assertEquals(C._trait_values, {})
         self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
-        self.assertEquals(c.x, 21)
-        self.assertEquals(c._trait_values, {'x': 21})
+        self.assertEquals(C.x, 21)
+        self.assertEquals(C._trait_values, {'x': 21})
         # Ensure that the base class remains unmolested when the _default
         # initializer gets overridden in a subclass.
         a = A()
-        c = C()
+        C = C()
         self.assertEquals(a._trait_values, {})
         self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
         self.assertEquals(a.x, 11)
@@ -185,12 +185,12 @@ class TestHasTraitsMeta(unittest.TestCase):
         self.assertEquals(b.b, 10)
 
         class C(HasTraits):
-            c = Int(30)
+            C = Int(30)
 
-        c = C()
-        self.assertEquals(c.c, 30)
-        c.c = 10
-        self.assertEquals(c.c, 10)
+        C = C()
+        self.assertEquals(C.C, 30)
+        C.C = 10
+        self.assertEquals(C.C, 10)
 
     def test_this_class(self):
         class A(HasTraits):
@@ -364,10 +364,10 @@ class TestHasTraits(unittest.TestCase):
     def test_trait_names(self):
         class A(HasTraits):
             i = Int
-            f = Float
+            F = Float
         a = A()
-        self.assertEquals(a.trait_names(), ['i', 'f'])
-        self.assertEquals(A.class_trait_names(), ['i', 'f'])
+        self.assertEquals(a.trait_names(), ['i', 'F'])
+        self.assertEquals(A.class_trait_names(), ['i', 'F'])
 
     def test_trait_metadata(self):
         class A(HasTraits):
@@ -378,25 +378,25 @@ class TestHasTraits(unittest.TestCase):
     def test_traits(self):
         class A(HasTraits):
             i = Int
-            f = Float
+            F = Float
         a = A()
-        self.assertEquals(a.traits(), dict(i=A.i, f=A.f))
-        self.assertEquals(A.class_traits(), dict(i=A.i, f=A.f))
+        self.assertEquals(a.traits(), dict(i=A.i, F=A.F))
+        self.assertEquals(A.class_traits(), dict(i=A.i, F=A.F))
 
     def test_traits_metadata(self):
         class A(HasTraits):
             i = Int(config_key='VALUE1', other_thing='VALUE2')
-            f = Float(config_key='VALUE3', other_thing='VALUE2')
+            F = Float(config_key='VALUE3', other_thing='VALUE2')
             j = Int(0)
         a = A()
-        self.assertEquals(a.traits(), dict(i=A.i, f=A.f, j=A.j))
+        self.assertEquals(a.traits(), dict(i=A.i, F=A.F, j=A.j))
         traits = a.traits(config_key='VALUE1', other_thing='VALUE2')
         self.assertEquals(traits, dict(i=A.i))
 
         # This passes, but it shouldn't because I am replicating a bug in
         # traits.
         traits = a.traits(config_key=lambda v: True)
-        self.assertEquals(traits, dict(i=A.i, f=A.f, j=A.j))
+        self.assertEquals(traits, dict(i=A.i, F=A.F, j=A.j))
 
     def test_init(self):
         class A(HasTraits):
@@ -521,28 +521,28 @@ class TestInstance(unittest.TestCase):
 
     def test_args_kw(self):
         class Foo(object):
-            def __init__(self, c): self.c = c
+            def __init__(self, C): self.C = C
         class Bar(object): 
             pass
         class Bah(object):
-            def __init__(self, c, d):
-                self.c = c; self.d = d
+            def __init__(self, C, D):
+                self.C = C; self.D = D
 
         class A(HasTraits):
             inst = Instance(Foo, (10,))
         a = A()
-        self.assertEquals(a.inst.c, 10)
+        self.assertEquals(a.inst.C, 10)
 
         class B(HasTraits):
-            inst = Instance(Bah, args=(10,), kw=dict(d=20))
+            inst = Instance(Bah, args=(10,), kw=dict(D=20))
         b = B()
-        self.assertEquals(b.inst.c, 10)
-        self.assertEquals(b.inst.d, 20)
+        self.assertEquals(b.inst.C, 10)
+        self.assertEquals(b.inst.D, 20)
 
         class C(HasTraits):
             inst = Instance(Foo)
-        c = C()
-        self.assert_(c.inst is None)
+        C = C()
+        self.assert_(C.inst is None)
 
     def test_bad_default(self):
         class Foo(object): pass
@@ -568,43 +568,43 @@ class TestThis(unittest.TestCase):
         class Foo(HasTraits):
             this = This
 
-        f = Foo()
-        self.assertEquals(f.this, None)
+        F = Foo()
+        self.assertEquals(F.this, None)
         g = Foo()
-        f.this = g
-        self.assertEquals(f.this, g)
-        self.assertRaises(TraitError, setattr, f, 'this', 10)
+        F.this = g
+        self.assertEquals(F.this, g)
+        self.assertRaises(TraitError, setattr, F, 'this', 10)
 
     def test_this_inst(self):
         class Foo(HasTraits):
             this = This()
 
-        f = Foo()
-        f.this = Foo()
-        self.assert_(isinstance(f.this, Foo))
+        F = Foo()
+        F.this = Foo()
+        self.assert_(isinstance(F.this, Foo))
 
     def test_subclass(self):
         class Foo(HasTraits):
             t = This()
         class Bar(Foo):
             pass
-        f = Foo()
+        F = Foo()
         b = Bar()
-        f.t = b
-        b.t = f
-        self.assertEquals(f.t, b)
-        self.assertEquals(b.t, f)
+        F.t = b
+        b.t = F
+        self.assertEquals(F.t, b)
+        self.assertEquals(b.t, F)
 
     def test_subclass_override(self):
         class Foo(HasTraits):
             t = This()
         class Bar(Foo):
             t = This()
-        f = Foo()
+        F = Foo()
         b = Bar()
-        f.t = b
-        self.assertEquals(f.t, b)
-        self.assertRaises(TraitError, setattr, b, 't', f)
+        F.t = b
+        self.assertEquals(F.t, b)
+        self.assertRaises(TraitError, setattr, b, 't', F)
 
 
 class TraitTestBase(unittest.TestCase):
@@ -702,8 +702,8 @@ class TestInteger(TestLong):
     obj = IntegerTrait()
     _default_value = 1
 
-    def coerce(self, n):
-        return int(n)
+    def coerce(self, N):
+        return int(N)
 
 
 class FloatTrait(HasTraits):

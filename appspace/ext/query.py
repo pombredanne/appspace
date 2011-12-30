@@ -3,19 +3,17 @@
 
 from __future__ import absolute_import
 
+from inspect import getmro
 from collections import deque
 from functools import partial, update_wrapper
-from inspect import getmro, ismethod
 
 from stuf import stuf
-from stuf.utils import (
-    OrderedDict, clsname, getter, get_or_default, selfname, setter,
-)
+from stuf.utils import clsname, getter, get_or_default, selfname, setter
 
 from appspace.core import AAppspace
 from appspace.decorators import NoDefaultSpecified
+from appspace.utils import getcls, itermembers, modname
 from appspace.error import NoAppError, ConfigurationError
-from appspace.utils import getcls, isrelated, itermembers, modname
 from appspace.builders import Appspace, Manager, Patterns, patterns
 
 
@@ -61,7 +59,7 @@ class Query(deque):
         @param manager: an manager
         '''
         try:
-            self._appspace = appspace.a
+            self._appspace = appspace.A
             self._this = appspace
         except (AttributeError, NoAppError):
             if AAppspace.providedBy(appspace):
@@ -94,19 +92,19 @@ class Query(deque):
 
         @param that: class to filter by
         '''
-        combined = OrderedDict()
-        cupdate = combined.update
+        combined = []
+        cextend = combined.extend
         for meths in self.filter(that):
-            cupdate(meths)
+            cextend(meths)
         if combined:
             branch = self(self.branch(self.key().one()))
-            sappend = self.append
+            sappend = self.appendleft
             bapp = branch.app
             this = self._this
-            self.clear()
-            for k, v in combined.iteritems():
-                bapp(k, v.__get__(None, this))
-                sappend((k, v.__get__(None, this)))
+            for k, v in combined:
+                new = v.__get__(None, this)
+                bapp(k, new)
+                sappend((k, new))
         return self
 
     def app(self, label, branch='', app=''):
@@ -171,19 +169,21 @@ class Query(deque):
 
     def delegated(self):
         '''list delegated attributes'''
-        combined = {}
-        cupdate = combined.update
-        for meths in self.filter(delegated):
-            cupdate(i for i in self(meths).delegatable())
+        self.clear()
+        combined = []
+        cextend = combined.extend
+        for meths in self.filter('_delegatedable'):
+            cextend(i for i in self(meths).delegatable())
         if combined:
-            keys = set(k for k in combined)
+            keys = set(k[0] for k in combined)
             self.settings.delegates[self.key().one()] = keys
             return self._freshen(keys)
         return self
 
     def delegatable(self):
         '''list delegatable attributes'''
-        return self.api(Delegatable)
+        self.clear()
+        return self.api('_delegatableable')
 
     def filter(self, that):
         '''
@@ -191,9 +191,8 @@ class Query(deque):
 
         @param that: class to filter by
         '''
-        self.clear()
-        irel = partial(isrelated, that=that)
-        self.extend((k, v) for k, v in itermembers(self._this, irel))
+        test = lambda x: hasattr(x, that)
+        self.extendleft(i for i in itermembers(self._this, test))
         return self
 
     def localize(self, **kw):
@@ -230,7 +229,8 @@ class Query(deque):
 
     def ons(self):
         '''list of events'''
-        return self.api(On)
+        self.clear()
+        return self.api('_onable')
 
     first = one
 
@@ -241,9 +241,9 @@ class Query(deque):
         @param appspaced: class to be appspaced
         '''
         # attach manager
-        setter(appspaced, 'a', self._appspace)
+        setter(appspaced, 'A', self._appspace)
         # attach manager settings
-        setter(appspaced, 's', self.settings)
+        setter(appspaced, 'S', self.settings)
         return self._freshen(appspaced)
 
     def setting(self, key, value=NoDefaultSpecified, default=None):
@@ -301,7 +301,7 @@ class delegated(component):
 
     '''delegated component'''
 
-    delegated = True
+    _delegatedable = True
 
 
 class LazyComponent(component):
@@ -326,6 +326,8 @@ class Delegatable(LazyComponent):
 
     '''manager component that can be delegated to another class'''
 
+    _delegatableable = True
+
     def __init__(self, method, branch='', *metadata):
         super(Delegatable, self).__init__(method, branch)
         self.metadata = metadata
@@ -345,6 +347,8 @@ class Delegatable(LazyComponent):
 class On(LazyComponent):
 
     '''attach events to method'''
+
+    _onable = True
 
     def __init__(self, method, branch='', *events):
         super(On, self).__init__(method, branch)

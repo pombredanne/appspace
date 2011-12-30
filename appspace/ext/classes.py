@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from stuf.utils import either, setter, lazy
+from stuf.utils import either, setter, lazy, lazy_class
 
 from appspace.utils import getcls
 from appspace.decorators import TraitType
@@ -14,6 +14,7 @@ from appspace.core import AHosted, appifies
 from .traits import Traits
 from .containers import ResetMixin, Sync
 from .query import __, component, delegated
+from appspace.error import NoAppError
 
 
 class Hosted(ResetMixin):
@@ -26,23 +27,23 @@ class Hosted(ResetMixin):
 
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
-        cls.q.ons()
+        cls.Q.ons()
         new = super(Hosted, cls).__new__
         if new == object.__new__:
             return new(cls)
         return new(cls, *args, **kw)
 
     @either
-    def c(self):
+    def C(self):
         '''local appspaced settings'''
-        return self.q.localize().one()
+        return self.Q.localize().one()
 
     @either
-    def q(self):
+    def Q(self):
         '''query instance'''
         return __(self)
 
-    def _instance_component(self, name, label, branch=''):
+    def I(self, name, label, branch=''):
         '''
         inject appspaced component as instance attribute
 
@@ -50,7 +51,7 @@ class Hosted(ResetMixin):
         @param label: component label
         @param branch: component branch (default: None)
         '''
-        return setter(getcls(self), name, self.q.app(label, branch).one())
+        return setter(getcls(self), name, self.Q.app(label, branch).one())
 
 
 class Delegated(Hosted):
@@ -61,15 +62,21 @@ class Delegated(Hosted):
 
     def __new__(cls, *args, **kw):
         # needed because Python 2.6 object.__new__ only accepts cls argument
-        cls.q.delegated()
         return super(Delegated, cls).__new__(cls, *args, **kw)
 
     def __getattr__(self, key):
         try:
             return object.__getattribute__(self, key)
         except AttributeError:
-            func = self.q
-            return func.app(key, func.key().one()).one()
+            try:
+                return self.Q.app(key, self.K).one()
+            except NoAppError:
+                self.Q.delegated()
+                return self.Q.app(key, self.K).one()
+
+    @lazy_class
+    def K(self):
+        return self.Q.key().one()
 
 
 class Synched(Hosted):

@@ -34,7 +34,7 @@ class Settings(ResetMixin):
         return str(self._final)
 
     @lazy
-    def d(self):
+    def D(self):
         '''get default settings separately'''
         return self.defaults
 
@@ -66,7 +66,7 @@ class Settings(ResetMixin):
         return self._local
 
     @lazy
-    def r(self):
+    def R(self):
         '''get required settings separately'''
         return self.required
 
@@ -89,7 +89,7 @@ class Settings(ResetMixin):
             raise TypeError('invalid RequiredSettings')
 
     @lazy
-    def f(self):
+    def F(self):
         '''finalized settings'''
         return self.final
 

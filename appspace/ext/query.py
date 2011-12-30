@@ -12,18 +12,18 @@ from stuf.utils import clsname, get_or_default, setter
 
 from appspace.core import AAppspace
 from appspace.decorators import NoDefaultSpecified
-from appspace.error import NoAppError, ConfigurationError
-from appspace.utils import getcls, itermembers, modname, isrelated
+from appspace.error import ConfigurationError, NoAppError
+from appspace.utils import getcls, isrelated, itermembers, modname
 from appspace.builders import Appspace, Manager, Patterns, patterns
 
 
 class Query(deque):
 
-    '''manager query'''
+    '''appspace query'''
 
     def __init__(self, appspace, *args, **kw):
         '''
-        @param manager: an manager
+        @param appspace: a appspace or appspace host object
         '''
         try:
             # fetch appspace from class
@@ -150,11 +150,11 @@ class Query(deque):
         event = self.manager.register(label, priority, **kw)
         return self._tail((label, event))
 
-    def filter(self, that):
+    def find(self, that):
         '''
-        filter object members by their class
+        find object members by their class
 
-        @param that: class to filter by
+        @param that: class to filter with
         '''
         self.extendleft(ifilter(
             lambda x: isrelated(x, that), (i for i in itermembers(self._this)),
@@ -256,7 +256,9 @@ class Query(deque):
         return self._tail(self.settings.get(key, default))
     
     def enable(self):
+        '''toggle if trait events are allowed'''
         self._enable = not self._enable
+        return self._tail(self._enable)
     
     def trigger(self, label):
         '''

@@ -27,7 +27,7 @@ class Hosted(ResetMixin):
     _descriptor = component
 
     def __new__(cls, *args, **kw):
-        for _, v in cls.Q.find(On):
+        for _, v in cls.Q.members(On):
             v.__get__(None, cls)
         new = super(Hosted, cls).__new__
         # needed because Python 2.6 object.__new__ only accepts cls argument
@@ -56,8 +56,8 @@ class Delegated(Hosted):
         try:
             return object.__getattribute__(self, key)
         except AttributeError:
-            for k, v in self.Q.find(delegated):
-                for k, v in __(v).find(Delegatable):
+            for k, v in self.Q.members(delegated):
+                for k, v in __(v).members(Delegatable):
                     if k == key:
                         return setter(getcls(self), key, v)
             else:

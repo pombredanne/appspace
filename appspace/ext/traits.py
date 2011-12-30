@@ -98,7 +98,7 @@ class Traits(object):
         self._sync.commit()
         self.sync()
 
-    def find(self, **md):
+    def members(self, **md):
         '''
         get trait list for class
 
@@ -128,7 +128,7 @@ class Traits(object):
 
     def names(self, **md):
         '''get all names of this instance's traits.'''
-        return self.find(**md).keys()
+        return self.members(**md).keys()
 
     def reset(self, labels=None, **metadata):
         '''

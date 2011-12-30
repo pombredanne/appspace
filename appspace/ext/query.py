@@ -3,9 +3,9 @@
 
 from __future__ import absolute_import
 
-from inspect import getmro
 from collections import deque
-from itertools import ifilter, imap
+from inspect import getmro, ismethod, isclass, isfunction
+from itertools import ifilter, imap, groupby, ifilterfalse
 
 from stuf import stuf
 from stuf.utils import clsname, get_or_default, setter
@@ -53,7 +53,7 @@ class Query(deque):
         '''
         self.clear()
         # append to queue
-        self.appendleft(this)
+        self.append(this)
         return self
 
     def app(self, label, branch=False, app=False):
@@ -150,17 +150,46 @@ class Query(deque):
         event = self.manager.register(label, priority, **kw)
         return self._tail((label, event))
 
-    def find(self, that):
-        '''
-        find object members by their class
+    def enable(self):
+        '''toggle if trait events are allowed'''
+        self._enable = not self._enable
+        return self._tail(self._enable)
 
-        @param that: class to filter with
+    def find(self, iterable, label, branch=False):
         '''
-        self.extendleft(ifilter(
-            lambda x: isrelated(x, that), (i for i in itermembers(self._this)),
-        ))
-        return self
-    
+        find first item in iterable for which app in appspace is true
+
+        @param iterable: iterable to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        for item in ifilter(self.app(label, branch).one(), iterable):
+            return self._tail(item)
+
+    def filter(self, iterable, label, branch=False):
+        '''
+        fetch items from iterable for which app in appspace is true
+
+        @param iterable: iterable to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        return self(
+            i for i in ifilter(self.app(label, branch).one(), iterable)
+        )
+
+    def groupby(self, iterable, label, branch=False):
+        '''
+        group items from iterable by criteria of app in appspace
+
+        @param iterable: iterable to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        return self(
+            i for i in groupby(iterable, self.app(label, branch).one())
+        )
+
     def fire(self, event, *args, **kw):
         '''
         fire event, passing in arbitrary positional arguments and keywords
@@ -168,7 +197,7 @@ class Query(deque):
         @param event: event label
         '''
         return self._tail(self.manager.events.fire(event, *args, **kw))
-    
+
     def last(self):
         '''fetch one last result'''
         try:
@@ -189,7 +218,7 @@ class Query(deque):
             metas.append(meta)
         key = self.key().one()
         local_settings = self.settings.local[key] = stuf(dict(
-            (k, v) for k, v in itermembers(m) if not k.startswith('_')
+            (k, v) for k, v in self.members(m, lambda x: not x.startswith('_'))
         ) for m in metas)
         local_settings.update(kw)
         return self._tail(local_settings)
@@ -199,17 +228,32 @@ class Query(deque):
         return self._tail(
             '_'.join([modname(self._this), clsname(self._this)]).lower()
         )
-        
+
     def map(self, iterable, label, branch=False):
         '''
         apply app in appspace to each item in iterable
 
-        @param iterable: iterable to reduce
+        @param iterable: iterable to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
         app = self.app(label, branch).one()
         return self(i for i in imap(app, iterable))
+
+    def members(self, tester=False):
+        '''
+        fetch object members by their class
+
+        @param tester: test to filter by
+        '''
+        if tester:
+            if isclass(tester):
+                test = lambda x: isrelated(x, tester)
+            elif isfunction(tester):
+                test = tester
+        else:
+            test = ismethod
+        return self(ifilter(test, (i for i in itermembers(self._this))))
 
     def one(self):
         '''fetch one result'''
@@ -219,16 +263,18 @@ class Query(deque):
             return []
 
     first = one
-    
-    def reduce(self, iterable, label, branch=False):
+
+    def reduce(self, iterable, label, branch=False, initial=None):
         '''
         reduce iterable to single value with app in appspace
 
-        @param iterable: iterable to reduce
+        @param iterable: iterable to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        return self._tail(reduce(self.app(label, branch).one(), iterable))
+        return self._tail(
+            reduce(self.app(label, branch).one(), iterable, initial)
+        )
 
     def register(self, model):
         '''
@@ -241,6 +287,32 @@ class Query(deque):
         # attach manager settings
         setter(model, 'S', self.settings)
         return self._tail(model)
+    
+    def reject(self, iterable, label, branch=False):
+        '''
+        fetch items from iterable for which app in appspace is false
+
+        @param iterable: iterable to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        return self(
+            i for i in ifilterfalse(self.app(label, branch).one(), iterable)
+        )
+    
+    def right_reduce(self, iterable, label, branch=False, initial=None):
+        '''
+        reduce iterable to single value with app in appspace from right side
+
+        @param iterable: iterable to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        return self._tail(reduce(
+            lambda x, y: self.app(label, branch).one()(y, x), 
+            reversed(iterable),
+            initial,
+        ))
 
     def setting(self, key, value=NoDefaultSpecified, default=None):
         '''
@@ -254,12 +326,8 @@ class Query(deque):
             self.settings.set(key, value)
             return self
         return self._tail(self.settings.get(key, default))
-    
-    def enable(self):
-        '''toggle if trait events are allowed'''
-        self._enable = not self._enable
-        return self._tail(self._enable)
-    
+
+
     def trigger(self, label):
         '''
         returns objects bound to an event
@@ -278,6 +346,7 @@ class Query(deque):
         '''
         self.manager.events.unbind(event, self.app(label, branch).one())
         return self
+
 
 # shortcut
 __ = Query

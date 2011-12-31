@@ -5,7 +5,6 @@ from __future__ import absolute_import
 
 from inspect import isclass
 from collections import deque
-from operator import attrgetter
 from itertools import chain, ifilter
 from functools import partial, update_wrapper
 
@@ -43,32 +42,6 @@ def on(*events):
     def wrapped(func):
         return On(func, *events)
     return wrapped
-
-
-class Base(ResetMixin):
-
-    '''can have appspaced components attached'''
-
-    _descriptor = component
-
-    def __new__(cls, *args, **kw):
-#        for _, v in cls.Q.members(On):
-#            v.__get__(None, cls)
-        new = super(Base, cls).__new__
-        # needed because Python 2.6 object.__new__ only accepts cls argument
-        if new == object.__new__:
-            return new(cls)
-        return new(cls, *args, **kw)
-
-    @either
-    def C(self):
-        '''local appspaced settings'''
-        return self.Q.localize().one()
-
-    @either
-    def Q(self):
-        '''query instance'''
-        return __(self)
 
 
 class component(object):
@@ -113,6 +86,32 @@ class delegated(component):
     '''delegated class functionality to component'''
 
     appifies(ADelegater)
+
+
+class Base(ResetMixin):
+
+    '''can have appspaced components attached'''
+
+    _descriptor = component
+
+    def __new__(cls, *args, **kw):
+#        for _, v in cls.Q.members(On):
+#            v.__get__(None, cls)
+        new = super(Base, cls).__new__
+        # needed because Python 2.6 object.__new__ only accepts cls argument
+        if new == object.__new__:
+            return new(cls)
+        return new(cls, *args, **kw)
+
+    @either
+    def C(self):
+        '''local appspaced settings'''
+        return self.Q.localize().one()
+
+    @either
+    def Q(self):
+        '''query instance'''
+        return __(self)
 
 
 class Methodology(object):
@@ -177,20 +176,18 @@ class Delegater(Host):
             return object.__getattribute__(self, key)
         except AttributeError:
             try:
-                return setter(self, key, self.D[key])
+                return setter(self, key, self.Q.pluck(key, self.D).first())
             except KeyError:
                 raise AttributeError('{0} not found'.format(key))
 
     @lazy_class
     def D(self):
+        '''delegates'''
         Q = self.Q
-        delegates = ifilter(
+        return deque(ifilter(
             lambda x: not isinstance(x, basestring),
-            chain.from_iterable(
-                Q.members(lambda x: Q.implements(ADelegate, x))
-            ),
-        )
-        return delegates
+            chain.from_iterable(Q.members(lambda x: Q.appifies(ADelegate, x))),
+        ))
 
 
 class Synched(Host):

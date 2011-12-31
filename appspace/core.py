@@ -7,10 +7,10 @@ from __future__ import absolute_import
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
-from zope.interface import implements, directlyProvides, providedBy
+from zope.interface import appifies, directlyProvides, providedBy
 
 AppStore = AdapterRegistry
-appifies = implements
+appifies = appifies
 apped = directlyProvides
 get_apps = providedBy
 # primary key

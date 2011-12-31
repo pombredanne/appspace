@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from inspect import getmro
 from operator import attrgetter, itemgetter
-from collections import Sequence, Mapping, deque
+from collections import Mapping, Sequence, deque
 from itertools import groupby, ifilter, imap, ifilterfalse
 
 from stuf import stuf
@@ -87,6 +87,18 @@ class Query(deque):
             return self._tail(self._appspace[branch][label])
         # return from primary appsapce
         return self._tail(self._appspace[label])
+
+    def appifies(self, key, item):
+        '''
+        check if item implements an app key
+
+        @param label: app key
+        @param item: item to check
+        '''
+        try:
+            return key.implementedBy(item[1])
+        except (AttributeError, TypeError):
+            return False
 
     def apply(self, label, branch=False, *args, **kw):
         '''
@@ -224,12 +236,6 @@ class Query(deque):
         app = self._get(label, branch)
         return self(groupby(data, app))
 
-    def implements(self, key, item):
-        try:
-            return key.implementedBy(item[1])
-        except (AttributeError, TypeError):
-            return False
-
     def invoke(self, data, label, branch=False, *args, **kw):
         '''
         run app in appsoace on each item in data plus arbitrary args and
@@ -335,12 +341,6 @@ class Query(deque):
             getit = attrgetter(key)
         return self(getit(i[1]) for i in itermembers(data))
 
-    def provides(self, key, item):
-        try:
-            return key.implementedBy(item[1])
-        except TypeError:
-            return False
-
     def reduce(self, data, label, branch=False, initial=None):
         '''
         reduce data to single value with app in appspace
@@ -411,6 +411,9 @@ class Query(deque):
         '''
         app = self._get(label, branch)
         return self(sorted(data, key=app))
+
+    def spawn(self, appspace, *args, **kw):
+        return getcls(self)(appspace, *args, **kw)
 
     def trigger(self, label):
         '''

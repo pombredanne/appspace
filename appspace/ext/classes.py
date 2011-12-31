@@ -7,29 +7,54 @@ from inspect import isclass
 from collections import deque
 from operator import attrgetter
 from itertools import chain, ifilter
+from functools import partial, update_wrapper
 
 from appspace.decorators import TraitType
-from stuf.utils import either, lazy, lazy_class, setter
-from appspace.core import AHosted, ADelegated, ADelegatable, appifies
+from stuf.utils import getter, selfname, either, lazy, lazy_class, setter
 
 from .query import __
 from .traits import Traits
-from .utils import component  # On
 from .containers import ResetMixin, Sync
+from appspace.core import ADelegater, ADelegate, appifies, AHost
+
+__all__ = [
+    'delegate', 'on', 'component', 'delegated', 'Delegate', 'Delegater',
+    'HasTraits', 'Host', 'Synched'
+]
 
 
-class Hosted(ResetMixin):
+def delegate(*metadata):
+    '''
+    marks method as delegate
+
+    @param *metadata: metadata to set on decorated method
+    '''
+    def wrapped(func):
+        return Delegatee(func, *metadata)
+    return wrapped
+
+
+def on(*events):
+    '''
+    marks method as being a lazy component
+
+    @param *events: list of properties
+    '''
+    def wrapped(func):
+        return On(func, *events)
+    return wrapped
+
+
+class Base(ResetMixin):
 
     '''can have appspaced components attached'''
-
-    appifies(AHosted, ADelegatable)
 
     _descriptor = component
 
     def __new__(cls, *args, **kw):
 #        for _, v in cls.Q.members(On):
 #            v.__get__(None, cls)
-        new = super(Hosted, cls).__new__
+        new = super(Base, cls).__new__
         # needed because Python 2.6 object.__new__ only accepts cls argument
         if new == object.__new__:
             return new(cls)
@@ -46,9 +71,106 @@ class Hosted(ResetMixin):
         return __(self)
 
 
-class Delegated(Hosted):
+class component(object):
 
-    '''attributes and methods can be delegated to appspaced components'''
+    '''attach appspaced component to class'''
+
+    def __init__(self, label, branch=''):
+        '''
+        @param label: component label
+        @param branch: component branch (default: '')
+        '''
+        self.label = label
+        self.branch = branch
+        self._appspace = False
+
+    def __get__(self, this, that):
+        return self.calculate(that)
+
+    def __set__(self, this, value):
+        raise AttributeError('attribute is read only')
+
+    def __delete__(self, this):
+        raise AttributeError('attribute is read only')
+
+    def __repr__(self, *args, **kwargs):
+        return '{label}@{branch}'.format(label=self.label, branch=self.branch)
+
+    def calculate(self, that):
+        return self.component(that)
+
+    def component(self, that):
+        '''
+        get component from manager
+
+        @param that: the instance's class
+        '''
+        return __(that).app(self.label, self.branch).one()
+
+
+class delegated(component):
+
+    '''delegated class functionality to component'''
+
+    appifies(ADelegater)
+
+
+class Methodology(object):
+
+    def __init__(self, method, *metadata):
+        self.method = method
+        self.metadata = metadata
+        update_wrapper(self, method)
+
+
+class Delegatee(Methodology):
+
+    '''method that can be delegated to another class'''
+
+    appifies(ADelegate)
+
+    def __get__(self, this, that):
+        method = self.method
+        if self.metadata:
+            kw = dict(
+                (k, getter(that, k)) for k in self.metadata if hasattr(this, k)
+            )
+            if kw:
+                method = update_wrapper(partial(method, **kw), method)
+        return setter(that, selfname(method), method)
+
+
+class On(Methodology):
+
+    '''attach events to method'''
+
+    def __get__(self, this, that):
+        ebind = __(that).manager.events.bind
+        method = self.method
+        for arg in self.events:
+            ebind(arg, method)
+        return setter(that, selfname(method), self.method)
+
+
+class Host(Base):
+
+    '''can have appspaced components attached'''
+
+    appifies(AHost)
+
+
+class Delegate(Base):
+
+    '''can have attributes and methods delegated to it'''
+
+    appifies(ADelegate)
+
+
+class Delegater(Host):
+
+    '''can delegate attributes and methods to appspaced components'''
+
+    appifies(ADelegater)
 
     def __getattr__(self, key):
         try:
@@ -60,21 +182,18 @@ class Delegated(Hosted):
                 raise AttributeError('{0} not found'.format(key))
 
     @lazy_class
-    def K(self):
-        '''identifier for class'''
-        return self.Q.key().one()
-
-    @lazy_class
     def D(self):
         Q = self.Q
         delegates = ifilter(
             lambda x: not isinstance(x, basestring),
-            chain(*Q.members(lambda x: Q.provides(ADelegated, x))),
+            chain.from_iterable(
+                Q.members(lambda x: Q.implements(ADelegate, x))
+            ),
         )
         return delegates
 
 
-class Synched(Hosted):
+class Synched(Host):
 
     '''delegate with synchronized class'''
 

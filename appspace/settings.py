@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace settings'''
+'''appspace conf'''
 
 from __future__ import absolute_import
 
@@ -10,24 +10,26 @@ from .utils import object_walk
 from .ext.containers import ResetMixin
 from .core import ASettings, ADefaultSettings, ARequiredSettings, appifies
 
+__all__ = ['Settings', 'RequiredSettings', 'DefaultSettings']
+
 
 class Settings(ResetMixin):
 
-    '''appspace settings'''
+    '''appspace conf'''
 
     appifies(ASettings)
 
     def __init__(self):
         super(Settings, self).__init__()
-        # default settings
+        # default conf
         self._default = stuf()
-        # delegates settings
+        # delegates conf
         self._delegates = defaultstuf(set)
-        # final settings
+        # final conf
         self._final = stuf()
-        # local settings
+        # local conf
         self._local = defaultstuf(set)
-        # required settings
+        # required conf
         self._required = stuf()
 
     def __repr__(self, *args, **kwargs):
@@ -35,20 +37,20 @@ class Settings(ResetMixin):
 
     @lazy
     def D(self):
-        '''get default settings separately'''
+        '''get default conf separately'''
         return self.defaults
 
     @lazy_set
     def defaults(self):
-        '''get default settings separately'''
+        '''get default conf separately'''
         return frozenstuf(self._default)
 
     @defaults.setter
     def defaults(self, value):
         '''
-        set default settings separately
+        set default conf separately
 
-        @param value: default settings
+        @param value: default conf
         '''
         if ADefaultSettings.implementedBy(value):
             self._default.clear()
@@ -66,21 +68,21 @@ class Settings(ResetMixin):
         return self._local
 
     @lazy
-    def R(self):
-        '''get required settings separately'''
+    def _read(self):
+        '''get required conf separately'''
         return self.required
 
     @lazy_set
     def required(self):
-        '''get required settings separately'''
+        '''get required conf separately'''
         return frozenstuf(self._required)
 
     @required.setter
     def required(self, value):
         '''
-        set required settings separately
+        set required conf separately
 
-        @param value: required settings
+        @param value: required conf
         '''
         if ARequiredSettings.implementedBy(value):
             self._required.clear()
@@ -89,13 +91,13 @@ class Settings(ResetMixin):
             raise TypeError('invalid RequiredSettings')
 
     @lazy
-    def F(self):
-        '''finalized settings'''
+    def _finder(self):
+        '''finalized conf'''
         return self.final
 
     @lazy
     def final(self):
-        '''finalized settings'''
+        '''finalized conf'''
         final = self._default.copy()
         final.update(self._final.copy())
         final.update(self._required.copy())
@@ -103,19 +105,19 @@ class Settings(ResetMixin):
 
     def get(self, key, default=None):
         '''
-        get value from settings
+        get value from conf
 
-        @param key: key in settings
+        @param key: key in conf
         @param default: default value (default: None)
         '''
         return deepget(self._final, key, default)
 
     def set(self, key, value):
         '''
-        set required settings separately
+        set required conf separately
 
-        @param key: key in settings
-        @param value: value to put in settings
+        @param key: key in conf
+        @param value: value to put in conf
         '''
         try:
             path, key = key.rsplit('.', 1)
@@ -140,40 +142,40 @@ class Settings(ResetMixin):
         self._final.update(*args, **kw)
         self.reset()
 
-    def update_default(self, settings):
+    def update_default(self, conf):
         '''
-        update default settings
+        update default conf
 
-        @param settings: new settings
+        @param conf: new conf
         '''
-        if ADefaultSettings.implementedBy(settings):
+        if ADefaultSettings.implementedBy(conf):
             self.reset()
-            self._default.update(object_walk(settings))
+            self._default.update(object_walk(conf))
         else:
             raise TypeError('invalid DefaultSettings')
 
-    def update_required(self, settings):
+    def update_required(self, conf):
         '''
-        update required settings
+        update required conf
 
-        @param settings: new settings
+        @param conf: new conf
         '''
-        if ARequiredSettings.implementedBy(settings):
+        if ARequiredSettings.implementedBy(conf):
             self.reset()
-            self._required.update(object_walk(settings))
+            self._required.update(object_walk(conf))
         else:
             raise TypeError('invalid RequiredSettings')
 
 
 class DefaultSettings(object):
 
-    '''default settings class'''
+    '''default conf class'''
 
     appifies(ADefaultSettings)
 
 
 class RequiredSettings(object):
 
-    '''required settings class'''
+    '''required conf class'''
 
     appifies(ARequiredSettings)

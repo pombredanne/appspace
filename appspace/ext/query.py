@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from inspect import getmro
 from operator import attrgetter, itemgetter
 from collections import Sequence, Mapping, deque
-from itertools import ifilter, imap, groupby, ifilterfalse
+from itertools import groupby, ifilter, imap, ifilterfalse
 
 from stuf import stuf
 from stuf.utils import clsname, get_or_default, setter
@@ -16,6 +16,8 @@ from appspace.decorators import NoDefaultSpecified
 from appspace.utils import getcls, itermembers, modname
 from appspace.error import ConfigurationError, NoAppError
 from appspace.builders import Appspace, Manager, Patterns, patterns
+
+__all__ = ['Query', '__']
 
 
 class Query(deque):
@@ -222,8 +224,11 @@ class Query(deque):
         app = self._get(label, branch)
         return self(groupby(data, app))
 
-    def implements(self, key):
-        return lambda x: key.implementedBy(x[0])
+    def implements(self, key, item):
+        try:
+            return key.implementedBy(item[1])
+        except (AttributeError, TypeError):
+            return False
 
     def invoke(self, data, label, branch=False, *args, **kw):
         '''
@@ -277,7 +282,7 @@ class Query(deque):
         '''
         app = self._get(label, branch)
         return self(imap(app, data))
-    
+
     def max(self, data, label, branch=False):
         '''
         find maximum by key function in appspace
@@ -285,7 +290,7 @@ class Query(deque):
         @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
-        '''        
+        '''
         app = self._get(label, branch)
         return self._tail(max(data, key=app))
 
@@ -296,7 +301,7 @@ class Query(deque):
         @param tester: test to filter by (default: False)
         '''
         return self(ifilter(test, itermembers(self._this)))
-    
+
     def min(self, data, label, branch=False):
         '''
         find minimum value by key function in appspace
@@ -304,7 +309,7 @@ class Query(deque):
         @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
-        '''        
+        '''
         app = self._get(label, branch)
         return self._tail(min(data, key=app))
 
@@ -316,7 +321,7 @@ class Query(deque):
             return []
 
     first = one
-    
+
     def pluck(self, key, data):
         '''
         get items from data by key
@@ -329,10 +334,10 @@ class Query(deque):
         else:
             getit = attrgetter(key)
         return self(getit(i[1]) for i in itermembers(data))
-    
+
     def provides(self, key, item):
         try:
-            return key.providedBy(item[0])
+            return key.implementedBy(item[1])
         except TypeError:
             return False
 
@@ -357,9 +362,9 @@ class Query(deque):
         # attach manager
         setter(model, 'A', self._appspace)
         # attach manager settings
-        setter(model, 'S', self._settings)
+        setter(model, 'S', self._settings.F)
         return self._tail(model)
-    
+
     def reject(self, data, label, branch=False):
         '''
         fetch items from data for which app in appspace is false
@@ -370,7 +375,7 @@ class Query(deque):
         '''
         app = self._get(label, branch)
         return self(ifilterfalse(app, data))
-    
+
     def right_reduce(self, data, label, branch=False, initial=None):
         '''
         reduce data to single value with app in appspace from right side
@@ -395,7 +400,7 @@ class Query(deque):
             self._settings.set(label, value)
             return self
         return self._tail(self._settings.get(label, default))
-    
+
     def sorted(self, data, label, branch=False):
         '''
         sort by key function in appspace
@@ -403,7 +408,7 @@ class Query(deque):
         @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
-        '''        
+        '''
         app = self._get(label, branch)
         return self(sorted(data, key=app))
 

@@ -364,7 +364,7 @@ class TestHasTraits(unittest.TestCase):
     def test_trait_names(self):
         class A(HasTraits):
             i = Int
-            F = Float
+            _finder = Float
         a = A()
         self.assertEquals(a.trait_names(), ['i', 'F'])
         self.assertEquals(A.class_trait_names(), ['i', 'F'])
@@ -378,25 +378,25 @@ class TestHasTraits(unittest.TestCase):
     def test_traits(self):
         class A(HasTraits):
             i = Int
-            F = Float
+            _finder = Float
         a = A()
-        self.assertEquals(a.traits(), dict(i=A.i, F=A.F))
-        self.assertEquals(A.class_traits(), dict(i=A.i, F=A.F))
+        self.assertEquals(a.traits(), dict(i=A.i, F=A._finder))
+        self.assertEquals(A.class_traits(), dict(i=A.i, F=A._finder))
 
     def test_traits_metadata(self):
         class A(HasTraits):
             i = Int(config_key='VALUE1', other_thing='VALUE2')
-            F = Float(config_key='VALUE3', other_thing='VALUE2')
+            _finder = Float(config_key='VALUE3', other_thing='VALUE2')
             j = Int(0)
         a = A()
-        self.assertEquals(a.traits(), dict(i=A.i, F=A.F, j=A.j))
+        self.assertEquals(a.traits(), dict(i=A.i, F=A._finder, j=A.j))
         traits = a.traits(config_key='VALUE1', other_thing='VALUE2')
         self.assertEquals(traits, dict(i=A.i))
 
         # This passes, but it shouldn't because I am replicating A bug in
         # traits.
         traits = a.traits(config_key=lambda v: True)
-        self.assertEquals(traits, dict(i=A.i, F=A.F, j=A.j))
+        self.assertEquals(traits, dict(i=A.i, F=A._finder, j=A.j))
 
     def test_init(self):
         class A(HasTraits):
@@ -702,8 +702,8 @@ class TestInteger(TestLong):
     obj = IntegerTrait()
     _default_value = 1
 
-    def coerce(self, N):
-        return int(N)
+    def coerce(self, n):
+        return int(n)
 
 
 class FloatTrait(HasTraits):

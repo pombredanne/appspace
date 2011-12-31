@@ -11,6 +11,8 @@ from importlib import import_module
 from stuf import stuf
 from stuf.utils import OrderedDict, clsname, getter
 
+__all__ = ['lazy_import', 'getcls', 'itermembers', 'lru_cache', 'modname']
+
 
 def add_article(name):
     '''
@@ -98,7 +100,7 @@ def lazy_import(path, attribute=None):
         try:
             dot = path.rindex('.')
             # import module
-            path = getter(import_module(path[:dot]), path[dot+1:])
+            path = getter(import_module(path[:dot]), path[dot + 1:])
         # If nothing but module name, import the module
         except AttributeError:
             path = import_module(path)

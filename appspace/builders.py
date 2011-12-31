@@ -12,6 +12,8 @@ from .error import AppLookupError, NoAppError
 from .core import AAppspace, ABranch, ANamespace
 from .managers import Manager, appifies, global_appspace
 
+__all__ = ['Branch', 'Namespace', 'Patterns', 'app', 'include', 'patterns']
+
 
 def include(module):
     '''
@@ -137,18 +139,18 @@ class Patterns(object):
 
     @classmethod
     def settings(cls, appconf, required, defaults):
-        settings = appconf.manager.settings
-        # attach settings
-        settings.required = required
-        settings.defaults = defaults
+        conf = appconf.manager.settings
+        # attach conf
+        conf.required = required
+        conf.defaults = defaults
 
     @classmethod
     def build(cls, required=None, defaults=None):
         '''
         build manager configuration from class
 
-        @param required: required settings
-        @param defaults: default settings
+        @param required: required conf
+        @param defaults: default conf
         '''
         this = list()
         tappend = this.append

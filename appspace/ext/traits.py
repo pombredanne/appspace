@@ -11,6 +11,8 @@ from appspace.error import TraitError
 from appspace.decorators import TraitType
 from appspace.utils import get_members, getcls
 
+__all__ = ['Traits']
+
 
 class _SimpleTest:
 

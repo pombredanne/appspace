@@ -12,6 +12,8 @@ from stuf.utils import setter
 from .error import TraitError
 from .core import AEventManager, AEvent, appifies, get_apps, apped
 
+__all__ = ['Event', 'EventManager']
+
 
 class Event(object):
 

@@ -8,6 +8,8 @@ from stuf.utils import deleter, lazy, lazybase
 
 from appspace.utils import getcls
 
+__all__ = ['NamedQueue', 'ResetMixin', 'Sync', 'namedqueue']
+
 
 class NamedQueue(object):
 

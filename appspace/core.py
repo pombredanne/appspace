@@ -48,7 +48,7 @@ class AManager(AppspaceKey):
     '''appspace key'''
 
     events = Attribute('event handler')
-    settings = Attribute('settings for an appspace')
+    conf = Attribute('conf for an appspace')
 
     def __contains__(label):
         '''membership check'''
@@ -154,32 +154,32 @@ class ANamespace(AppspaceKey):
 
 class ASettings(AppspaceKey):
 
-    '''settings key'''
+    '''conf key'''
 
 
 class ADefaultSettings(ASettings):
 
-    '''default settings key'''
+    '''default conf key'''
 
 
-class AHosted(AppspaceKey):
+class AHost(AppspaceKey):
 
     '''hosted app key'''
     
     
-class ADelegated(AppspaceKey):
+class ADelegater(AppspaceKey):
     
     '''delegated app key'''
     
 
-class ADelegatable(AppspaceKey):
+class ADelegate(AppspaceKey):
     
     '''delegatable app key'''
 
 
 class ARequiredSettings(ASettings):
 
-    '''required settings key'''
+    '''required conf key'''
 
 
 class ATraitType(AppspaceKey):

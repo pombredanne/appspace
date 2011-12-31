@@ -7,7 +7,7 @@ from operator import contains
 
 from stuf.utils import lazy
 
-from .settings import Settings
+from .conf import Settings
 from .utils import lazy_import
 from .events import EventManager
 from .error import AppLookupError
@@ -19,7 +19,7 @@ class Manager(AppStore):
 
     '''state manager'''
 
-    __slots__ = ['_label', '_settings', 'settings', 'events']
+    __slots__ = ['_label', '_settings', 'conf', 'events']
 
     appifies(AManager)
 
@@ -48,8 +48,8 @@ class Manager(AppStore):
         return self.easy_lookup(AEventManager, self._settings)(self)
 
     @lazy
-    def settings(self):
-        '''get appspace settings'''
+    def conf(self):
+        '''get appspace conf'''
         return self.easy_lookup(ASettings, self._settings)()
 
     def easy_lookup(self, key, label):
@@ -143,5 +143,5 @@ class LazyApp(object):
 
 # global appspace
 global_appspace = Manager()
-# global settings
+# global conf
 global_settings = global_appspace.settings

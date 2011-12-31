@@ -7,22 +7,21 @@ from inspect import isclass
 
 from stuf.utils import either, setter, lazy, lazy_class
 
-from appspace.utils import getcls
+from appspace.utils import getcls, appified
 from appspace.decorators import TraitType
-from appspace.core import AHosted, appifies
+from appspace.core import AHosted, appifies, ADelegated, ADelegatable
 
 from .query import __
 from .traits import Traits
-from .utils import component, delegated
+from .utils import component, On
 from .containers import ResetMixin, Sync
-from appspace.ext.utils import Delegatable, On
 
 
 class Hosted(ResetMixin):
 
     '''can have appspaced components attached'''
 
-    appifies(AHosted)
+    appifies(AHosted, ADelegatable)
 
     _descriptor = component
 
@@ -50,16 +49,16 @@ class Delegated(Hosted):
 
     '''attributes and methods can be delegated to appspaced components'''
 
-    _descriptor = delegated
+    appifies(ADelegated)
 
     def __getattr__(self, key):
         try:
             return object.__getattribute__(self, key)
         except AttributeError:
-            for k, v in self.Q.members(delegated):
-                for k, v in __(v).members(Delegatable):
-                    if k == key:
-                        return setter(getcls(self), key, v)
+            for _, v in self.Q.members(lambda x: appified(x[1], ADelegated)):
+                for j, u in __(v).members(lambda x: appified(x[1], ADelegatable)):
+                    if j == key:
+                        return setter(getcls(self), key, u)
             else:
                 raise AttributeError('{0} not found'.format(key))
 

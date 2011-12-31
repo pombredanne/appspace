@@ -300,7 +300,7 @@ class Query(deque):
 
     def members(self, tester=False):
         '''
-        fetch object members by their class
+        fetch object members by class
 
         @param tester: test to filter by (default: False)
         '''

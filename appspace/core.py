@@ -164,7 +164,17 @@ class ADefaultSettings(ASettings):
 
 class AHosted(AppspaceKey):
 
+    '''hosted app key'''
+    
+    
+class ADelegated(AppspaceKey):
+    
     '''delegated app key'''
+    
+
+class ADelegatable(AppspaceKey):
+    
+    '''delegatable app key'''
 
 
 class ARequiredSettings(ASettings):

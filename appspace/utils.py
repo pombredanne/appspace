@@ -20,6 +20,14 @@ def add_article(name):
     return 'an ' + name if name[:1].lower() in 'aeiou' else 'a ' + name
 
 
+def appified(this, that):
+    try:
+        test = any([that.providedBy(this), that.implementedBy(this)])
+        return test
+    except:
+        return False
+
+
 def class_of(this):
     '''
     get string containing class name of object with the correct indefinite

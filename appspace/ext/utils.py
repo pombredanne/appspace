@@ -8,6 +8,7 @@ from functools import partial, update_wrapper
 from stuf.utils import getter, selfname, setter
 
 from .query import __
+from appspace.core import ADelegatable, ADelegated, appifies
 
 
 def delegatable(*metadata):
@@ -84,6 +85,8 @@ class delegated(component):
 
     '''delegated component'''
 
+    appifies(ADelegated)
+
 
 class LazyComponent(component):
 
@@ -106,6 +109,8 @@ class LazyComponent(component):
 class Delegatable(LazyComponent):
 
     '''manager component that can be delegated to another class'''
+
+    appifies(ADelegatable)
 
     def __init__(self, method, branch='', *metadata):
         super(Delegatable, self).__init__(method, branch)

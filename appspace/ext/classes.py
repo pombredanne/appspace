@@ -15,6 +15,7 @@ from .query import __
 from .traits import Traits
 from .containers import ResetMixin, Sync
 from appspace.core import ADelegater, ADelegate, appifies, AHost
+from appspace.utils import getcls
 
 __all__ = [
     'delegate', 'on', 'component', 'delegated', 'Delegate', 'Delegater',
@@ -136,7 +137,7 @@ class Delegatee(Methodology):
             )
             if kw:
                 method = update_wrapper(partial(method, **kw), method)
-        return setter(that, selfname(method), method)
+        return method
 
 
 class On(Methodology):
@@ -148,7 +149,7 @@ class On(Methodology):
         method = self.method
         for arg in self.events:
             ebind(arg, method)
-        return setter(that, selfname(method), self.method)
+        return setter(that, selfname(method), method)
 
 
 class Host(Base):
@@ -176,7 +177,8 @@ class Delegater(Host):
             return object.__getattribute__(self, key)
         except AttributeError:
             try:
-                return setter(self, key, self.Q.pluck(key, self.D).first())
+                value = self.Q.pluck(key, self.D).first()
+                return setter(getcls(self), key, value)
             except KeyError:
                 raise AttributeError('{0} not found'.format(key))
 

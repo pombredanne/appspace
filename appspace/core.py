@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #@PydevCodeAnalysisIgnore
+# pylint: disable-msg=f0401,e0213,e0211
 '''appspace core'''
 
 from __future__ import absolute_import
@@ -7,10 +8,10 @@ from __future__ import absolute_import
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
-from zope.interface import appifies, directlyProvides, providedBy
+from zope.interface import implements, directlyProvides, providedBy
 
 AppStore = AdapterRegistry
-appifies = appifies
+appifies = implements
 apped = directlyProvides
 get_apps = providedBy
 # primary key

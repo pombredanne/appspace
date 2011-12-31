@@ -4,8 +4,7 @@
 from __future__ import absolute_import
 
 from inspect import getmro
-from operator import attrgetter, itemgetter
-from collections import Mapping, Sequence, deque
+from collections import deque
 from itertools import groupby, ifilter, imap, ifilterfalse
 
 from stuf import stuf
@@ -13,8 +12,8 @@ from stuf.utils import clsname, get_or_default, setter
 
 from appspace.core import AAppspace
 from appspace.decorators import NoDefaultSpecified
-from appspace.utils import getcls, itermembers, modname
 from appspace.error import ConfigurationError, NoAppError
+from appspace.utils import getcls, itermembers, modname, pluck
 from appspace.builders import Appspace, Manager, Patterns, patterns
 
 __all__ = ['Query', '__']
@@ -40,11 +39,11 @@ class Query(deque):
                 self._this = kw.pop('this', None)
             else:
                 raise NoAppError('appspace not found')
-        # manager
+        # appspace manager
         self._manager = self._appspace.manager
-        # settings
+        # appspace settings
         self._settings = self._appspace.manager.settings
-        # events
+        # appspace event manager
         self._events = self._appspace.manager.events
         # enable for traits
         self._enable = True
@@ -164,6 +163,9 @@ class Query(deque):
         @param queue: queued arguments
         '''
         return self._tail(self._events.burst(label, queue))
+
+    def defaults(self):
+        return self._tail(self._settings.defaults)
 
     def each(self, data, label, branch=False):
         '''
@@ -335,11 +337,9 @@ class Query(deque):
         @param key: key to search for
         @param data: data to process
         '''
-        if isinstance(object, (Mapping, Sequence)):
-            getit = itemgetter(key)
-        else:
-            getit = attrgetter(key)
-        return self(getit(i[1]) for i in itermembers(data))
+        return self(ifilter(
+            lambda x: x is not None, (pluck(key, i) for i in data),
+        ))
 
     def reduce(self, data, label, branch=False, initial=None):
         '''
@@ -362,7 +362,7 @@ class Query(deque):
         # attach manager
         setter(model, 'A', self._appspace)
         # attach manager settings
-        setter(model, 'S', self._settings.F)
+        setter(model, 'S', self._settings.final)
         return self._tail(model)
 
     def reject(self, data, label, branch=False):
@@ -375,6 +375,9 @@ class Query(deque):
         '''
         app = self._get(label, branch)
         return self(ifilterfalse(app, data))
+
+    def required(self):
+        return self._tail(self._settings.required)
 
     def right_reduce(self, data, label, branch=False, initial=None):
         '''

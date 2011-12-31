@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable-msg=e1001,e1002
 '''appspace management'''
 
 from __future__ import absolute_import
@@ -7,8 +8,8 @@ from operator import contains
 
 from stuf.utils import lazy
 
-from .conf import Settings
 from .utils import lazy_import
+from .settings import Settings
 from .events import EventManager
 from .error import AppLookupError
 from .core import (
@@ -48,7 +49,7 @@ class Manager(AppStore):
         return self.easy_lookup(AEventManager, self._settings)(self)
 
     @lazy
-    def conf(self):
+    def settings(self):
         '''get appspace conf'''
         return self.easy_lookup(ASettings, self._settings)()
 

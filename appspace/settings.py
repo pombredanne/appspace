@@ -6,8 +6,7 @@ from __future__ import absolute_import
 from stuf import defaultstuf, frozenstuf, stuf
 from stuf.utils import deepget, lazy, lazy_set, setter
 
-from .utils import object_walk
-from .ext.containers import ResetMixin
+from .utils import ResetMixin, object_walk
 from .core import ASettings, ADefaultSettings, ARequiredSettings, appifies
 
 __all__ = ['Settings', 'RequiredSettings', 'DefaultSettings']
@@ -34,11 +33,6 @@ class Settings(ResetMixin):
 
     def __repr__(self, *args, **kwargs):
         return str(self._final)
-
-    @lazy
-    def D(self):
-        '''get default conf separately'''
-        return self.defaults
 
     @lazy_set
     def defaults(self):
@@ -67,11 +61,6 @@ class Settings(ResetMixin):
     def local(self):
         return self._local
 
-    @lazy
-    def _read(self):
-        '''get required conf separately'''
-        return self.required
-
     @lazy_set
     def required(self):
         '''get required conf separately'''
@@ -89,11 +78,6 @@ class Settings(ResetMixin):
             self.update_required(value)
         else:
             raise TypeError('invalid RequiredSettings')
-
-    @lazy
-    def _finder(self):
-        '''finalized conf'''
-        return self.final
 
     @lazy
     def final(self):

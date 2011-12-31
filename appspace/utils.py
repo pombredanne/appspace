@@ -20,14 +20,6 @@ def add_article(name):
     return 'an ' + name if name[:1].lower() in 'aeiou' else 'a ' + name
 
 
-def appified(this, that):
-    try:
-        test = any([that.providedBy(this), that.implementedBy(this)])
-        return test
-    except:
-        return False
-
-
 def class_of(this):
     '''
     get string containing class name of object with the correct indefinite
@@ -86,9 +78,9 @@ def itermembers(that):
     @param predicate: filter for members (default: None)
     '''
     for key in dir(that):
-        if not key.startswith('__'):
+        if not any([key.startswith('__'), key.isupper()]):
             try:
-                value = getter(that, key)
+                value = getattr(that, key)
             except AttributeError:
                 pass
             else:
@@ -106,7 +98,7 @@ def lazy_import(path, attribute=None):
         try:
             dot = path.rindex('.')
             # import module
-            path = getter(import_module(path[:dot]), path[dot + 1:])
+            path = getter(import_module(path[:dot]), path[dot+1:])
         # If nothing but module name, import the module
         except AttributeError:
             path = import_module(path)

@@ -4,16 +4,17 @@
 from __future__ import absolute_import
 
 from inspect import isclass
+from collections import deque
+from operator import attrgetter
+from itertools import chain, ifilter
 
-from stuf.utils import either, setter, lazy, lazy_class
-
-from appspace.utils import getcls, appified
 from appspace.decorators import TraitType
-from appspace.core import AHosted, appifies, ADelegated, ADelegatable
+from stuf.utils import either, lazy, lazy_class, setter
+from appspace.core import AHosted, ADelegated, ADelegatable, appifies
 
 from .query import __
 from .traits import Traits
-from .utils import component, On
+from .utils import component  # On
 from .containers import ResetMixin, Sync
 
 
@@ -26,8 +27,8 @@ class Hosted(ResetMixin):
     _descriptor = component
 
     def __new__(cls, *args, **kw):
-        for _, v in cls.Q.members(On):
-            v.__get__(None, cls)
+#        for _, v in cls.Q.members(On):
+#            v.__get__(None, cls)
         new = super(Hosted, cls).__new__
         # needed because Python 2.6 object.__new__ only accepts cls argument
         if new == object.__new__:
@@ -49,22 +50,28 @@ class Delegated(Hosted):
 
     '''attributes and methods can be delegated to appspaced components'''
 
-    appifies(ADelegated)
-
     def __getattr__(self, key):
         try:
             return object.__getattribute__(self, key)
         except AttributeError:
-            for _, v in self.Q.members(lambda x: appified(x[1], ADelegated)):
-                for j, u in __(v).members(lambda x: appified(x[1], ADelegatable)):
-                    if j == key:
-                        return setter(getcls(self), key, u)
-            else:
+            try:
+                return setter(self, key, self.D[key])
+            except KeyError:
                 raise AttributeError('{0} not found'.format(key))
 
     @lazy_class
     def K(self):
+        '''identifier for class'''
         return self.Q.key().one()
+
+    @lazy_class
+    def D(self):
+        Q = self.Q
+        delegates = ifilter(
+            lambda x: not isinstance(x, basestring),
+            chain(*Q.members(lambda x: Q.provides(ADelegated, x))),
+        )
+        return delegates
 
 
 class Synched(Hosted):

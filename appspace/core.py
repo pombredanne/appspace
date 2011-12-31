@@ -6,15 +6,15 @@ from __future__ import absolute_import
 
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
+from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implements, directlyProvides, providedBy
-from zope.interface.interface import InterfaceClass as Appspacer, Attribute
 
 AppStore = AdapterRegistry
 appifies = implements
 apped = directlyProvides
 get_apps = providedBy
 # primary key
-AppspaceKey = Appspacer('AppspaceKey')
+AppspaceKey = InterfaceClass('AppspaceKey')
 # app lookup exception
 AppLookupError = ComponentLookupError
 

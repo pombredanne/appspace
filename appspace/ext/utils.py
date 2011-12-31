@@ -22,7 +22,7 @@ def delegatable(*metadata):
     return wrapped
 
 
-def lazy_component(branch=''):
+def lazy_component(branch=False):
     '''
     marks method as a lazily loaded component
 

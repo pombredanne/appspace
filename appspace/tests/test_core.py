@@ -279,7 +279,8 @@ class TestBuildFunctions(unittest.TestCase):
 
     @staticmethod
     def _make_multiple():
-        from appspace import patterns, __
+        from appspace.ext import __
+        from appspace import patterns
         plug = patterns('helpers', ('get', 'math.sqrt'))
         __(plug).branch('branch').app('fabulous', 'branch', 'math.fabs')
         return plug

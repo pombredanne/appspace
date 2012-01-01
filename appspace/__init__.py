@@ -14,10 +14,3 @@ __all__ = [
 
 from .settings import RequiredSettings, DefaultSettings
 from .builders import Branch, Patterns, Namespace, include, app, patterns
-
-# extended appspace
-from .ext.query import __, Query
-from .ext.classes import (
-    Delegater, Delegate, HasTraits, Synched, Host, instance, delegate, on,
-    delegated,
-)

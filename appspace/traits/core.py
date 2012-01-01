@@ -3,28 +3,12 @@
 
 from __future__ import absolute_import
 
-from appspace.error import TraitError
-from appspace.core import appifies, AppspaceKey
+from appspace.core import appifies
 from appspace.utils import class_of, repr_type
+from appspace.ext.core import Undefined, NoDefaultSpecified
 
-
-class ATraitType(AppspaceKey):
-
-    '''trait property key'''
-
-
-class NoDefaultSpecified(object):
-
-    def generate(self, klass):
-        pass
-
-
-class Undefined(object):
-    pass
-
-
-Undefined = Undefined()
-NoDefaultSpecified = NoDefaultSpecified()
+from .keys import ATraitType
+from .error import TraitError
 
 
 class TraitType(object):

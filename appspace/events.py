@@ -9,7 +9,6 @@ from inspect import ismethod, getargspec
 
 from stuf.utils import setter
 
-from .error import TraitError
 from .core import AEventManager, AEvent, appifies, get_apps, apped
 
 __all__ = ['Event', 'EventManager']
@@ -186,11 +185,11 @@ class EventManager(object):
                     elif nargs + offset == 3:
                         C(label, old_value, new_value)
                     else:
-                        raise TraitError(
+                        raise TypeError(
                             'trait changed callback must have 0-3 arguments'
                         )
                 else:
-                    raise TraitError('trait changed callback must be callable')
+                    raise TypeError('trait changed callback must be callable')
 
     def unbind(self, label, app):
         '''

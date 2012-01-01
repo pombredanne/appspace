@@ -12,3 +12,19 @@ class ADelegater(AppspaceKey):
 class ADelegate(AppspaceKey):
 
     '''delegatable app key'''
+
+
+class NoDefaultSpecified(object):
+
+    def generate(self, klass):
+        pass
+
+
+NoDefaultSpecified = NoDefaultSpecified()
+
+
+class Undefined(object):
+    pass
+
+
+Undefined = Undefined()

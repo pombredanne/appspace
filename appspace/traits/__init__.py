@@ -57,7 +57,7 @@ __all__ = [
     'Any', 'Bool', 'Bytes', 'CBool', 'CBytes', 'CUnicode', 'CaselessStrEnum',
     'CheckedUnicode', 'Container', 'Dict', 'DottedObjectName', 'Instance',
     'Int', 'List', 'NoDefaultSpecified', 'ObjectName', 'This', 'TraitType',
-    'Tuple', 'Type', 'Undefined', 'Unicode',
+    'Tuple', 'Type', 'Undefined', 'Unicode', 'HasTraits',
 ]
 
 from .classes import HasTraits

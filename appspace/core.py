@@ -56,25 +56,25 @@ class AManager(AppspaceKey):
 
     def get(label):
         '''
-        fetch component
+        fetch instance
 
-        @param label: component or branch label
+        @param label: instance or branch label
         '''
 
     def load(label, module_path):
         '''
-        load branch or component from appspace
+        load branch or instance from appspace
 
-        @param label: component or branch label
+        @param label: instance or branch label
         @param module_path: Python module path
         '''
 
-    def set(label, component):
+    def set(label, instance):
         '''
         register branches or components in appspace
 
         @param label: appspace label
-        @param component: component to add to appspace
+        @param instance: instance to add to appspace
         '''
 
 
@@ -95,12 +95,12 @@ class AEvent(AppspaceKey):
 
 class AEventManager(AppspaceKey):
 
-    def bind(label, component):
+    def bind(label, instance):
         '''
-        bind component to event
+        bind instance to event
 
         @param label: event label
-        @param component: object to bind to event
+        @param instance: object to bind to event
         '''
 
     def burst(label, queue):

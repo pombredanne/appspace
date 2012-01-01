@@ -20,7 +20,7 @@ from .containers import ResetMixin, Sync
 
 
 __all__ = [
-    'delegate', 'on', 'component', 'delegated', 'Delegate', 'Delegater',
+    'delegate', 'on', 'instance', 'delegated', 'Delegate', 'Delegater',
     'HasTraits', 'Host', 'Synched'
 ]
 
@@ -38,7 +38,7 @@ def delegate(*metadata):
 
 def on(*events):
     '''
-    marks method as being a lazy component
+    marks method as being a lazy instance
 
     @param *events: list of properties
     '''
@@ -47,21 +47,25 @@ def on(*events):
     return wrapped
 
 
-class component(object):
+class instance(object):
 
-    '''attach appspaced component to class'''
+    '''attach appspaced instance to class'''
 
-    def __init__(self, label, branch=''):
+    def __init__(self, label, branch='', *args, **kw):
         '''
-        @param label: component label
-        @param branch: component branch (default: '')
+        @param label: instance label
+        @param branch: instance branch (default: '')
         '''
         self.label = label
         self.branch = branch
+        self.kw = kw
+        self.args = args
         self._appspace = False
 
     def __get__(self, this, that):
-        return __(that).app(self.label, self.branch).one()
+        return __(that).app(self.label, self.branch).one()(
+            *self.args, **self.kw
+        )
 
     def __set__(self, this, value):
         raise AttributeError('attribute is read only')
@@ -73,30 +77,23 @@ class component(object):
         return '{label}@{branch}'.format(label=self.label, branch=self.branch)
 
 
-class delegated(component):
-
-    '''delegated class functionality to component'''
-
-    def __init__(self, label, branch='', *args):
-        super(delegated, self).__init__(label, branch)
-        self.args = args
+class factory(instance):
 
     def __get__(self, this, that):
-        '''
-        get component from manager
+        kw, args = self.args, self.kw
+        return __(that).factory(self.label, self.branch, *args, **kw).one()
 
-        @param that: the instance's class
-        '''
-        app = super(delegated, self).__get__(this, that)
-        __(that).key(ADelegater, app)
-        return app(*[getter(this, arg) for arg in self.args])
+
+class delegated(factory):
+
+    '''delegated class functionality to instance'''
 
 
 class Base(ResetMixin):
 
     '''can have appspaced components attached'''
 
-    _descriptor = component
+    _descriptor = instance
 
     def __new__(cls, *args, **kw):
 #        for _, v in cls.Q.members(On):
@@ -189,7 +186,9 @@ class Delegater(Host):
         Q = self.Q
         return deque(ifilter(
             lambda x: not isinstance(x, basestring),
-            chain.from_iterable(Q.members(lambda x: Q.provides(ADelegate, x))),
+            chain.from_iterable(
+                Q.members(lambda x: Q.provides(ADelegate, x))
+            ),
         ))
 
 

@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from inspect import getmro
+from inspect import getmro, isclass
 from collections import deque
 from itertools import groupby, ifilter, imap, ifilterfalse
 
@@ -196,6 +196,17 @@ class Query(deque):
     def enable(self):
         '''toggle if trait events are allowed'''
         return self._tail(setter(self, '_enable', not self._enable))
+
+    def factory(self, label, branch=False, *args, **kw):
+        '''
+        build application from factory in appspace, args, and keywords
+
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        app = self._appspace[branch][label]
+        if isclass(app):
+            return self._tail(app(*args, **kw))
 
     def find(self, data, label, branch=False):
         '''

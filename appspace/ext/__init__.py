@@ -2,13 +2,9 @@
 '''appspace extensions'''
 
 __all__ = [
-    '__', 'Delegater', 'Delegate', 'HasTraits', 'Synched', 'Host', 'instance',
-    'delegate', 'delegated', 'on'
+    '__', 'Delegater', 'Delegate', 'HasTraits', 'Synched', 'delegate', 'on',
 ]
 
 # extended appspace
-from .query import __, Query
-from .classes import (
-    Delegater, Delegate, HasTraits, Synched, Host, instance, delegate, on,
-    delegated, factory,
-)
+from .query import __
+from .classes import Delegater, Delegate, HasTraits, Synched, delegate, on

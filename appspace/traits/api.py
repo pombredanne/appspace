@@ -7,9 +7,10 @@ from types import FunctionType
 
 from stuf.utils import clsname, either, getter, deleter, setter
 
-from appspace.error import TraitError
-from appspace.decorators import TraitType
 from appspace.utils import get_members, getcls
+
+from .core import TraitType
+from .error import TraitError
 
 __all__ = ['Traits']
 

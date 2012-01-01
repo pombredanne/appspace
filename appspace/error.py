@@ -7,7 +7,6 @@ from .core import AppLookupError
 
 __all__ = [
     'AppLookupError', 'ConfigurationError', 'NoAppspaceError', 'NoAppError',
-    'TraitError',
 ]
 
 AppLookupError = AppLookupError
@@ -26,8 +25,3 @@ class NoAppspaceError(Exception):
 class NoAppError(Exception):
 
     '''mo application found exception'''
-
-
-class TraitError(Exception):
-
-    '''trait error'''

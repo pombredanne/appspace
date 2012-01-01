@@ -3,14 +3,14 @@
 
 from __future__ import absolute_import
 
-from inspect import getmro, isclass
+from inspect import getmro
 from collections import deque
 from itertools import groupby, ifilter, imap, ifilterfalse
 
 from stuf import stuf
 from stuf.utils import clsname, get_or_default, setter
 
-from appspace.core import AAppspace, apped
+from appspace.core import AAppspace, apped, ADelegate
 from appspace.decorators import NoDefaultSpecified
 from appspace.error import ConfigurationError, NoAppError
 from appspace.utils import getcls, itermembers, modname, pluck
@@ -168,6 +168,24 @@ class Query(deque):
         '''default settings by their lonesome'''
         return self._tail(self._settings.defaults)
 
+    def delegate(self, key, label, branch=False, *args, **kw):
+        '''
+        build application from factory in appspace and bind to class
+
+        @param key: key name of attribute to bind to class with
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        app = self._get(label, branch)
+        instance = app(*args, **kw)
+        delegates = get_or_default(self._this, 'D', stuf())
+        this = stuf(ifilter(
+            lambda x: self.provides(ADelegate, x), itermembers(instance),
+        ))
+        delegates.update(this)
+        setattr(self._this, key, instance)
+        return self
+
     def each(self, data, label, branch=False):
         '''
         run app in appsoace on each item in data
@@ -197,16 +215,17 @@ class Query(deque):
         '''toggle if trait events are allowed'''
         return self._tail(setter(self, '_enable', not self._enable))
 
-    def factory(self, label, branch=False, *args, **kw):
+    def factory(self, key, label, branch=False, *args, **kw):
         '''
-        build application from factory in appspace, args, and keywords
+        build application from factory in appspace and bind to class
 
+        @param key: key name of attribute to bind to class with
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._appspace[branch][label]
-        if isclass(app):
-            return self._tail(app(*args, **kw))
+        return self._tail(
+            setter(self._this, key, self._get(label, branch)(*args, **kw))
+        )
 
     def find(self, data, label, branch=False):
         '''
@@ -255,6 +274,16 @@ class Query(deque):
         return self._tail(
             '_'.join([modname(self._this), clsname(self._this)]).lower()
         )
+
+    def instance(self, key, label, branch=False):
+        '''
+        bind instance to class
+
+        @param key: key name of attribute to bind to class with
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        return self._tail(setter(self._this, key, self._get(label, branch)))
 
     def invoke(self, data, label, branch=False, *args, **kw):
         '''

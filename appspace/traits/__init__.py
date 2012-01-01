@@ -60,6 +60,7 @@ __all__ = [
     'Tuple', 'Type', 'Undefined', 'Unicode',
 ]
 
+from .classes import HasTraits
 from .core import TraitType, Undefined, NoDefaultSpecified
 from .containers import (
     List, Container, CaselessStrEnum, Enum, Any, Tuple, Dict

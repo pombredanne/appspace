@@ -4,8 +4,13 @@
 from __future__ import absolute_import
 
 from appspace.error import TraitError
-from appspace.core import ATraitType, appifies
+from appspace.core import appifies, AppspaceKey
 from appspace.utils import class_of, repr_type
+
+
+class ATraitType(AppspaceKey):
+
+    '''trait property key'''
 
 
 class NoDefaultSpecified(object):

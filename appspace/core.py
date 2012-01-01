@@ -163,26 +163,6 @@ class ADefaultSettings(ASettings):
     '''default conf key'''
 
 
-class AHost(AppspaceKey):
-
-    '''hosted app key'''
-    
-    
-class ADelegater(AppspaceKey):
-    
-    '''delegated app key'''
-    
-
-class ADelegate(AppspaceKey):
-    
-    '''delegatable app key'''
-
-
 class ARequiredSettings(ASettings):
 
     '''required conf key'''
-
-
-class ATraitType(AppspaceKey):
-
-    '''trait property key'''

@@ -81,7 +81,7 @@ def itermembers(that):
     @param this: an object
     @param predicate: filter for members (default: None)
     '''
-    for key in vars(that):
+    for key in dir(that):
         if not any([key.startswith('__'), key.isupper()]):
             try:
                 value = getattr(that, key)
@@ -168,10 +168,15 @@ def object_walk(this):
 
 
 def pluck(key, data):
-    if isinstance(data, (Mapping, Sequence)):
-        getit = itemgetter(key)
-    else:
-        getit = attrgetter(key)
+    '''
+    return item from data structure by key
+
+    @param key: label of item
+    @param data: data containing item
+    '''
+    getit = itemgetter(key) if isinstance(
+        data, (Mapping, Sequence)
+    ) else attrgetter(key)
     try:
         return getit(data)
     except (AttributeError, IndexError):

@@ -8,14 +8,16 @@ from collections import deque
 from itertools import chain, ifilter
 from functools import partial, update_wrapper
 
-from appspace.decorators import TraitType
 from stuf.utils import getter, selfname, either, lazy, lazy_class, setter
+
+from appspace.utils import getcls
+from appspace.decorators import TraitType
+from appspace.core import ADelegater, ADelegate, AHost, appifies
 
 from .query import __
 from .traits import Traits
 from .containers import ResetMixin, Sync
-from appspace.core import ADelegater, ADelegate, appifies, AHost
-from appspace.utils import getcls
+
 
 __all__ = [
     'delegate', 'on', 'component', 'delegated', 'Delegate', 'Delegater',
@@ -59,7 +61,7 @@ class component(object):
         self._appspace = False
 
     def __get__(self, this, that):
-        return self.calculate(that)
+        return __(that).app(self.label, self.branch).one()
 
     def __set__(self, this, value):
         raise AttributeError('attribute is read only')
@@ -70,23 +72,24 @@ class component(object):
     def __repr__(self, *args, **kwargs):
         return '{label}@{branch}'.format(label=self.label, branch=self.branch)
 
-    def calculate(self, that):
-        return self.component(that)
-
-    def component(self, that):
-        '''
-        get component from manager
-
-        @param that: the instance's class
-        '''
-        return __(that).app(self.label, self.branch).one()
-
 
 class delegated(component):
 
     '''delegated class functionality to component'''
 
-    appifies(ADelegater)
+    def __init__(self, label, branch='', *args):
+        super(delegated, self).__init__(label, branch)
+        self.args = args
+
+    def __get__(self, this, that):
+        '''
+        get component from manager
+
+        @param that: the instance's class
+        '''
+        app = super(delegated, self).__get__(this, that)
+        __(that).key(ADelegater, app)
+        return app(*[getter(this, arg) for arg in self.args])
 
 
 class Base(ResetMixin):
@@ -126,8 +129,6 @@ class Methodology(object):
 class Delegatee(Methodology):
 
     '''method that can be delegated to another class'''
-
-    appifies(ADelegate)
 
     def __get__(self, this, that):
         method = self.method
@@ -188,7 +189,7 @@ class Delegater(Host):
         Q = self.Q
         return deque(ifilter(
             lambda x: not isinstance(x, basestring),
-            chain.from_iterable(Q.members(lambda x: Q.appifies(ADelegate, x))),
+            chain.from_iterable(Q.members(lambda x: Q.provides(ADelegate, x))),
         ))
 
 

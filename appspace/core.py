@@ -11,8 +11,8 @@ from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implements, directlyProvides, providedBy
 
 AppStore = AdapterRegistry
-appifies = implements
 apped = directlyProvides
+appifies = implements
 get_apps = providedBy
 # primary key
 AppspaceKey = InterfaceClass('AppspaceKey')

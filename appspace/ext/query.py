@@ -10,7 +10,7 @@ from itertools import groupby, ifilter, imap, ifilterfalse
 from stuf import stuf
 from stuf.utils import clsname, get_or_default, setter
 
-from appspace.core import AAppspace
+from appspace.core import AAppspace, apped
 from appspace.decorators import NoDefaultSpecified
 from appspace.error import ConfigurationError, NoAppError
 from appspace.utils import getcls, itermembers, modname, pluck
@@ -165,6 +165,7 @@ class Query(deque):
         return self._tail(self._events.burst(label, queue))
 
     def defaults(self):
+        '''default settings by their lonesome'''
         return self._tail(self._settings.defaults)
 
     def each(self, data, label, branch=False):
@@ -238,6 +239,12 @@ class Query(deque):
         app = self._get(label, branch)
         return self(groupby(data, app))
 
+    def id(self):
+        '''identifier for component'''
+        return self._tail(
+            '_'.join([modname(self._this), clsname(self._this)]).lower()
+        )
+
     def invoke(self, data, label, branch=False, *args, **kw):
         '''
         run app in appsoace on each item in data plus arbitrary args and
@@ -250,11 +257,9 @@ class Query(deque):
         app = self._get(label, branch)
         return self(app(i, *args, **kw) for i in data)
 
-    def key(self):
-        '''identifier for component'''
-        return self._tail(
-            '_'.join([modname(self._this), clsname(self._this)]).lower()
-        )
+    def key(self, key, app):
+        apped(app, key)
+        return self
 
     def last(self):
         '''fetch one last result'''
@@ -274,7 +279,7 @@ class Query(deque):
         meta = get_or_default(this, 'Meta')
         if meta:
             metas.append(meta)
-        local_settings = self._settings.local[self.key().one()] = stuf(dict(
+        local_settings = self._settings.local[self.id().one()] = stuf(dict(
             (k, v) for k, v in self.members(m, lambda x: not x.startswith('_'))
         ) for m in metas)
         local_settings.update(kw)
@@ -330,6 +335,18 @@ class Query(deque):
 
     first = one
 
+    def provides(self, key, item):
+        '''
+        check if item provides an app key
+
+        @param label: app key
+        @param item: item to check
+        '''
+        try:
+            return key.providedBy(item[1])
+        except (AttributeError, TypeError):
+            return False
+
     def pluck(self, key, data):
         '''
         get items from data by key
@@ -377,6 +394,7 @@ class Query(deque):
         return self(ifilterfalse(app, data))
 
     def required(self):
+        '''required settings by their lonesome'''
         return self._tail(self._settings.required)
 
     def right_reduce(self, data, label, branch=False, initial=None):

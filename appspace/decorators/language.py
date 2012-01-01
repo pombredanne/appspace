@@ -9,9 +9,10 @@ from types import InstanceType, ClassType
 
 from stuf.utils import clsname, selfname
 
-from .core import TraitType
 from appspace.error import TraitError
 from appspace.utils import lazy_import, class_of
+
+from .core import TraitType
 
 
 ClassTypes = (ClassType, type)

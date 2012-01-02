@@ -3,16 +3,19 @@
 
 from __future__ import absolute_import
 
+from itertools import ifilter
 from functools import partial, update_wrapper
 
-from stuf.utils import getter, selfname, setter
+from stuf.core import stuf
+from stuf.utils import getter, selfname, setter, get_or_default
 
 from appspace.core import appifies
+from appspace.utils import itermembers, keyed
 
 from .query import __
 from .core import AServer
 
-__all__ = ['service', 'on']
+__all__ = ['service', 'on', 'forward', 'local']
 
 
 def service(*metadata):
@@ -63,6 +66,14 @@ class local(object):
 class forward(local):
 
     appifies(AServer)
+
+    def __get__(self, this, that):
+        delegates = get_or_default(that, 'D', stuf())
+        this = stuf(ifilter(
+            lambda x: keyed(AServer, x), itermembers(this),
+        ))
+        delegates.update(this)
+        return local.__get__(self, this, that)
 
 
 class Methodology(object):

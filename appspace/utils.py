@@ -5,33 +5,13 @@ from __future__ import absolute_import
 
 from inspect import isclass
 from functools import wraps
-from types import InstanceType
+
 from importlib import import_module
-from collections import Mapping, Sequence
-from operator import attrgetter, itemgetter
 
 from stuf import stuf
-from stuf.utils import OrderedDict, clsname, getter, lazybase, deleter
+from stuf.utils import OrderedDict, getter, lazybase, deleter
 
-__all__ = ['lazy_import', 'getcls', 'itermembers', 'lru_cache', 'modname']
-
-
-def add_article(name):
-    '''
-    get string containing the correct indefinite article ('a' or 'an') prefixed
-    to the specified string
-    '''
-    return 'an ' + name if name[:1].lower() in 'aeiou' else 'a ' + name
-
-
-def class_of(this):
-    '''
-    get string containing class name of object with the correct indefinite
-    article ('a' or 'an') preceding it
-    '''
-    if isinstance(this, basestring):
-        return add_article(this)
-    return add_article(clsname(this))
+__all__ = ['ResetMixin', 'lazy_import', 'getcls', 'lru_cache', 'object_walk']
 
 
 def getcls(this):
@@ -41,54 +21,6 @@ def getcls(this):
     @param this: an instance
     '''
     return getter(this, '__class__')
-
-
-def get_members(this, predicate=None):
-    '''
-    version of inspect.getmembers that handles missing attributes.
-
-    This is useful when there are descriptor based attributes that for some
-    reason raise AttributeError even though they exist.
-    '''
-    results = []
-    rappend = results.append
-    for key in dir(this):
-        try:
-            value = getter(this, key)
-        except AttributeError:
-            pass
-        else:
-            if not predicate or predicate(value):
-                rappend((key, value))
-    results.sort()
-    return results
-
-
-def isrelated(this, that):
-    '''
-    tell if this object is an instance or subclass of that object
-
-    @param this: an instance
-    @param that: a class
-    '''
-    return issubclass(this, that) if isclass(this) else isinstance(this, that)
-
-
-def itermembers(that):
-    '''
-    iterate object members
-
-    @param this: an object
-    @param predicate: filter for members (default: None)
-    '''
-    for key in dir(that):
-        if not any([key.startswith('__'), key.isupper()]):
-            try:
-                value = getattr(that, key)
-            except AttributeError:
-                pass
-            else:
-                yield key, value
 
 
 def lazy_import(path, attribute=None):
@@ -142,15 +74,6 @@ def lru_cache(max_length=100):
     return wrapped
 
 
-def modname(this):
-    '''
-    module name
-
-    @param this: an object
-    '''
-    return getter(this, '__module__')
-
-
 def object_walk(this):
     '''
     transform classes within an object to a dictionary
@@ -165,36 +88,6 @@ def object_walk(this):
             else:
                 this_stuf[k] = v
     return this_stuf
-
-
-def pluck(key, data):
-    '''
-    return item from data structure by key
-
-    @param key: label of item
-    @param data: data containing item
-    '''
-    getit = itemgetter(key) if isinstance(
-        data, (Mapping, Sequence)
-    ) else attrgetter(key)
-    try:
-        return getit(data)
-    except (AttributeError, IndexError):
-        return None
-
-
-def repr_type(this):
-    '''
-    return a string representation of a value and its type for readable error
-    messages
-
-    @param this: value to probe
-    '''
-    the_type = type(this)
-    if the_type is InstanceType:
-        # Old-style class.
-        the_type = getcls(this)
-    return '%r %r' % (this, the_type)
 
 
 class ResetMixin(object):

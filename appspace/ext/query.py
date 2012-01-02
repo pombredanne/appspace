@@ -88,18 +88,6 @@ class Query(deque):
         # return from primary appsapce
         return self._tail(self._appspace[label])
 
-    def appifies(self, key, item):
-        '''
-        check if item implements an app key
-
-        @param label: app key
-        @param item: item to check
-        '''
-        try:
-            return key.implementedBy(item[1])
-        except (AttributeError, TypeError):
-            return False
-
     def apply(self, label, branch=False, *args, **kw):
         '''
         call application from appspace
@@ -169,24 +157,6 @@ class Query(deque):
         '''default settings by their lonesome'''
         return self._tail(self._settings.defaults)
 
-    def service(self, key, label, branch=False, *args, **kw):
-        '''
-        build application from factory in appspace and bind to class
-
-        @param key: key name of attribute to bind to class with
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        app = self._get(label, branch)
-        instance = app(*args, **kw)
-        delegates = get_or_default(self._this, 'D', stuf())
-        this = stuf(ifilter(
-            lambda x: self.provides(AServer, x), itermembers(instance),
-        ))
-        delegates.update(this)
-        setattr(self._this, key, instance)
-        return self
-
     def each(self, data, label, branch=False):
         '''
         run app in appsoace on each item in data
@@ -215,18 +185,6 @@ class Query(deque):
     def enable(self):
         '''toggle if trait events are allowed'''
         return self._tail(setter(self, '_enable', not self._enable))
-
-    def factory(self, key, label, branch=False, *args, **kw):
-        '''
-        build application from factory in appspace and bind to class
-
-        @param key: key name of attribute to bind to class with
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        return self._tail(
-            setter(self._this, key, self._get(label, branch)(*args, **kw))
-        )
 
     def find(self, data, label, branch=False):
         '''
@@ -275,16 +233,6 @@ class Query(deque):
         return self._tail(
             '_'.join([modname(self._this), clsname(self._this)]).lower()
         )
-
-    def instance(self, key, label, branch=False):
-        '''
-        bind instance to class
-
-        @param key: key name of attribute to bind to class with
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        return self._tail(setter(self._this, key, self._get(label, branch)))
 
     def invoke(self, data, label, branch=False, *args, **kw):
         '''
@@ -375,19 +323,7 @@ class Query(deque):
             return []
 
     first = one
-
-    def provides(self, key, item):
-        '''
-        check if item provides an app key
-
-        @param label: app key
-        @param item: item to check
-        '''
-        try:
-            return key.providedBy(item[1])
-        except (AttributeError, TypeError):
-            return False
-
+    
     def pluck(self, key, data):
         '''
         get items from data by key

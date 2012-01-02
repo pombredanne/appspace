@@ -10,12 +10,13 @@ from itertools import groupby, ifilter, imap, ifilterfalse
 from stuf import stuf
 from stuf.utils import clsname, get_or_default, setter
 
+from appspace.utils import getcls
 from appspace.core import AAppspace, apped
 from appspace.error import ConfigurationError, NoAppError
-from appspace.utils import getcls, itermembers, modname, pluck
 from appspace.builders import Appspace, Manager, Patterns, patterns
 
-from .core import AServer, NoDefaultSpecified
+from .core import NoDefaultSpecified
+from .utils import itermembers, modname, pluck
 
 __all__ = ['Query', '__']
 

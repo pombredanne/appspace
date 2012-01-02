@@ -10,10 +10,11 @@ from stuf.core import stuf
 from stuf.utils import getter, selfname, setter, get_or_default
 
 from appspace.core import appifies
-from appspace.utils import itermembers, keyed
+
 
 from .query import __
 from .core import AServer
+from .utils import itermembers, keyed
 
 __all__ = ['service', 'on', 'forward', 'local']
 

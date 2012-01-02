@@ -27,7 +27,7 @@ class Query(deque):
 
     def __init__(self, appspace, *args, **kw):
         '''
-        @param appspace: appspace or appspace host object
+        @param appspace: appspace or appspace server
         '''
         try:
             # fetch appspace from class
@@ -232,7 +232,7 @@ class Query(deque):
     def id(self):
         '''identifier for component'''
         return self._tail(
-            '_'.join([modname(self._this), clsname(self._this)]).lower()
+            '_'.join([modname(self._this), clsname(self._this)]).lower(),
         )
 
     def invoke(self, data, label, branch=False, *args, **kw):
@@ -248,8 +248,14 @@ class Query(deque):
         return self(app(i, *args, **kw) for i in data)
 
     def key(self, key, app):
+        '''
+        key an app
+
+        @param key: key to key app
+        @param app: app to key
+        '''
         apped(app, key)
-        return self
+        return self._tail(app)
 
     def last(self):
         '''fetch one last result'''
@@ -375,7 +381,7 @@ class Query(deque):
         '''required settings by their lonesome'''
         return self._tail(self._settings.required)
 
-    def right_reduce(self, data, label, branch=False, initial=None):
+    def right(self, data, label, branch=False, initial=None):
         '''
         reduce data to single value with app in appspace from right side
 
@@ -410,9 +416,6 @@ class Query(deque):
         '''
         app = self._get(label, branch)
         return self(sorted(data, key=app))
-
-    def spawn(self, appspace, *args, **kw):
-        return getcls(self)(appspace, *args, **kw)
 
     def trigger(self, label):
         '''

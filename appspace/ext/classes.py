@@ -12,8 +12,7 @@ from .query import __
 from .core import AClient, AServer
 from .containers import ResetMixin, Sync
 
-
-__all__ = ['Server', 'Client', 'Synched']
+__all__ = ['Client', 'Server', 'Synched']
 
 
 class Base(ResetMixin):
@@ -35,13 +34,6 @@ class Base(ResetMixin):
         return __(self).localize().one()
 
 
-class Server(Base):
-
-    '''hosts services for other instances'''
-
-    appifies(AServer)
-
-
 class Client(Base):
 
     '''consumes services from other instances'''
@@ -58,6 +50,13 @@ class Client(Base):
                 )
             except KeyError:
                 raise AttributeError('{0} not found'.format(key))
+
+
+class Server(Base):
+
+    '''hosts services for other instances'''
+
+    appifies(AServer)
 
 
 class Synched(Server):

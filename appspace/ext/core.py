@@ -4,12 +4,12 @@
 from appspace.core import AppspaceKey
 
 
-class ADelegater(AppspaceKey):
+class AClient(AppspaceKey):
 
     '''delegated app key'''
 
 
-class ADelegate(AppspaceKey):
+class AServer(AppspaceKey):
 
     '''delegatable app key'''
 

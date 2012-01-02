@@ -15,7 +15,7 @@ from appspace.error import ConfigurationError, NoAppError
 from appspace.utils import getcls, itermembers, modname, pluck
 from appspace.builders import Appspace, Manager, Patterns, patterns
 
-from .core import ADelegate, NoDefaultSpecified
+from .core import AServer, NoDefaultSpecified
 
 __all__ = ['Query', '__']
 
@@ -169,7 +169,7 @@ class Query(deque):
         '''default settings by their lonesome'''
         return self._tail(self._settings.defaults)
 
-    def delegate(self, key, label, branch=False, *args, **kw):
+    def service(self, key, label, branch=False, *args, **kw):
         '''
         build application from factory in appspace and bind to class
 
@@ -181,7 +181,7 @@ class Query(deque):
         instance = app(*args, **kw)
         delegates = get_or_default(self._this, 'D', stuf())
         this = stuf(ifilter(
-            lambda x: self.provides(ADelegate, x), itermembers(instance),
+            lambda x: self.provides(AServer, x), itermembers(instance),
         ))
         delegates.update(this)
         setattr(self._this, key, instance)

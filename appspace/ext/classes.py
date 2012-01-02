@@ -3,41 +3,17 @@
 
 from __future__ import absolute_import
 
-from functools import partial, update_wrapper
-
-from stuf.utils import getter, selfname, either, setter
+from stuf.utils import either, setter
 
 from appspace.utils import getcls
 from appspace.core import appifies
 
 from .query import __
-from .core import ADelegater, ADelegate
+from .core import AClient, AServer
 from .containers import ResetMixin, Sync
 
 
-__all__ = ['delegate', 'on', 'Delegate', 'Delegater', 'Synched']
-
-
-def delegate(*metadata):
-    '''
-    marks method as delegate
-
-    @param *metadata: metadata to set on decorated method
-    '''
-    def wrapped(func):
-        return Delegatee(func, *metadata)
-    return wrapped
-
-
-def on(*events):
-    '''
-    marks method as being a lazy instance
-
-    @param *events: list of properties
-    '''
-    def wrapped(func):
-        return On(func, *events)
-    return wrapped
+__all__ = ['Server', 'Client', 'Synched']
 
 
 class Base(ResetMixin):
@@ -55,57 +31,22 @@ class Base(ResetMixin):
 
     @either
     def C(self):
-        '''local appspaced settings'''
+        '''local settings'''
         return __(self).localize().one()
 
 
-class Methodology(object):
+class Server(Base):
 
-    def __init__(self, method, *metadata):
-        self.method = method
-        self.metadata = metadata
-        update_wrapper(self, method)
+    '''hosts services for other instances'''
 
-
-class Delegatee(Methodology):
-
-    '''method that can be delegated to another class'''
-
-    def __get__(self, this, that):
-        method = self.method
-        if self.metadata:
-            kw = dict(
-                (k, getter(that, k)) for k in self.metadata if hasattr(this, k)
-            )
-            if kw:
-                method = update_wrapper(partial(method, **kw), method)
-        return method
+    appifies(AServer)
 
 
-class On(Methodology):
+class Client(Base):
 
-    '''attach events to method'''
+    '''consumes services from other instances'''
 
-    def __get__(self, this, that):
-        ebind = __(that).manager.events.bind
-        method = self.method
-        for arg in self.events:
-            ebind(arg, method)
-        return setter(that, selfname(method), method)
-
-
-class Delegate(Base):
-
-    '''can have attributes and methods delegated to it'''
-
-    appifies(ADelegate)
-
-
-class Delegater(Base):
-
-    '''can delegate attributes and methods to appspaced components'''
-
-    appifies(ADelegater)
+    appifies(AClient)
 
     def __getattr__(self, key):
         try:
@@ -119,7 +60,7 @@ class Delegater(Base):
                 raise AttributeError('{0} not found'.format(key))
 
 
-class Synched(Delegate):
+class Synched(Server):
 
     '''delegate with synchronized class'''
 

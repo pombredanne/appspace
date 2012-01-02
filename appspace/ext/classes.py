@@ -3,14 +3,15 @@
 
 from __future__ import absolute_import
 
+from collections import deque
+
 from stuf.utils import either, setter, lazy
 
-from appspace.utils import getcls
-from appspace.core import appifies
+#from appspace.utils import getcls
+from appspace.keys import appifies
 
 from .query import __
-from .utils import keyed
-from .core import AClient, AServer
+from .keys import AClient, AServer
 from .containers import ResetMixin, Sync
 
 __all__ = ['Client', 'Server', 'Synched']
@@ -20,14 +21,9 @@ class Base(ResetMixin):
 
     '''can have appspaced components attached'''
 
-    def __new__(cls, *args, **kw):
-#        for _, v in cls.Q.members(On):
+    # def __init__(self):
+        #        for _, v in cls.Q.members(On):
 #            v.__get__(None, cls)
-        new = super(Base, cls).__new__
-        # needed because Python 2.6 object.__new__ only accepts cls argument
-        if new == object.__new__:
-            return new(cls)
-        return new(cls, *args, **kw)
 
     @either
     def C(self):
@@ -46,15 +42,20 @@ class Client(Base):
             return object.__getattribute__(self, key)
         except AttributeError:
             try:
-                return setter(
-                    getcls(self), key, __(self).pluck(key, self.D).first()
-                )
+                value = __(self).pluck(key, self.F).one()
+                return setter(self, key, value)
             except KeyError:
                 raise AttributeError('{0} not found'.format(key))
 
     @lazy
-    def D(self):
-        return __(self).members(lambda x: keyed(AServer, x))
+    def F(self):
+        return deque(__(self).forwards())
+
+
+class Host(Base):
+
+    '''hosts'''
+
 
 class Server(Base):
 

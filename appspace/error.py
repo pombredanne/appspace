@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from .core import AppLookupError
+from .keys import AppLookupError
 
 __all__ = [
     'AppLookupError', 'ConfigurationError', 'NoAppspaceError', 'NoAppError',

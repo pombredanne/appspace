@@ -9,7 +9,7 @@ from stuf.utils import lazy, selfname
 
 from .utils import lru_cache
 from .error import AppLookupError, NoAppError
-from .core import AAppspace, ABranch, ANamespace
+from .keys import AAppspace, ABranch, ANamespace
 from .managers import Manager, appifies, global_appspace
 
 __all__ = ['Branch', 'Namespace', 'Patterns', 'app', 'include', 'patterns']

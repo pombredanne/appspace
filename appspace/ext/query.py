@@ -5,18 +5,18 @@ from __future__ import absolute_import
 
 from inspect import getmro
 from collections import deque
-from itertools import groupby, ifilter, imap, ifilterfalse
+from itertools import chain, groupby, ifilter, imap, ifilterfalse
 
 from stuf import stuf
 from stuf.utils import clsname, get_or_default, setter
 
 from appspace.utils import getcls
-from appspace.core import AAppspace, apped
+from appspace.keys import AAppspace, apped
 from appspace.error import ConfigurationError, NoAppError
 from appspace.builders import Appspace, Manager, Patterns, patterns
 
-from .core import NoDefaultSpecified
-from .utils import itermembers, modname, pluck
+from .keys import AServer, NoDefaultSpecified
+from .utils import itermembers, keyed, modname, pluck
 
 __all__ = ['Query', '__']
 
@@ -217,6 +217,13 @@ class Query(deque):
         @param event: event label
         '''
         return self._tail(self._events.fire(event, *args, **kw))
+
+    def forwards(self):
+        '''group forwarded apps together'''
+        return self(
+            ifilter(lambda x: not isinstance(x, str),
+            chain(*self.members(lambda x: keyed(AServer, x)))),
+        )
 
     def groupby(self, data, label, branch=False):
         '''

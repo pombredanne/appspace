@@ -12,7 +12,7 @@ from .utils import lazy_import
 from .settings import Settings
 from .events import EventManager
 from .error import AppLookupError
-from .core import (
+from .keys import (
     AppStore, AApp, AManager, AEventManager, ALazyApp, ASettings, appifies)
 
 

@@ -33,10 +33,10 @@ def keyed(key, this):
     @param this: object to check
     '''
     try:
-        return key.providedBy(this)
+        return key.providedBy(this[1])
     except (AttributeError, TypeError):
         try:
-            return key.implementedBy(this)
+            return key.implementedBy(this[1])
         except (AttributeError, TypeError):
             return False
 

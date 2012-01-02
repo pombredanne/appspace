@@ -9,7 +9,7 @@ from inspect import ismethod, getargspec
 
 from stuf.utils import setter
 
-from .core import AEventManager, AEvent, appifies, get_apps, apped
+from .keys import AEventManager, AEvent, appifies, get_apps, apped
 
 __all__ = ['Event', 'EventManager']
 

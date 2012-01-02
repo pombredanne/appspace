@@ -18,12 +18,12 @@ try:
 except ImportError:
     import unittest
 
-from appspace.error import TraitError
-from appspace.ext.classes import HasTraits, MetaHasTraits
-from appspace.decorators import (
+from appspace.traits.error import TraitError
+from appspace.traits.classes import MetaHasTraits
+from appspace.traits import (
    TraitType, List, Any, CBytes, Int, Long, Integer, Float, Complex, Bytes,
    Unicode, Undefined, Type, This,  Instance, Tuple, ObjectName,
-   DottedObjectName)
+   DottedObjectName, HasTraits)
 
 
 # Helper classes for testing

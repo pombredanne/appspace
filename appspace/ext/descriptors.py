@@ -7,10 +7,10 @@ from functools import partial, update_wrapper
 
 from stuf.utils import getter, selfname, setter
 
-from appspace.core import appifies
+from appspace.keys import appifies
 
 from .query import __
-from .core import AServer
+from .keys import AServer
 
 __all__ = ['service', 'on', 'forward', 'local']
 

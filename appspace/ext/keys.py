@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''appspace extension keys'''
 
-from appspace.core import AppspaceKey
+from appspace.keys import AppspaceKey
 
 
 class AClient(AppspaceKey):

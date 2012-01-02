@@ -3,8 +3,8 @@
 
 from __future__ import absolute_import
 
-from appspace.core import appifies
-from appspace.ext.core import NoDefaultSpecified, Undefined
+from appspace.keys import appifies
+from appspace.ext.keys import NoDefaultSpecified, Undefined
 
 from .keys import ATraitType
 from .error import TraitError

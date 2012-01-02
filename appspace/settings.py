@@ -7,7 +7,7 @@ from stuf import defaultstuf, frozenstuf, stuf
 from stuf.utils import deepget, lazy, lazy_set, setter
 
 from .utils import ResetMixin, object_walk
-from .core import ASettings, ADefaultSettings, ARequiredSettings, appifies
+from .keys import ASettings, ADefaultSettings, ARequiredSettings, appifies
 
 __all__ = ['Settings', 'RequiredSettings', 'DefaultSettings']
 

@@ -3,12 +3,13 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import either, setter
+from stuf.utils import either, setter, lazy
 
 from appspace.utils import getcls
 from appspace.core import appifies
 
 from .query import __
+from .utils import keyed
 from .core import AClient, AServer
 from .containers import ResetMixin, Sync
 
@@ -51,6 +52,9 @@ class Client(Base):
             except KeyError:
                 raise AttributeError('{0} not found'.format(key))
 
+    @lazy
+    def D(self):
+        return __(self).members(lambda x: keyed(AServer, x))
 
 class Server(Base):
 

@@ -4,11 +4,11 @@
 from __future__ import absolute_import
 
 from appspace.core import appifies
-from appspace.utils import class_of, repr_type
-from appspace.ext.core import Undefined, NoDefaultSpecified
+from appspace.ext.core import NoDefaultSpecified, Undefined
 
 from .keys import ATraitType
 from .error import TraitError
+from .utils import class_of, repr_type
 
 
 class TraitType(object):

@@ -8,11 +8,10 @@ from types import ListType, TupleType
 
 from stuf.utils import clsname
 
-from appspace.utils import repr_type, class_of
-
 from .core import TraitType
 from .error import TraitError
 from .language import Instance
+from .utils import repr_type, class_of
 
 SequenceTypes = (ListType, TupleType, set, frozenset)
 

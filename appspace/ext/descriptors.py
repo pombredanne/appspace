@@ -3,31 +3,16 @@
 
 from __future__ import absolute_import
 
-from itertools import ifilter
 from functools import partial, update_wrapper
 
-from stuf.core import stuf
-from stuf.utils import getter, selfname, setter, get_or_default
+from stuf.utils import getter, selfname, setter
 
 from appspace.core import appifies
 
-
 from .query import __
 from .core import AServer
-from .utils import itermembers, keyed
 
 __all__ = ['service', 'on', 'forward', 'local']
-
-
-def service(*metadata):
-    '''
-    marks method as service
-
-    @param *metadata: metadata to set on decorated method
-    '''
-    def wrapped(func):
-        return Service(func, *metadata)
-    return wrapped
 
 
 def on(*events):
@@ -41,6 +26,17 @@ def on(*events):
     return wrapped
 
 
+def service(*metadata):
+    '''
+    marks method as service
+
+    @param *metadata: metadata to set on decorated method
+    '''
+    def wrapped(func):
+        return Service(func, *metadata)
+    return wrapped
+
+
 class local(object):
 
     def __init__(self, label, branch=False, *args, **kw):
@@ -51,7 +47,7 @@ class local(object):
 
     def __get__(self, this, that):
         attrs = [getter(this, attr) for attr in self.attrs]
-        new_app = __(that).app(self.label, self.branch)
+        new_app = __(that).app(self.label, self.branch).one()
         try:
             return new_app(*attrs, **self.extra)
         except TypeError:
@@ -68,14 +64,6 @@ class forward(local):
 
     appifies(AServer)
 
-    def __get__(self, this, that):
-        delegates = get_or_default(that, 'D', stuf())
-        this = stuf(ifilter(
-            lambda x: keyed(AServer, x), itermembers(this),
-        ))
-        delegates.update(this)
-        return local.__get__(self, this, that)
-
 
 class Methodology(object):
 
@@ -83,6 +71,18 @@ class Methodology(object):
         self.method = method
         self.metadata = metadata
         update_wrapper(self, method)
+
+
+class On(Methodology):
+
+    '''attach events to method'''
+
+    def __get__(self, this, that):
+        ebind = __(that).manager.events.bind
+        method = self.method
+        for arg in self.events:
+            ebind(arg, method)
+        return setter(that, selfname(method), method)
 
 
 class Service(Methodology):
@@ -98,15 +98,3 @@ class Service(Methodology):
             if kw:
                 method = update_wrapper(partial(method, **kw), method)
         return method
-
-
-class On(Methodology):
-
-    '''attach events to method'''
-
-    def __get__(self, this, that):
-        ebind = __(that).manager.events.bind
-        method = self.method
-        for arg in self.events:
-            ebind(arg, method)
-        return setter(that, selfname(method), method)

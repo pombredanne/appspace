@@ -3,9 +3,9 @@
 
 from __future__ import absolute_import
 
-from collections import deque
+#from collections import deque
 
-from stuf.utils import either, setter, lazy
+from stuf.utils import either  # setter  # lazy
 
 #from appspace.utils import getcls
 from appspace.keys import appifies
@@ -25,11 +25,6 @@ class Base(ResetMixin):
         #        for _, v in cls.Q.members(On):
 #            v.__get__(None, cls)
 
-    @either
-    def C(self):
-        '''local settings'''
-        return __(self).localize().one()
-
 
 class Client(Base):
 
@@ -37,19 +32,17 @@ class Client(Base):
 
     appifies(AClient)
 
-    def __getattr__(self, key):
-        try:
-            return object.__getattribute__(self, key)
-        except AttributeError:
-            try:
-                value = __(self).pluck(key, self.F).one()
-                return setter(self, key, value)
-            except KeyError:
-                raise AttributeError('{0} not found'.format(key))
-
-    @lazy
-    def F(self):
-        return deque(__(self).forwards())
+#    def __getattr__(self, key):
+#        try:
+#            return object.__getattribute__(self, key)
+#        except AttributeError:
+#            try:
+#                query = __(self)
+#                query.forwards()
+#                value = query.pluck(key, self.F).one()
+#                return setter(self, key, value)
+#            except KeyError:
+#                raise AttributeError('{0} not found'.format(key))
 
 
 class Host(Base):
@@ -77,3 +70,8 @@ class Synched(Server):
 
     def __unicode__(self):
         return unicode(dict(i for i in self._sync.public.iteritems()))
+
+    @either
+    def C(self):
+        '''local settings'''
+        return __(self).localize().one()

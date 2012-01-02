@@ -11,7 +11,7 @@ from importlib import import_module
 from stuf import stuf
 from stuf.utils import OrderedDict, getter, lazybase, deleter
 
-__all__ = ['ResetMixin', 'lazy_import', 'getcls', 'lru_cache', 'object_walk']
+__all__ = ['ResetMixin', 'getcls', 'lazy_import', 'lru_cache', 'object_walk']
 
 
 def getcls(this):

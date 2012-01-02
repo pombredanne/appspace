@@ -9,7 +9,7 @@ from stuf.utils import deepget, lazy, lazy_set, setter
 from .utils import ResetMixin, object_walk
 from .keys import ASettings, ADefaultSettings, ARequiredSettings, appifies
 
-__all__ = ['Settings', 'RequiredSettings', 'DefaultSettings']
+__all__ = ['DefaultSettings', 'RequiredSettings', 'Settings']
 
 
 class Settings(ResetMixin):

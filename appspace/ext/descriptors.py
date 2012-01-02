@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from functools import partial, update_wrapper
+from functools import partial
 
 from stuf.utils import getter, selfname, setter
 
@@ -70,7 +70,6 @@ class Methodology(object):
     def __init__(self, method, *metadata):
         self.method = method
         self.metadata = metadata
-        update_wrapper(self, method)
 
 
 class On(Methodology):
@@ -91,10 +90,10 @@ class Service(Methodology):
 
     def __get__(self, this, that):
         method = self.method
+        kw = {}
         if self.metadata:
-            kw = dict(
+            kw.update(dict(
                 (k, getter(that, k)) for k in self.metadata if hasattr(this, k)
-            )
-            if kw:
-                method = update_wrapper(partial(method, **kw), method)
-        return method
+            ))
+        new_method = partial(method, this, **kw)
+        return new_method

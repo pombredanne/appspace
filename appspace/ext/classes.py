@@ -15,7 +15,7 @@ from .keys import AClient, AServer
 from .containers import ResetMixin, Sync
 
 
-__all__ = ['Client', 'Server', 'Synched']
+__all__ = ['Client', 'Host', 'Server', 'Synched']
 
 
 class Base(ResetMixin):
@@ -32,6 +32,8 @@ class Client(Base):
     '''consumes services from other instances'''
 
     appifies(AClient)
+
+    _services = set()
 
 #    def __getattr__(self, key):
 #        try:
@@ -56,8 +58,6 @@ class Server(Base):
     '''hosts services for other instances'''
 
     appifies(AServer)
-
-    _services = set()
 
 
 class Synched(Server):

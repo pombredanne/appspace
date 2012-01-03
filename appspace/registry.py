@@ -25,10 +25,10 @@ class Registry(AppStore):
         self._key = key
 
     def __contains__(self, label):
-        return contains(self.names((), self._key), label)
+        return contains(self.names([self._key], self._key), label)
 
     def __repr__(self):
-        return str(self.lookupAll((), self._key))
+        return str(self.lookupAll([self._key], self._key))
 
     def easy_lookup(self, key, label):
         '''

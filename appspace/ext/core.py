@@ -91,7 +91,7 @@ class Query(deque):
             return self
         # create new branch
         except NoAppError:
-            new_appspace = self._manage_class()
+            new_appspace = self._manage_class
             self._manager.set(label, new_appspace)
             self.appendleft(new_appspace)
             return self

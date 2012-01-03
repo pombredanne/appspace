@@ -7,7 +7,6 @@ from functools import partial, wraps
 from stuf.utils import getter
 
 from appspace.keys import appifies
-from appspace.error import NoAppError
 from appspace.builders import Appspace
 from appspace.registry import Registry
 
@@ -57,17 +56,18 @@ class ServiceQuery(Query):
         '''
         Query.__init__(self, appspace, *args, **kw)
         self._appmanager = self._manager
+        self._appappspace = self._appspace
         # get existing service manager...
-        try:
-            self._manager = self._appmanager.easy_lookup(
-                AServiceManager, 'services',
-            )
+        self._appspace = self._appmanager.easy_lookup(
+            AServiceManager, 'services',
+        )
         # ... or initialize new service manager
-        except NoAppError:
-            self._manager = self._manage_class
+        if self._appspace is None:
+            self._appspace = self._manage_class
             self._appmanager.easy_register(
-                AServiceManager, 'services', self._manager
+                AServiceManager, 'services', self._appspace
             )
+        self._manager = self._appspace.manager
 
     @property
     def _manage_class(self):
@@ -83,7 +83,7 @@ class ServiceQuery(Query):
         '''
         app = self.app
         for k, v in self.members(lambda x: self.keyed(AService, x)):
-            app(v, k, label)
+            app(k, label, v)
         if branch:
             client._services.add((label, branch))
         else:

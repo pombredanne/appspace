@@ -13,7 +13,7 @@ from .apps import __
 from .services import S
 from .keys import AServer
 
-__all__ = ['direct', 'local', 'remote']
+__all__ = ['direct', 'factory', 'forward']
 
 
 class direct(object):
@@ -34,17 +34,17 @@ class direct(object):
         raise AttributeError('attribute is read-only')
 
 
-class local(direct):
+class factory(direct):
 
     '''builds application from appspace and passes it locally to host'''
 
     def __init__(self, label, branch=False, *args, **kw):
-        super(local, self).__init__(label, branch)
+        super(factory, self).__init__(label, branch)
         self.attrs = args
         self.extra = kw
 
     def __get__(self, this, that):
-        new_app = super(local, self).__get__(this, that)
+        new_app = super(factory, self).__get__(this, that)
         if isclass(new_app):
             attrs = [getter(this, attr) for attr in self.attrs]
             new_app = new_app(*attrs, **self.extra)
@@ -52,13 +52,13 @@ class local(direct):
         return new_app
 
 
-class remote(local):
+class forward(factory):
 
     '''host delegates services to another class in appspace'''
 
     appifies(AServer)
 
     def __get__(self, this, that):
-        new_app = super(remote, self).__get__(this, that)
+        new_app = super(forward, self).__get__(this, that)
         S(new_app).scan(that, self.label, self.branch)
         return new_app

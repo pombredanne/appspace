@@ -24,7 +24,7 @@ class Settings(ResetMixin):
         self._default = stuf()
         # final conf
         self._final = stuf()
-        # local conf
+        # factory conf
         self._local = defaultstuf(set)
         # required conf
         self._required = stuf()
@@ -59,8 +59,8 @@ class Settings(ResetMixin):
         return frozenstuf(final)
 
     @lazy
-    def local(self):
-        '''return local settings'''
+    def factory(self):
+        '''return factory settings'''
         return self._local
 
     @lazy_set

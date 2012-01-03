@@ -14,6 +14,16 @@ class AServer(AppspaceKey):
     '''delegatable app key'''
 
 
+class AService(AppspaceKey):
+
+    '''service'''
+
+
+class AServiceManager(AppspaceKey):
+
+    '''service manager'''
+
+
 class NoDefaultSpecified(object):
 
     def generate(self, klass):

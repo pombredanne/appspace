@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from collections import deque
 from operator import attrgetter, getitem
-from inspect import ismethod, getargspec
+from inspect import getargspec, ismethod
 
 from stuf.utils import setter
 

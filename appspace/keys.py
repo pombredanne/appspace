@@ -49,7 +49,7 @@ class AManager(AppspaceKey):
     '''appspace key'''
 
     events = Attribute('event handler')
-    conf = Attribute('conf for an appspace')
+    settings = Attribute('conf for an appspace')
 
     def __contains__(label):
         '''membership check'''

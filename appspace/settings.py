@@ -22,8 +22,8 @@ class Settings(ResetMixin):
         super(Settings, self).__init__()
         # default conf
         self._default = stuf()
-        # delegates conf
-        self._delegates = defaultstuf(set)
+        # services conf
+        self._services = defaultstuf(set)
         # final conf
         self._final = stuf()
         # local conf
@@ -53,9 +53,12 @@ class Settings(ResetMixin):
             raise TypeError('invalid DefaultSettings')
 
     @lazy
-    def delegates(self):
-        '''get delegates separately'''
-        return self._delegates
+    def final(self):
+        '''finalized conf'''
+        final = self._default.copy()
+        final.update(self._final.copy())
+        final.update(self._required.copy())
+        return frozenstuf(final)
 
     @lazy
     def local(self):
@@ -80,12 +83,9 @@ class Settings(ResetMixin):
             raise TypeError('invalid RequiredSettings')
 
     @lazy
-    def final(self):
-        '''finalized conf'''
-        final = self._default.copy()
-        final.update(self._final.copy())
-        final.update(self._required.copy())
-        return frozenstuf(final)
+    def services(self):
+        '''get services separately'''
+        return self._services
 
     def get(self, key, default=None):
         '''

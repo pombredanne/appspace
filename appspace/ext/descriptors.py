@@ -3,16 +3,17 @@
 
 from __future__ import absolute_import
 
-from functools import partial
+from inspect import isclass
+from functools import partial, wraps
 
 from stuf.utils import getter, selfname, setter
 
 from appspace.keys import appifies
 
-from .query import __
-from .keys import AServer
+from .apps import __
+from .keys import AServer, AService
 
-__all__ = ['service', 'on', 'forward', 'local']
+__all__ = ['service', 'on', 'remote', 'local']
 
 
 def on(*events):
@@ -32,26 +33,27 @@ def service(*metadata):
 
     @param *metadata: metadata to set on decorated method
     '''
-    def wrapped(func):
-        return Service(func, *metadata)
+    def wrapped(this):
+        this.metadata = metadata
+        __.key(AService, this)
+
+        @wraps(this)
+        def wrapper(*args, **kw):
+            return this(*args, **kw)
+        return wrapper
     return wrapped
 
 
-class local(object):
+class direct(object):
 
-    def __init__(self, label, branch=False, *args, **kw):
+    '''passes application from appspace directly to host'''
+
+    def __init__(self, label, branch=False):
         self.label = label
         self.branch = branch
-        self.attrs = args
-        self.extra = kw
 
     def __get__(self, this, that):
-        attrs = [getter(this, attr) for attr in self.attrs]
-        new_app = __(that).app(self.label, self.branch).one()
-        try:
-            return new_app(*attrs, **self.extra)
-        except TypeError:
-            return new_app
+        return __(that).app(self.label, self.branch).one()
 
     def __set__(self, this, value):
         raise AttributeError('attribute is read-only')
@@ -60,9 +62,34 @@ class local(object):
         raise AttributeError('attribute is read-only')
 
 
-class forward(local):
+class local(direct):
+
+    '''builds application from appspace and passes it locally to host'''
+
+    def __init__(self, label, branch=False, *args, **kw):
+        super(local, self).__init__(label, branch)
+        self.attrs = args
+        self.extra = kw
+
+    def __get__(self, this, that):
+        new_app = super(local, self).__get__(this, that)
+        if isclass(new_app):
+            attrs = [getter(this, attr) for attr in self.attrs]
+            new_app = new_app(*attrs, **self.extra)
+            __(that).app(self.label, self.branch, new_app)
+        return new_app
+
+
+class remote(local):
+
+    '''host delegates services to another class in appspace'''
 
     appifies(AServer)
+
+    def __get__(self, this, that):
+        new_app = super(remote, self).__get__(this, that)
+        __(new_app).services(that, self.label, self.branch)
+        return new_app
 
 
 class Methodology(object):

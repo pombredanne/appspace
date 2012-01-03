@@ -4,23 +4,21 @@
 
 from __future__ import absolute_import
 
-from operator import contains
-
 from stuf.utils import lazy
 
 from .utils import lazy_import
+from .registry import Registry
 from .settings import Settings
 from .events import EventManager
-from .error import AppLookupError
 from .keys import (
-    AppStore, AApp, AManager, AEventManager, ALazyApp, ASettings, appifies)
+    AApp, AEventManager, ALazyApp, AManager, ASettings, appifies)
 
 
-class Manager(AppStore):
+class Manager(Registry):
 
     '''state manager'''
 
-    __slots__ = ['_label', '_settings', 'conf', 'events']
+    __slots__ = ['_label', '_key', '_settings', 'settings', 'events']
 
     appifies(AManager)
 
@@ -31,17 +29,10 @@ class Manager(AppStore):
         @param label: label for application configuration object
         @param ns: label for internal namespace
         '''
-        super(Manager, self).__init__(())
+        super(Manager, self).__init__(AApp, ns)
         self._label = label
-        self._settings = ns
         self.easy_register(ASettings, 'default', Settings)
         self.easy_register(AEventManager, 'default', EventManager)
-
-    def __contains__(self, label):
-        return contains(self.names((), AApp), label)
-
-    def __repr__(self):
-        return str(self.lookupAll((), AApp))
 
     @lazy
     def events(self):
@@ -50,36 +41,8 @@ class Manager(AppStore):
 
     @lazy
     def settings(self):
-        '''get appspace conf'''
+        '''get appspace settings'''
         return self.easy_lookup(ASettings, self._settings)()
-
-    def easy_lookup(self, key, label):
-        '''
-        streamlined app lookup
-
-        @param key: key to lookup
-        @param label: label to lookup
-        '''
-        return self.lookup1(key, key, label)
-
-    def easy_register(self, key, label, app):
-        '''
-        streamlined app registration
-
-        @param key: key to register
-        @param label: label to register
-        @param app: app to register
-        '''
-        self.register([key], key, label, app)
-
-    def easy_unregister(self, key, label):
-        '''
-        streamlined app unregistration
-
-        @param key: key to lookup
-        @param label: label to lookup
-        '''
-        self.unregister([key], key, label, self.easy_lookup(key, label))
 
     def get(self, label):
         '''
@@ -87,9 +50,7 @@ class Manager(AppStore):
 
         @param label: app or branch label
         '''
-        app = self.easy_lookup(AApp, label)
-        if app is None:
-            raise AppLookupError(app, label)
+        app = super(Manager, self).get(label)
         if ALazyApp.providedBy(app):
             app = self.load(label, app.path)
         return app
@@ -119,7 +80,7 @@ class Manager(AppStore):
         '''
         if isinstance(app, (basestring, tuple)):
             app = LazyApp(app)
-        self.register([AApp], AApp, label, app)
+        super(Manager, self).set(label, app)
 
 
 class LazyApp(object):
@@ -144,5 +105,5 @@ class LazyApp(object):
 
 # global appspace
 global_appspace = Manager()
-# global conf
+# global settings
 global_settings = global_appspace.settings

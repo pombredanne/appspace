@@ -5,14 +5,15 @@ from __future__ import absolute_import
 
 #from collections import deque
 
-from stuf.utils import either  # setter  # lazy
+from stuf.utils import either  # setter, lazy
 
 #from appspace.utils import getcls
 from appspace.keys import appifies
 
-from .query import __
+from .apps import __
 from .keys import AClient, AServer
 from .containers import ResetMixin, Sync
+
 
 __all__ = ['Client', 'Server', 'Synched']
 
@@ -55,6 +56,8 @@ class Server(Base):
     '''hosts services for other instances'''
 
     appifies(AServer)
+
+    _services = set()
 
 
 class Synched(Server):

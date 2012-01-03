@@ -22,8 +22,6 @@ class Settings(ResetMixin):
         super(Settings, self).__init__()
         # default conf
         self._default = stuf()
-        # services conf
-        self._services = defaultstuf(set)
         # final conf
         self._final = stuf()
         # local conf
@@ -62,6 +60,7 @@ class Settings(ResetMixin):
 
     @lazy
     def local(self):
+        '''return local settings'''
         return self._local
 
     @lazy_set
@@ -81,11 +80,6 @@ class Settings(ResetMixin):
             self.update_required(value)
         else:
             raise TypeError('invalid RequiredSettings')
-
-    @lazy
-    def services(self):
-        '''get services separately'''
-        return self._services
 
     def get(self, key, default=None):
         '''

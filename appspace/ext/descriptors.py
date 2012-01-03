@@ -4,44 +4,16 @@
 from __future__ import absolute_import
 
 from inspect import isclass
-from functools import partial, wraps
 
-from stuf.utils import getter, selfname, setter
+from stuf.utils import getter
 
 from appspace.keys import appifies
 
 from .apps import __
-from .keys import AServer, AService
+from .services import S
+from .keys import AServer
 
-__all__ = ['service', 'on', 'remote', 'local']
-
-
-def on(*events):
-    '''
-    marks method as being a lazy instance
-
-    @param *events: list of properties
-    '''
-    def wrapped(func):
-        return On(func, *events)
-    return wrapped
-
-
-def service(*metadata):
-    '''
-    marks method as service
-
-    @param *metadata: metadata to set on decorated method
-    '''
-    def wrapped(this):
-        this.metadata = metadata
-        __.key(AService, this)
-
-        @wraps(this)
-        def wrapper(*args, **kw):
-            return this(*args, **kw)
-        return wrapper
-    return wrapped
+__all__ = ['direct', 'local', 'remote']
 
 
 class direct(object):
@@ -88,39 +60,5 @@ class remote(local):
 
     def __get__(self, this, that):
         new_app = super(remote, self).__get__(this, that)
-        __(new_app).services(that, self.label, self.branch)
+        S(new_app).scan(that, self.label, self.branch)
         return new_app
-
-
-class Methodology(object):
-
-    def __init__(self, method, *metadata):
-        self.method = method
-        self.metadata = metadata
-
-
-class On(Methodology):
-
-    '''attach events to method'''
-
-    def __get__(self, this, that):
-        ebind = __(that).manager.events.bind
-        method = self.method
-        for arg in self.events:
-            ebind(arg, method)
-        return setter(that, selfname(method), method)
-
-
-class Service(Methodology):
-
-    '''method that can be delegated to another class'''
-
-    def __get__(self, this, that):
-        method = self.method
-        kw = {}
-        if self.metadata:
-            kw.update(dict(
-                (k, getter(that, k)) for k in self.metadata if hasattr(this, k)
-            ))
-        new_method = partial(method, this, **kw)
-        return new_method

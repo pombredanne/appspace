@@ -3,9 +3,10 @@
 
 __all__ = [
     '__', 'Client', 'Host', 'Server', 'Synched', 'local', 'remote', 'on',
-    'service',
+    'service', 'direct',
 ]
 
-from .apps import __
+from .apps import on, __
+from .services import service
+from .descriptors import direct, local, remote
 from .classes import Client, Host, Server, Synched
-from .descriptors import remote, local, on, service

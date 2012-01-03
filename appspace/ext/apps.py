@@ -1,23 +1,33 @@
 # -*- coding: utf-8 -*-
-'''appspace extension query'''
+'''appspace extension application query'''
 
 from __future__ import absolute_import
 
 from inspect import getmro
 
 from stuf import stuf
-from stuf.utils import get_or_default, setter
+from stuf.utils import get_or_default, setter, selfname
 
 from appspace.utils import getcls
 from appspace.managers import Manager
 from appspace.error import ConfigurationError
 from appspace.builders import Appspace, Patterns, patterns
 
-from .query import Query
+from .core import Query
 from .keys import NoDefaultSpecified
 
-
 __all__ = ['AppQuery', '__']
+
+
+def on(*events):
+    '''
+    marks method as being a lazy instance
+
+    @param *events: list of properties
+    '''
+    def wrapped(func):
+        return On(func, *events)
+    return wrapped
 
 
 class AppQuery(Query):
@@ -35,6 +45,7 @@ class AppQuery(Query):
         # enable for traits
         self._enable = True
 
+    @property
     def _manage_class(self):
         return Appspace(Manager())
 
@@ -181,6 +192,22 @@ class AppQuery(Query):
         '''
         self._events.unbind(event, self.app(label, branch).first())
         return self
+
+
+class On(object):
+
+    '''attach events to method'''
+
+    def __init__(self, method, *metadata):
+        self.method = method
+        self.metadata = metadata
+
+    def __get__(self, this, that):
+        ebind = __(that).manager.events.bind
+        method = self.method
+        for arg in self.events:
+            ebind(arg, method)
+        return setter(that, selfname(method), method)
 
 
 __ = AppQuery

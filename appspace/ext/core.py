@@ -7,13 +7,11 @@ from operator import attrgetter, itemgetter
 from collections import Mapping, Sequence, deque
 from itertools import groupby, ifilter, ifilterfalse, imap
 
-from stuf.utils import clsname, getter
-
 from appspace.utils import getcls
 from appspace.keys import AAppspace, apped
 from appspace.error import ConfigurationError, NoAppError
 
-__all__ = ['AppQuery', 'Query', '__']
+__all__ = ['Query']
 
 
 class Query(deque):
@@ -79,17 +77,6 @@ class Query(deque):
         @param branch: branch label (default: False)
         '''
         self.appendleft(self._appspace[branch][label](*args, **kw))
-        return self
-
-    def bind(self, event, label, branch=False):
-        '''
-        bind app to event
-
-        @param event: event label
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        self._events.bind(event, self._get(label, branch))
         return self
 
     def branch(self, label):
@@ -164,13 +151,6 @@ class Query(deque):
         '''
         app = self.app(label, branch).first()
         return self(groupby(data, app))
-
-    def id(self):
-        '''identifier for component'''
-        self.appendleft(
-            '_'.join([self.modname(self._this), clsname(self._this)]).lower(),
-        )
-        return self
 
     def invoke(self, data, label, branch=False, *args, **kw):
         '''
@@ -284,15 +264,6 @@ class Query(deque):
         app = self.app(label, branch).first()
         self.appendleft(min(data, key=app))
         return self
-
-    @staticmethod
-    def modname(this):
-        '''
-        module name
-
-        @param this: an object
-        '''
-        return getter(this, '__module__')
 
     def one(self):
         '''fetch one result'''

@@ -4,7 +4,7 @@
 
 from functools import partial, wraps
 
-from stuf.utils import getter
+from stuf.utils import getter, get_or_default
 
 from appspace.keys import appifies
 from appspace.builders import Appspace
@@ -31,37 +31,23 @@ def service(*metadata):
     return wrapped
 
 
-class Service(object):
-
-    '''method that can be delegated to another class'''
-
-    def __get__(self, this, that):
-        method = self.method
-        kw = {}
-        if self.metadata:
-            kw.update(dict(
-                (k, getter(that, k)) for k in self.metadata if hasattr(this, k)
-            ))
-        new_method = partial(method, this, **kw)
-        return new_method
-
-
 class ServiceQuery(Query):
 
     def __init__(self, appspace, *args, **kw):
         '''
+        init
+
         @param appspace: appspace or appspace server
         '''
         Query.__init__(self, appspace, *args, **kw)
-        appmanager = self._manager
         # get existing service manager...
-        self._appspace = appmanager.easy_lookup(
+        self._appspace = self._manager.easy_lookup(
             AServiceManager, 'services',
         )
         # ... or initialize new service manager
         if self._appspace is None:
             self._appspace = self._manage_class
-            appmanager.easy_register(
+            self._manager.easy_register(
                 AServiceManager, 'services', self._appspace
             )
         self._manager = self._appspace.manager
@@ -70,7 +56,7 @@ class ServiceQuery(Query):
     def _manage_class(self):
         return Appspace(Services())
 
-    def scan(self, client, label, branch=False):
+    def scan(self, client, label):
         '''
         register services
 
@@ -81,12 +67,27 @@ class ServiceQuery(Query):
         app = self.app
         for k, v in self.members(lambda x: self.keyed(AService, x)):
             app(k, label, v)
-        new_label = (label, branch) if branch else (label, False)
-        client._services.add(new_label)
+        client._services.add(label)
         return self
 
-    def service(self, app, label, branch=False):
-        pass
+    def service(self, label, branch):
+        '''
+        add or get service from appspace
+
+        @param label: application label
+        @param branch: branch label
+        '''
+        app = self.app(label, branch).first()
+        metadata = get_or_default(app, 'metadata')
+        if metadata is not None:
+            client = self._this
+            kw = {}
+            for k in metadata:
+                if hasattr(client, k):
+                    kw[k] = getter(client, k)
+            app = partial(app, **kw)
+        self.appendleft(app)
+        return self
 
 
 class Services(Registry):

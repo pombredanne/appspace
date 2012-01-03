@@ -4,9 +4,9 @@
 from .apps import on, __
 from .services import service
 from .descriptors import direct, factory, forward
-from .classes import Client, Host, Server, Synched
+from .classes import Client, Host, Master, Server, Synched
 
 __all__ = [
-    '__', 'Client', 'Host', 'Server', 'Synched', 'factory', 'forward', 'on',
-    'service', 'direct',
+    '__', 'Client', 'Host', 'Master', 'Server', 'Synched', 'factory', 'on',
+    'forward', 'service', 'direct', 'remote',
 ]

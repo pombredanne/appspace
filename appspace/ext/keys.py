@@ -6,38 +6,46 @@ from appspace.keys import AppspaceKey
 
 class AClient(AppspaceKey):
 
-    '''delegated app key'''
+    '''appspace client key'''
+
+
+class AMaster(AppspaceKey):
+
+    '''appspace master key'''
 
 
 class AServer(AppspaceKey):
 
-    '''delegatable app key'''
+    '''appspace server key'''
 
 
 class AService(AppspaceKey):
 
-    '''service'''
+    '''appspace service'''
 
 
 class AServiceManager(AppspaceKey):
 
-    '''service manager'''
+    '''appspace service manager'''
 
 
 class NoDefaultSpecified(object):
 
+    '''no default'''
+
     def generate(self, klass):
-        pass
+        '''generator'''
 
 
 class Undefined(object):
-    pass
+
+    '''undefined value'''
 
 
 NoDefaultSpecified = NoDefaultSpecified()
 Undefined = Undefined()
 
 __all__ = [
-    'AClient', 'AServer', 'AService', 'AServiceManager',
+    'AClient', 'AMaster', 'AServer', 'AService', 'AServiceManager',
     'NoDefaultSpecified', 'Undefined',
 ]

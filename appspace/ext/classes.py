@@ -1,30 +1,27 @@
 # -*- coding: utf-8 -*-
-'''appspace classes'''
+'''appspace extensions classes'''
 
 from __future__ import absolute_import
 
-#from collections import deque
+from stuf.utils import either
 
-from stuf.utils import either  # setter, lazy
-
-#from appspace.utils import getcls
 from appspace.keys import appifies
 
 from .apps import __
+from .services import S
 from .keys import AClient, AServer
 from .containers import ResetMixin, Sync
 
 
-class Base(ResetMixin):
+class Host(ResetMixin):
 
     '''can have appspaced components attached'''
 
-    # def __init__(self):
-        #        for _, v in cls.Q.members(On):
-#            v.__get__(None, cls)
+    def __repr__(self):
+        return self.__str__()
 
 
-class Client(Base):
+class Client(Host):
 
     '''consumes services from other instances'''
 
@@ -32,32 +29,32 @@ class Client(Base):
 
     _services = set()
 
-#    def __getattr__(self, key):
-#        try:
-#            return object.__getattribute__(self, key)
-#        except AttributeError:
-#            try:
-#                query = __(self)
-#                query.forwards()
-#                value = query.pluck(key, self.F).one()
-#                return setter(self, key, value)
-#            except KeyError:
-#                raise AttributeError('{0} not found'.format(key))
+    def __getattr__(self, key):
+        try:
+            return object.__getattribute__(self, key)
+        except AttributeError:
+            query = S(self).service
+            for service in self._services:
+                value = query(key, service)
+                if value is not None:
+                    return value
+            else:
+                raise AttributeError('{0} not found'.format(key))
 
 
-class Host(Base):
+class Master(Host):
 
-    '''hosts'''
+    '''master class'''
 
 
-class Server(Base):
+class Server(Host):
 
     '''hosts services for other instances'''
 
     appifies(AServer)
 
 
-class Synched(Server):
+class Synched(Host):
 
     '''delegate with synchronized class'''
 
@@ -65,10 +62,7 @@ class Synched(Server):
         super(Synched, self).__init__()
         self._sync = Sync(original, **kw)
 
-    def __repr__(self):
-        return self.__unicode__()
-
-    def __unicode__(self):
+    def __str__(self):
         return unicode(dict(i for i in self._sync.public.iteritems()))
 
     @either

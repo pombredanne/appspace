@@ -85,7 +85,7 @@ class Query(deque):
         '''
         # fetch branch if exists...
         try:
-            self.appendleft(self._manager.get(label))
+            self.appendleft(self._appspace[label])
             return self
         # create new branch
         except NoAppError:
@@ -106,6 +106,17 @@ class Query(deque):
         app = self.app(label, branch).first()
         return self(app(i) for i in data)
 
+    def filter(self, data, label, branch=False):
+        '''
+        get items from data for which app in appspace is true
+
+        @param data: data to process
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        app = self.app(label, branch).first()
+        return self(ifilter(app, data))
+
     def find(self, data, label, branch=False):
         '''
         get first item in data for which app in appspace is true
@@ -118,17 +129,6 @@ class Query(deque):
         for item in ifilter(app, data):
             self.appendleft(item)
             return self
-
-    def filter(self, data, label, branch=False):
-        '''
-        get items from data for which app in appspace is true
-
-        @param data: data to process
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        app = self.app(label, branch).first()
-        return self(ifilter(app, data))
 
     def first(self):
         '''fetch one result'''
@@ -187,6 +187,7 @@ class Query(deque):
         @param app: app to key
         '''
         apped(app, key)
+        return app
 
     @staticmethod
     def keyed(key, this):

@@ -77,3 +77,6 @@ class Registry(AppStore):
         @param app: app to add to appspace
         '''
         self.register([self._key], self._key, label, app)
+
+
+__all__ = ['Registry']

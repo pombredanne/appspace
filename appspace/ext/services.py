@@ -13,8 +13,6 @@ from appspace.registry import Registry
 from .core import Query
 from .keys import AServiceManager, AService
 
-__all__ = ['ServiceQuery', 'S', 'service']
-
 
 def service(*metadata):
     '''
@@ -55,16 +53,15 @@ class ServiceQuery(Query):
         @param appspace: appspace or appspace server
         '''
         Query.__init__(self, appspace, *args, **kw)
-        self._appmanager = self._manager
-        self._appappspace = self._appspace
+        appmanager = self._manager
         # get existing service manager...
-        self._appspace = self._appmanager.easy_lookup(
+        self._appspace = appmanager.easy_lookup(
             AServiceManager, 'services',
         )
         # ... or initialize new service manager
         if self._appspace is None:
             self._appspace = self._manage_class
-            self._appmanager.easy_register(
+            appmanager.easy_register(
                 AServiceManager, 'services', self._appspace
             )
         self._manager = self._appspace.manager
@@ -84,10 +81,8 @@ class ServiceQuery(Query):
         app = self.app
         for k, v in self.members(lambda x: self.keyed(AService, x)):
             app(k, label, v)
-        if branch:
-            client._services.add((label, branch))
-        else:
-            client._services.add((label, False))
+        new_label = (label, branch) if branch else (label, False)
+        client._services.add(new_label)
         return self
 
     def service(self, app, label, branch=False):
@@ -112,3 +107,5 @@ class Services(Registry):
 
 
 S = ServiceQuery
+
+__all__ = ['ServiceQuery', 'S', 'service']

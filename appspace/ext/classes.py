@@ -15,9 +15,6 @@ from .keys import AClient, AServer
 from .containers import ResetMixin, Sync
 
 
-__all__ = ['Client', 'Host', 'Server', 'Synched']
-
-
 class Base(ResetMixin):
 
     '''can have appspaced components attached'''
@@ -78,3 +75,6 @@ class Synched(Server):
     def C(self):
         '''local settings'''
         return __(self).localize().one()
+
+
+__all__ = ['Client', 'Host', 'Server', 'Synched']

@@ -9,18 +9,7 @@ from functools import wraps
 from importlib import import_module
 
 from stuf import stuf
-from stuf.utils import OrderedDict, getter, lazybase, deleter
-
-__all__ = ['ResetMixin', 'getcls', 'lazy_import', 'lru_cache', 'object_walk']
-
-
-def getcls(this):
-    '''
-    get class of instance
-
-    @param this: an instance
-    '''
-    return getter(this, '__class__')
+from stuf.utils import OrderedDict, deleter, getcls, getter, lazybase
 
 
 def lazy_import(path, attribute=None):
@@ -28,7 +17,7 @@ def lazy_import(path, attribute=None):
     deferred module loader
 
     @param path: something to load
-    @param attribute: attributed on loaded module to return
+    @param attribute: attribute on loaded module to return
     '''
     if isinstance(path, str):
         try:
@@ -76,7 +65,7 @@ def lru_cache(max_length=100):
 
 def object_walk(this):
     '''
-    transform classes within an object to a dictionary
+    transform classes within an object into stufs
 
     @param this: object
     '''
@@ -119,3 +108,6 @@ class ResetMixin(object):
         for key, value in classdict.iteritems():
             if all([key in instdict, isinstance(value, desc)]):
                 deleter(self, key)
+
+
+__all__ = ['ResetMixin', 'lazy_import', 'lru_cache', 'object_walk']

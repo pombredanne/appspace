@@ -13,8 +13,6 @@ from .apps import __
 from .services import S
 from .keys import AServer
 
-__all__ = ['direct', 'factory', 'forward']
-
 
 class direct(object):
 
@@ -62,3 +60,6 @@ class forward(factory):
         new_app = super(forward, self).__get__(this, that)
         S(new_app).scan(that, self.label, self.branch)
         return new_app
+
+
+__all__ = ['direct', 'factory', 'forward']

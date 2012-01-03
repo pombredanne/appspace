@@ -8,8 +8,6 @@ from stuf.utils import lazy
 
 from appspace.utils import ResetMixin
 
-__all__ = ['NamedQueue', 'ResetMixin', 'Sync', 'namedqueue']
-
 
 class NamedQueue(object):
 
@@ -251,3 +249,5 @@ class Sync(ResetMixin):
 
 
 namedqueue = NamedQueue
+
+__all__ = ['NamedQueue', 'ResetMixin', 'Sync', 'namedqueue']

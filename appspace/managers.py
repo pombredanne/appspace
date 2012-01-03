@@ -107,3 +107,5 @@ class LazyApp(object):
 global_appspace = Manager()
 # global settings
 global_settings = global_appspace.settings
+
+__all__ = ['Manager', 'LazyApp', 'global_appspace', 'global_settings']

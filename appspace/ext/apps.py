@@ -16,8 +16,6 @@ from appspace.builders import Appspace, Patterns, patterns
 from .core import Query
 from .keys import NoDefaultSpecified
 
-__all__ = ['AppQuery', '__']
-
 
 def on(*events):
     '''
@@ -211,3 +209,6 @@ class On(object):
 
 
 __ = AppQuery
+
+
+__all__ = ['AppQuery', '__', 'on']

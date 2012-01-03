@@ -11,8 +11,6 @@ from stuf.utils import setter
 
 from .keys import AEventManager, AEvent, appifies, get_apps, apped
 
-__all__ = ['Event', 'EventManager']
-
 
 class Event(object):
 
@@ -54,7 +52,7 @@ class EventManager(object):
         self._enabled = True
 
     def __repr__(self):
-        return str(self.appspace.manager.lookupAll(AEvent, AEvent))
+        return str(self.appspace.manager.lookupAll([AEvent], AEvent))
 
     @property
     def enabled(self):
@@ -207,3 +205,6 @@ class EventManager(object):
         @param label: event label
         '''
         self.appspace.easy_unregister(AEvent, label)
+
+
+__all__ = ['Event', 'EventManager']

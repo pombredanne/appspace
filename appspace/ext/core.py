@@ -11,8 +11,6 @@ from appspace.utils import getcls
 from appspace.keys import AAppspace, apped
 from appspace.error import ConfigurationError, NoAppError
 
-__all__ = ['Query']
-
 
 class Query(deque):
 
@@ -87,7 +85,7 @@ class Query(deque):
         '''
         # fetch branch if exists...
         try:
-            self.appendleft(self._appspace[label])
+            self.appendleft(self._manager.get(label))
             return self
         # create new branch
         except NoAppError:
@@ -349,3 +347,6 @@ class Query(deque):
         '''
         app = self.app(label, branch).first()
         return self(sorted(data, key=app))
+
+
+__all__ = ['Query']

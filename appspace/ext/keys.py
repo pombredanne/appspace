@@ -30,11 +30,14 @@ class NoDefaultSpecified(object):
         pass
 
 
-NoDefaultSpecified = NoDefaultSpecified()
-
-
 class Undefined(object):
     pass
 
 
+NoDefaultSpecified = NoDefaultSpecified()
 Undefined = Undefined()
+
+__all__ = [
+    'AClient', 'AServer', 'AService', 'AServiceManager',
+    'NoDefaultSpecified', 'Undefined',
+]

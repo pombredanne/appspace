@@ -49,7 +49,7 @@ class AManager(AppspaceKey):
     '''appspace key'''
 
     events = Attribute('event handler')
-    settings = Attribute('conf for an appspace')
+    settings = Attribute('settings for an appspace')
 
     def __contains__(label):
         '''membership check'''
@@ -155,14 +155,21 @@ class ANamespace(AppspaceKey):
 
 class ASettings(AppspaceKey):
 
-    '''conf key'''
+    '''settings key'''
 
 
 class ADefaultSettings(ASettings):
 
-    '''default conf key'''
+    '''default settings key'''
 
 
 class ARequiredSettings(ASettings):
 
-    '''required conf key'''
+    '''required settings key'''
+    
+    
+__all__ = [
+    'AApp', 'AAppspace', 'ABranch', 'ADefaultSettings', 'AEvent',
+    'AEventManager', 'ALazyApp', 'AManager', 'ANamespace', 'ARequiredSettings',
+    'ASettings', 'appifies',
+]

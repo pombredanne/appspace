@@ -12,12 +12,10 @@ from .error import AppLookupError, NoAppError
 from .keys import AAppspace, ABranch, ANamespace
 from .managers import Manager, appifies, global_appspace
 
-__all__ = ['Branch', 'Namespace', 'Patterns', 'app', 'include', 'patterns']
-
 
 def include(module):
     '''
-    add branch appspace
+    configure branch appspace
 
     @param module: module import path
     '''
@@ -36,7 +34,7 @@ def patterns(label, *args, **kw):
 
 class Appspace(object):
 
-    '''interface with appspace'''
+    '''appspace interface'''
 
     __slots__ = ['manager']
 
@@ -44,6 +42,8 @@ class Appspace(object):
 
     def __init__(self, manager):
         '''
+        init
+
         @param manager: appspace manager
         '''
         self.manager = manager
@@ -72,7 +72,7 @@ class Appspace(object):
         return contains(self.manager, label)
 
     def __repr__(self):
-        return self.manager.__repr__()
+        return repr(self.manager)
 
 
 class Factory(object):
@@ -81,6 +81,8 @@ class Factory(object):
 
     def __init__(self, label, *args, **kw):
         '''
+        init
+
         @param label: label for manager
         '''
         # whether to use global manager instead of local manager
@@ -90,17 +92,16 @@ class Factory(object):
         # register apps in manager
         apper = self.manager.set
         # add applications
-        for arg in args:
-            apper(*arg)
+        [apper(*arg) for arg in args]  # pylint: disable-msg=W0106
         # add manager
         apper(label, Appspace(self.manager))
 
     def __repr__(self):
-        return self.manager.__repr__()
+        return repr(self.manager)
 
     @lazy
     def manager(self):
-        '''manager builder'''
+        '''manager selector'''
         return global_appspace if self._global else Manager(self._module)
 
     def build(self):
@@ -110,7 +111,7 @@ class Factory(object):
 
 class Patterns(object):
 
-    '''patterns for manager configured in a class'''
+    '''patterns for manager configured by class'''
 
     def __repr__(self):
         return str(self._gather())
@@ -139,8 +140,13 @@ class Patterns(object):
 
     @classmethod
     def settings(cls, appconf, required, defaults):
+        '''
+        attach settings to class
+
+        @param required: required settings
+        @param defaults: default settings
+        '''
         conf = appconf.manager.settings
-        # attach conf
         conf.required = required
         conf.defaults = defaults
 
@@ -149,8 +155,8 @@ class Patterns(object):
         '''
         build manager configuration from class
 
-        @param required: required conf
-        @param defaults: default conf
+        @param required: required settings
+        @param defaults: default settings
         '''
         this = list()
         tappend = this.append
@@ -179,7 +185,7 @@ class Patterns(object):
 
 class Branch(object):
 
-    '''branch configuration class'''
+    '''branch configuration'''
 
     appifies(ABranch)
 
@@ -200,7 +206,7 @@ class Namespace(object):
 
     @classmethod
     def _pack(cls, this, that):
-        # build name
+        '''build name'''
         return ('.'.join([selfname(cls), this]), that)
 
     @classmethod
@@ -209,6 +215,7 @@ class Namespace(object):
         this = list()
         tappend = this.append
         textend = this.extend
+        # filters
         anamespace = ANamespace.implementedBy
         pack = cls._pack
         for k, v in vars(cls).iteritems():
@@ -223,3 +230,5 @@ class Namespace(object):
 
 # global manager shortcut
 app = Appspace(global_appspace)
+
+__all__ = ['Branch', 'Namespace', 'Patterns', 'app', 'include', 'patterns']

@@ -58,6 +58,38 @@ class AppManager(Manager):
         return self.easy_lookup(ASettings, self._settings)()
 
 
+class AppPatterns(Patterns):
+
+    '''patterns for manager configured by class'''
+
+    _manager = AppManager
+
+    @classmethod
+    def settings(cls, appconf, required, defaults):
+        '''
+        attach settings to class
+
+        @param required: required settings
+        @param defaults: default settings
+        '''
+        conf = appconf.manager.settings
+        conf.required = required
+        conf.defaults = defaults
+
+    @classmethod
+    def build(cls, required=None, defaults=None):  # pylint: disable-msg=W0221
+        '''
+        build manager configuration from class
+
+        @param required: required settings
+        @param defaults: default settings
+        '''
+        appconf = super(AppPatterns, cls).build()
+        if required is not None and defaults is not None:
+            cls.settings(appconf, required, defaults)
+        return appconf
+
+
 class AppQuery(Builder):
 
     '''appspace query'''
@@ -92,7 +124,7 @@ class AppQuery(Builder):
             return cls(pattern.build(required, defaults))
         # from label and arguments...
         elif isinstance(pattern, basestring) and args:
-            return cls(Patterns.settings(
+            return cls(AppPatterns.settings(
                 patterns(pattern, *args, **kw), required, defaults,
             ))
         raise ConfigurationError('patterns not found')
@@ -220,6 +252,10 @@ class AppQuery(Builder):
         '''
         self._events.unbind(event, self.app(label, branch).first())
         return self
+    
+
+# shortcut
+__ = AppQuery
 
 
 class On(object):
@@ -238,7 +274,4 @@ class On(object):
         return setter(that, selfname(method), method)
 
 
-__ = AppQuery
-
-
-__all__ = ('AppManager', 'AppQuery',  '__', 'on')
+__all__ = ('AppManager', 'AppPatterns', 'AppQuery',  '__', 'on')

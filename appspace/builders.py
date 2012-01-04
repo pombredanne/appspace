@@ -22,16 +22,6 @@ def include(module):
     return ('include', module)
 
 
-def patterns(label, *args, **kw):
-    '''
-    configure appspace
-
-    @param label: name of branch appspace
-    @param *args: tuple of module paths or component inclusions
-    '''
-    return Factory(label, *args, **kw).build()
-
-
 class Appspace(object):
 
     '''appspace interface'''
@@ -79,7 +69,7 @@ class Factory(object):
 
     '''factory for appspace'''
 
-    def __init__(self, label, *args, **kw):
+    def __init__(self, label, manager, *args, **kw):
         '''
         init
 
@@ -87,7 +77,8 @@ class Factory(object):
         '''
         # object with manager configuration
         self._module = kw.get('module', 'appconf')
-        self.manager = Manager(self._module)
+        # build manager
+        self.manager = manager(self._module)
         # register apps in manager
         apper = self.manager.set
         # add applications
@@ -106,6 +97,8 @@ class Factory(object):
 class Patterns(object):
 
     '''patterns for manager configured by class'''
+
+    _manager = Manager
 
     def __repr__(self):
         return str(self._gather())
@@ -133,25 +126,8 @@ class Patterns(object):
         return this
 
     @classmethod
-    def settings(cls, appconf, required, defaults):
-        '''
-        attach settings to class
-
-        @param required: required settings
-        @param defaults: default settings
-        '''
-        conf = appconf.manager.settings
-        conf.required = required
-        conf.defaults = defaults
-
-    @classmethod
-    def build(cls, required=None, defaults=None):
-        '''
-        build manager configuration from class
-
-        @param required: required settings
-        @param defaults: default settings
-        '''
+    def build(cls):
+        '''build manager configuration from class'''
         this = list()
         tappend = this.append
         textend = this.extend
@@ -171,10 +147,20 @@ class Patterns(object):
                 else:
                     tappend((k, v))
         # build configuration
-        appconf = patterns(selfname(cls), *tuple(cls._gather()))
-        if required is not None and defaults is not None:
-            cls.settings(appconf, required, defaults)
-        return appconf
+        return cls.patterns(selfname(cls), *tuple(cls._gather()))
+
+    @classmethod
+    def patterns(cls, label, *args, **kw):
+        '''
+        configure appspace
+
+        @param label: name of branch appspace
+        @param *args: tuple of module paths or component inclusions
+        '''
+        return Factory(label, cls._manager, *args, **kw).build()
+
+
+patterns = Patterns.patterns
 
 
 class Branch(object):

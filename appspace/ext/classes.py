@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace extensions classes'''
+'''appspace extension classes'''
 
 from __future__ import absolute_import
 
@@ -26,19 +26,16 @@ class Client(Host):
 
     def __init__(self):
         super(Client, self).__init__()
+        # service tracker
         self._services = set()
 
     def __getattr__(self, key):
         try:
             return object.__getattribute__(self, key)
         except AttributeError:
+            # check for services
             if any([not key.startswith('__'), not key.upper()]):
                 return setter(self, key, S(self).fetch(key))
-
-
-class Master(Host):
-
-    '''master class'''
 
 
 class Server(Host):
@@ -50,9 +47,14 @@ class Server(Host):
 
 class Synched(Host):
 
-    '''delegate with synchronized class'''
+    '''instance with synchronizing functionality'''
 
     def __init__(self, original, **kw):
+        '''
+        init
+
+        @param original: data to synchronize
+        '''
         super(Synched, self).__init__()
         self._sync = Sync(original, **kw)
 
@@ -68,4 +70,4 @@ class Synched(Host):
         return __(self).localize().one()
 
 
-__all__ = ('Client', 'Host', 'Master', 'Server', 'Synched')
+__all__ = ('Client', 'Host', 'Server', 'Synched')

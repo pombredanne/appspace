@@ -65,7 +65,7 @@ class ServiceManager(Registry):
 
     '''service manager'''
 
-    __slots__ = ['_key', '_settings']
+    __slots__ = ('_key', '_settings')
 
     appifies(AServiceManager)
 

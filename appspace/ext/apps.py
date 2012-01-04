@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
-'''appspace extension application query'''
+# pylint: disable-msg=e1001,e1002
+'''appspace application extensions'''
 
 from __future__ import absolute_import
 
 from inspect import getmro
 
 from stuf import stuf
-from stuf.utils import get_or_default, setter, selfname
+from stuf.utils import get_or_default, getcls, setter, selfname, lazy
 
-from appspace.utils import getcls
-
+from appspace.managers import Manager
 from appspace.error import ConfigurationError
-from appspace.builders import Patterns, patterns
+from appspace.builders import Appspace, Patterns, patterns
 
 from .core import Builder
-from .keys import NoDefaultSpecified
+from .settings import Settings
+from .events import EventManager
+from .keys import NoDefaultSpecified, AEventManager, ASettings
 
 
 def on(*events):
@@ -26,6 +28,34 @@ def on(*events):
     def wrapped(func):
         return On(func, *events)
     return wrapped
+
+
+class AppManager(Manager):
+
+    '''state manager'''
+
+    __slots__ = ('_key', '_label', '_settings', 'events', 'settings')
+
+    def __init__(self, label='appconf', ns='default'):
+        '''
+        init
+
+        @param label: label for application configuration object
+        @param ns: label for internal namespace
+        '''
+        super(AppManager, self).__init__(label, ns)
+        self.easy_register(ASettings, 'default', Settings)
+        self.easy_register(AEventManager, 'default', EventManager)
+
+    @lazy
+    def events(self):
+        '''get appspace events manager'''
+        return self.easy_lookup(AEventManager, self._settings)(self)
+
+    @lazy
+    def settings(self):
+        '''get appspace settings'''
+        return self.easy_lookup(ASettings, self._settings)()
 
 
 class AppQuery(Builder):
@@ -42,6 +72,10 @@ class AppQuery(Builder):
         self._events = self._appspace.manager.events
         # enable for traits
         self._enable = True
+
+    @property
+    def _manage_class(self):
+        return Appspace(AppManager())
 
     @classmethod
     def appspace(cls, pattern, required=None, defaults=None, *args, **kw):
@@ -207,4 +241,4 @@ class On(object):
 __ = AppQuery
 
 
-__all__ = ['AppQuery', '__', 'on']
+__all__ = ('AppManager', 'AppQuery',  '__', 'on')

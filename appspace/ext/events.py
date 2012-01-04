@@ -9,7 +9,9 @@ from inspect import getargspec, ismethod
 
 from stuf.utils import setter
 
-from .keys import AEventManager, AEvent, appifies, get_apps, apped
+from appspace.keys import appifies, get_apps, apped
+
+from .keys import AEventManager, AEvent
 
 
 class Event(object):
@@ -38,7 +40,7 @@ class EventManager(object):
 
     '''appspace event manager'''
 
-    __slots__ = ['A', '_enabled']
+    __slots__ = ('A', '_enabled')
 
     appifies(AEventManager)
 
@@ -207,4 +209,4 @@ class EventManager(object):
         self.appspace.easy_unregister(AEvent, label)
 
 
-__all__ = ['Event', 'EventManager']
+__all__ = ('Event', 'EventManager')

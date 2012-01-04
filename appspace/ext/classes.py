@@ -66,4 +66,4 @@ class Synched(Host):
         return __(self).localize().one()
 
 
-__all__ = ['Client', 'Host', 'Master', 'Server', 'Synched']
+__all__ = ('Client', 'Host', 'Master', 'Server', 'Synched')

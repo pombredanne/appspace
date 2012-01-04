@@ -5,6 +5,8 @@
 
 from __future__ import absolute_import
 
+from inspect import ismodule
+
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
@@ -42,6 +44,21 @@ class AAppspace(AppspaceKey):
 
     def __getitem__(label):
         '''get item'''
+        
+
+class ABranch(AppspaceKey):
+
+    '''branch key'''
+
+    def build():
+        '''build appspace'''
+
+
+class ALazyApp(AApp):
+
+    '''lazy app key'''
+
+    path = Attribute('import path')
 
 
 class AManager(AppspaceKey):
@@ -78,98 +95,13 @@ class AManager(AppspaceKey):
         '''
 
 
-class ABranch(AppspaceKey):
-
-    '''branch key'''
-
-    def build():
-        '''build appspace'''
-
-
-class AEvent(AppspaceKey):
-
-    '''event key'''
-
-    priority = Attribute('priority of event')
-
-
-class AEventManager(AppspaceKey):
-
-    def bind(label, instance):
-        '''
-        bind instance to event
-
-        @param label: event label
-        @param instance: object to bind to event
-        '''
-
-    def burst(label, queue):
-        '''
-        run event subscribers on contents of queue
-
-        @param label: event label
-        @param queue: queue of arguements
-        '''
-
-    def fire(event, *args, **kw):
-        '''
-        fire event, passing arbitrary positional arguments and keywords
-
-        @param event: event label
-        '''
-
-    def get(label):
-        '''
-        returns event
-
-        @param label: event label
-        '''
-
-    def react(event):
-        '''
-        returns objects bound to an event
-
-        @param label: event label
-        '''
-
-    def register(label, priority=1, **kw):
-        '''
-        create new event
-
-        @param event: event label
-        @param priority: priority of event (default: 1)
-        '''
-
-
-class ALazyApp(AApp):
-
-    '''lazy app key'''
-
-    path = Attribute('import path')
-
-
 class ANamespace(AppspaceKey):
 
     '''namespace key'''
-
-
-class ASettings(AppspaceKey):
-
-    '''settings key'''
-
-
-class ADefaultSettings(ASettings):
-
-    '''default settings key'''
-
-
-class ARequiredSettings(ASettings):
-
-    '''required settings key'''
     
     
-__all__ = [
-    'AApp', 'AAppspace', 'ABranch', 'ADefaultSettings', 'AEvent',
-    'AEventManager', 'ALazyApp', 'AManager', 'ANamespace', 'ARequiredSettings',
-    'ASettings', 'appifies',
-]
+__all__ = sorted(name for name, obj in locals().iteritems() if not any([
+    name.startswith('_'), ismodule(obj),
+]))
+
+del ismodule

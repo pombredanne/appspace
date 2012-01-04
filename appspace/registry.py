@@ -12,7 +12,7 @@ from .error import AppLookupError
 
 class Registry(AppStore):
 
-    __slots__ = ['_key', '_settings']
+    __slots__ = ('_key', '_settings')
 
     def __init__(self, key, ns='default'):
         '''

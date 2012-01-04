@@ -23,6 +23,6 @@ class NoAppError(Exception):
     '''mo application found exception'''
 
 
-__all__ = [
+__all__ = (
     'AppLookupError', 'ConfigurationError', 'NoAppspaceError', 'NoAppError',
-]
+)

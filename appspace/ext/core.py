@@ -373,6 +373,10 @@ class Query(deque):
         '''
         app = self.app(label, branch).first()
         return self(sorted(data, key=app))
+    
+
+# query shortcut
+Q = Query
 
 
 class Builder(Query):
@@ -434,9 +438,7 @@ class Builder(Query):
         return app
 
 
-# query shortcut
-Q = Query
 # builder shortcut
 B = Builder
 
-__all__ = ['B', 'Builder', 'Q', 'Query']
+__all__ = ('B', 'Builder', 'Q', 'Query')

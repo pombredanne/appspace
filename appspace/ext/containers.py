@@ -9,11 +9,11 @@ from stuf.utils import lazy
 from appspace.utils import ResetMixin
 
 
-class NamedQueue(object):
+class namedqueue(object):
 
     '''named queue'''
 
-    __slots__ = ['_queue', 'max_length']
+    __slots__ = ('_queue', 'max_length')
 
     def __init__(self, max_length=None):
         self._queue = deque(max_length) if max_length is not None else deque()
@@ -248,6 +248,4 @@ class Sync(ResetMixin):
         self.reset()
 
 
-namedqueue = NamedQueue
-
-__all__ = ['NamedQueue', 'ResetMixin', 'Sync', 'namedqueue']
+__all__ = ('ResetMixin', 'Sync', 'namedqueue')

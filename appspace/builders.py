@@ -5,12 +5,12 @@ from __future__ import absolute_import
 
 from operator import getitem, contains
 
-from stuf.utils import lazy, selfname
+from stuf.utils import selfname
 
 from .utils import lru_cache
+from .managers import Manager, appifies
 from .error import AppLookupError, NoAppError
 from .keys import AAppspace, ABranch, ANamespace
-from .managers import Manager, appifies, global_appspace
 
 
 def include(module):
@@ -85,10 +85,9 @@ class Factory(object):
 
         @param label: label for manager
         '''
-        # whether to use global manager instead of local manager
-        self._global = kw.get('use_global', False)
         # object with manager configuration
         self._module = kw.get('module', 'appconf')
+        self.manager = Manager(self._module)
         # register apps in manager
         apper = self.manager.set
         # add applications
@@ -98,11 +97,6 @@ class Factory(object):
 
     def __repr__(self):
         return repr(self.manager)
-
-    @lazy
-    def manager(self):
-        '''manager selector'''
-        return global_appspace if self._global else Manager(self._module)
 
     def build(self):
         '''build manager'''
@@ -228,7 +222,4 @@ class Namespace(object):
         return this
 
 
-# global manager shortcut
-app = Appspace(global_appspace)
-
-__all__ = ['Branch', 'Namespace', 'Patterns', 'app', 'include', 'patterns']
+__all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')

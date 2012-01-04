@@ -4,21 +4,17 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import lazy
-
 from .utils import lazy_import
 from .registry import Registry
-from .settings import Settings
-from .events import EventManager
-from .keys import (
-    AApp, AEventManager, ALazyApp, AManager, ASettings, appifies)
+
+from .keys import AApp, ALazyApp, AManager, appifies
 
 
 class Manager(Registry):
 
     '''state manager'''
 
-    __slots__ = ['_label', '_key', '_settings', 'settings', 'events']
+    __slots__ = ('_key', '_label', '_settings')
 
     appifies(AManager)
 
@@ -31,18 +27,6 @@ class Manager(Registry):
         '''
         super(Manager, self).__init__(AApp, ns)
         self._label = label
-        self.easy_register(ASettings, 'default', Settings)
-        self.easy_register(AEventManager, 'default', EventManager)
-
-    @lazy
-    def events(self):
-        '''get appspace events manager'''
-        return self.easy_lookup(AEventManager, self._settings)(self)
-
-    @lazy
-    def settings(self):
-        '''get appspace settings'''
-        return self.easy_lookup(ASettings, self._settings)()
 
     def get(self, label):
         '''
@@ -103,9 +87,4 @@ class LazyApp(object):
         return 'app@{path}'.format(path=self.path)
 
 
-# global appspace
-global_appspace = Manager()
-# global settings
-global_settings = global_appspace.settings
-
-__all__ = ['Manager', 'LazyApp', 'global_appspace', 'global_settings']
+__all__ = ('Manager', 'LazyApp')

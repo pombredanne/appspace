@@ -61,7 +61,26 @@ class servicer(factory):
         return new_app
 
 
+class ServiceManager(Registry):
+
+    '''service manager'''
+
+    __slots__ = ['_key', '_settings']
+
+    appifies(AServiceManager)
+
+    def __init__(self, ns='default'):
+        '''
+        init
+
+        @param ns: label for internal namespace
+        '''
+        super(ServiceManager, self).__init__(AService, ns)
+
+
 class ServiceQuery(Builder):
+
+    '''service query'''
 
     def __init__(self, appspace, *args, **kw):
         '''
@@ -84,7 +103,7 @@ class ServiceQuery(Builder):
 
     @property
     def _manage_class(self):
-        return Appspace(Services())
+        return Appspace(ServiceManager())
 
     def discover(self):
         '''
@@ -154,23 +173,6 @@ class ServiceQuery(Builder):
         return self
 
 
-class Services(Registry):
-
-    '''service manager'''
-
-    __slots__ = ['_key', '_settings']
-
-    appifies(AServiceManager)
-
-    def __init__(self, ns='default'):
-        '''
-        init
-
-        @param ns: label for internal namespace
-        '''
-        super(Services, self).__init__(AService, ns)
-
-
 S = ServiceQuery
 
-__all__ = ['ServiceQuery', 'S', 'service']
+__all__ = ('ServiceQuery', 'S', 'service')

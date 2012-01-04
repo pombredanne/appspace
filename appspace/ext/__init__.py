@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 '''appspace extensions'''
 
-from .apps import on, __
+from inspect import ismodule
+
+from .apps import AppPatterns, on, __
 from .core import Q, B, direct, factory
+from .settings import RequiredSettings, DefaultSettings
 from .services import forward, remote, service, servicer
 from .classes import Client, Host, Master, Server, Synched
 
-__all__ = [
-    '__', 'Q', 'B', 'Client', 'Host', 'Master', 'Server', 'Synched', 'factory',
-    'on', 'forward', 'service', 'direct', 'remote', 'servicer',
-]
+__all__ = sorted(name for name, obj in locals().iteritems() if not any([
+    name.startswith('_') and name != '__', ismodule(obj)])
+)
+
+del ismodule

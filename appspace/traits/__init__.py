@@ -53,12 +53,9 @@ Distributed under the terms of the BSD License. The full license is in
 the file COPYING, distributed as part of this software.
 '''
 
-__all__ = [
-    'Any', 'Bool', 'Bytes', 'CBool', 'CBytes', 'CUnicode', 'CaselessStrEnum',
-    'CheckedUnicode', 'Container', 'Dict', 'DottedObjectName', 'Instance',
-    'Int', 'List', 'NoDefaultSpecified', 'ObjectName', 'This', 'TraitType',
-    'Tuple', 'Type', 'Undefined', 'Unicode', 'HasTraits',
-]
+from __future__ import absolute_import
+
+from inspect import ismodule
 
 from .classes import HasTraits
 from .core import TraitType, Undefined, NoDefaultSpecified
@@ -71,3 +68,9 @@ from .numbers import (
     Bool, CBool, CInt, CLong, CFloat, CComplex, Complex, Float, Int, Integer,
     Long,
 )
+
+__all__ = sorted(name for name, obj in locals().iteritems() if not any([
+    name.startswith('_'), ismodule(obj),
+]))
+
+del ismodule

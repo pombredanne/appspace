@@ -24,7 +24,9 @@ class Client(Host):
 
     appifies(AClient)
 
-    _services = set()
+    def __init__(self):
+        super(Client, self).__init__()
+        self._services = set()
 
     def __getattr__(self, key):
         try:

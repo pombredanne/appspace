@@ -195,11 +195,11 @@ class AppQuery(Builder):
         meta = get_or_default(this, 'Meta')
         if meta:
             metas.append(meta)
-        local_settings = self._settings.local[self.id().one()] = stuf(dict(
+        settings = self._settings.local[self.id().one()] = stuf(dict(
             (k, v) for k, v in self.members(m, lambda x: not x.startswith('_'))
         ) for m in metas)
-        local_settings.update(kw)
-        self.appendleft(local_settings)
+        settings.update(kw)
+        self.appendleft(settings)
         return self
 
     def register(self, model):

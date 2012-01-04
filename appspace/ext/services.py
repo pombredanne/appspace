@@ -35,7 +35,7 @@ class ServiceMixin(object):
 
     def __get__(self, this, that):
         new_app = super(ServiceMixin, self).__get__(this, that)
-        S(new_app).scan(that, self.label)
+        S(new_app).scan(this, self.label)
         return new_app
 
 

@@ -32,18 +32,6 @@ class direct(object):
         raise AttributeError('attribute is read-only')
 
 
-class remote(direct):
-
-    '''host delegates functionality to application from appspace'''
-
-    appifies(AServer)
-
-    def __get__(self, this, that):
-        new_app = super(remote, self).__get__(this, that)
-        S(new_app).scan(that, self.label)
-        return new_app
-
-
 class factory(direct):
 
     '''builds application stored in appspace and passes it to host'''
@@ -62,9 +50,21 @@ class factory(direct):
         return new_app
 
 
-class forward(remote, factory):
+class remote(direct):
+
+    '''host delegates functionality to application from appspace'''
+
+
+class forward(factory):
 
     '''builds application in appspace and forwards host functionality to it'''
+
+    appifies(AServer)
+
+    def __get__(self, this, that):
+        new_app = super(forward, self).__get__(this, that)
+        S(new_app).scan(that, self.label)
+        return new_app
 
 
 __all__ = ['direct', 'factory', 'forward', 'remote']

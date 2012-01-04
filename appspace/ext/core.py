@@ -18,6 +18,8 @@ class Query(deque):
 
     def __init__(self, appspace, *args, **kw):
         '''
+        init
+
         @param appspace: appspace or appspace server
         '''
         try:
@@ -31,7 +33,7 @@ class Query(deque):
                 self._appspace = appspace
                 self._this = kw.pop('this', None)
             else:
-                raise NoAppError('appspace not found')
+                raise NoAppError('no appspace found')
         # appspace manager
         self._manager = self._appspace.manager
         deque.__init__(self, *args)

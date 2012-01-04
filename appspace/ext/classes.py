@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import either
+from stuf.utils import either, setter
 
 from appspace.keys import appifies
 
@@ -16,9 +16,6 @@ from .containers import ResetMixin, Sync
 class Host(ResetMixin):
 
     '''can have appspaced components attached'''
-
-    def __repr__(self):
-        return self.__str__()
 
 
 class Client(Host):
@@ -33,13 +30,8 @@ class Client(Host):
         try:
             return object.__getattribute__(self, key)
         except AttributeError:
-            query = S(self).service
-            for service in self._services:
-                value = query(key, service)
-                if value is not None:
-                    return value
-            else:
-                raise AttributeError('{0} not found'.format(key))
+            if any([not key.startswith('__'), not key.upper()]):
+                return setter(self, key, S(self).fetch(key))
 
 
 class Master(Host):
@@ -62,6 +54,9 @@ class Synched(Host):
         super(Synched, self).__init__()
         self._sync = Sync(original, **kw)
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         return unicode(dict(i for i in self._sync.public.iteritems()))
 
@@ -71,4 +66,4 @@ class Synched(Host):
         return __(self).localize().one()
 
 
-__all__ = ['Client', 'Host', 'Server', 'Synched']
+__all__ = ['Client', 'Host', 'Master', 'Server', 'Synched']

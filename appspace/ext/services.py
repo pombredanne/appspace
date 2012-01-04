@@ -12,6 +12,8 @@ from appspace.registry import Registry
 
 from .core import Query
 from .keys import AServiceManager, AService
+from appspace.ext.keys import AServer
+from appspace.error import NoAppError
 
 
 def service(*metadata):
@@ -55,6 +57,31 @@ class ServiceQuery(Query):
     @property
     def _manage_class(self):
         return Appspace(Services())
+
+    def discover(self):
+        '''
+        register services
+
+        @param client: client needing services
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        return self(i for i in self.members(lambda x: self.keyed(AServer, x)))
+
+    def fetch(self, key):
+        services = self._this._services
+        if not services:
+            self.discover()
+        query = self.service
+        for serv in services:
+            try:
+                value = query(key, serv)
+                if value is not None:
+                    return value
+            except NoAppError:
+                pass
+#            else:
+#                raise AttributeError('{0} not found'.format(key))
 
     def scan(self, client, label):
         '''

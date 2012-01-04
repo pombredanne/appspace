@@ -9,11 +9,11 @@ from stuf import stuf
 from stuf.utils import get_or_default, setter, selfname
 
 from appspace.utils import getcls
-from appspace.managers import Manager
-from appspace.error import ConfigurationError
-from appspace.builders import Appspace, Patterns, patterns
 
-from .core import Query
+from appspace.error import ConfigurationError
+from appspace.builders import Patterns, patterns
+
+from .core import Builder
 from .keys import NoDefaultSpecified
 
 
@@ -28,7 +28,7 @@ def on(*events):
     return wrapped
 
 
-class AppQuery(Query):
+class AppQuery(Builder):
 
     '''appspace query'''
 
@@ -36,16 +36,12 @@ class AppQuery(Query):
         '''
         @param appspace: appspace or appspace server
         '''
-        Query.__init__(self, appspace, *args, **kw)
+        Builder.__init__(self, appspace, *args, **kw)
         # appspace settings
         self._settings = self._appspace.manager.settings
         self._events = self._appspace.manager.events
         # enable for traits
         self._enable = True
-
-    @property
-    def _manage_class(self):
-        return Appspace(Manager())
 
     @classmethod
     def appspace(cls, pattern, required=None, defaults=None, *args, **kw):

@@ -2,11 +2,11 @@
 '''appspace extensions'''
 
 from .apps import on, __
-from .services import service
-from .descriptors import direct, factory, forward
+from .core import Q, B, direct, factory
+from .services import forward, remote, service, servicer
 from .classes import Client, Host, Master, Server, Synched
 
 __all__ = [
-    '__', 'Client', 'Host', 'Master', 'Server', 'Synched', 'factory', 'on',
-    'forward', 'service', 'direct', 'remote',
+    '__', 'Q', 'B', 'Client', 'Host', 'Master', 'Server', 'Synched', 'factory',
+    'on', 'forward', 'service', 'direct', 'remote', 'servicer',
 ]

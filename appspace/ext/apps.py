@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=e1001,e1002
+# pylint: disable-msg=e1001,e1002,w0221
 '''appspace application extensions'''
 
 from __future__ import absolute_import
@@ -77,7 +77,7 @@ class AppPatterns(Patterns):
         conf.defaults = defaults
 
     @classmethod
-    def build(cls, required=None, defaults=None):  # pylint: disable-msg=W0221
+    def build(cls, required=None, defaults=None):
         '''
         build manager configuration from class
 
@@ -195,7 +195,7 @@ class AppQuery(Builder):
         meta = get_or_default(this, 'Meta')
         if meta:
             metas.append(meta)
-        settings = self._settings.local[self.id().one()] = stuf(dict(
+        settings = self._settings.local[this.__name__] = stuf(dict(
             (k, v) for k, v in self.members(m, lambda x: not x.startswith('_'))
         ) for m in metas)
         settings.update(kw)
@@ -236,7 +236,7 @@ class AppQuery(Builder):
 
     def trigger(self, label):
         '''
-        returns objects bound to an event
+        get objects bound to an event
 
         @param label: event label
         '''
@@ -244,7 +244,7 @@ class AppQuery(Builder):
 
     def unbind(self, event, label, branch=False):
         '''
-        unbind app from event
+        unbind application from event
 
         @param event: event label
         @param label: application label

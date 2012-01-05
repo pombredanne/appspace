@@ -59,8 +59,8 @@ class Settings(ResetMixin):
         return frozenstuf(final)
 
     @lazy
-    def factory(self):
-        '''return factory settings'''
+    def local(self):
+        '''return local settings'''
         return self._local
 
     @lazy_set

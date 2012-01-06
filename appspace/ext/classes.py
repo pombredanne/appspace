@@ -45,18 +45,18 @@ class Server(Host):
     appifies(AServer)
 
 
-class Synched(Host):
+class Synced(Host):
 
     '''instance with synchronizing functionality'''
 
-    def __init__(self, original, **kw):
+    def __init__(self, element=None, **kw):
         '''
         init
 
         @param original: data to synchronize
         '''
-        super(Synched, self).__init__()
-        self._sync = Sync(original, **kw)
+        super(Synced, self).__init__()
+        self._sync = Sync(element, **kw)
 
     def __repr__(self):
         return self.__str__()
@@ -70,4 +70,4 @@ class Synched(Host):
         return __(self).localize().one()
 
 
-__all__ = ('Client', 'Host', 'Server', 'Synched')
+__all__ = ('Client', 'Host', 'Server', 'Synced')

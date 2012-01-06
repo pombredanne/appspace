@@ -7,7 +7,7 @@ from inspect import isclass
 
 from stuf.utils import lazy
 
-from appspace.ext import Synched
+from appspace.ext import Synced
 
 from .api import Traits
 from .core import TraitType
@@ -49,7 +49,7 @@ class MetaHasTraits(type):
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
 
-class HasTraits(Synched):
+class HasTraits(Synced):
 
     __metaclass__ = MetaHasTraits
     _descriptor = TraitType

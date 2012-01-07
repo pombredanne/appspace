@@ -53,13 +53,13 @@ class Traits(object):
         '''
         if not md:
             return traits
-        for meta_name, meta_eval in md.itemitems():
+        for meta_name, meta_eval in md.iteritems():
             if type(meta_eval) is not FunctionType:
                 md[meta_name] = _SimpleTest(meta_eval)
         result = {}
         for name, trait in traits.iteritems():
             get_metadata = trait.get_metadata
-            for meta_name, meta_eval in md.itemitems():
+            for meta_name, meta_eval in md.iteritems():
                 if not meta_eval(get_metadata(meta_name)):
                     break
             else:
@@ -99,7 +99,7 @@ class Traits(object):
         return cls.class_filter(**md).keys()
 
     def commit(self):
-        self._sync.commit()
+        self.this._sync.commit()
         self.sync()
 
     def members(self, **md):
@@ -204,7 +204,7 @@ class Traits(object):
 
     def sync(self, **kw):
         '''synchronize traits with current instance property values'''
-        cur = self._sync.current
+        cur = self.this._sync.current
         self.set(**dict((k, cur[k]) for k in self.names(**kw)))
 
     def update(self, **kw):

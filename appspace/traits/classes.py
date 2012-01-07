@@ -5,9 +5,9 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from stuf.utils import lazy
+from stuf.utils import lazy, either
 
-from appspace.ext import Synced
+from appspace.ext import Synced, __
 
 from .api import Traits
 from .core import TraitType
@@ -24,6 +24,8 @@ class MetaHasTraits(type):
 
     def __new__(cls, name, bases, classdict):
         '''
+        new
+
         instantiate TraitTypes in classdict, setting their name attribute
         '''
         for k, v in classdict.iteritems():
@@ -38,6 +40,8 @@ class MetaHasTraits(type):
 
     def __init__(cls, name, bases, classdict):
         '''
+        init
+
         finish initializing HasTraits class
 
         This sets this_class attribute of each TraitType in the classdict to a
@@ -73,6 +77,11 @@ class HasTraits(Synced):
                 if TraitType.instance(value):
                     value.instance_init(inst)
         return inst
+
+    @either
+    def C(self):
+        '''local settings'''
+        return __(self).localize().one()
 
     @lazy
     def traits(self):

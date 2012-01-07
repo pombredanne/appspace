@@ -3,11 +3,10 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import either, setter
+from stuf.utils import setter
 
 from appspace.keys import appifies
 
-from .apps import __
 from .services import S
 from .keys import AClient, AServer
 from .containers import ResetMixin, Sync
@@ -53,7 +52,7 @@ class Synced(Host):
         '''
         init
 
-        @param original: data to synchronize
+        @param element: data to synchronize
         '''
         super(Synced, self).__init__()
         self._sync = Sync(element, **kw)
@@ -63,11 +62,6 @@ class Synced(Host):
 
     def __str__(self):
         return unicode(dict(i for i in self._sync.public.iteritems()))
-
-    @either
-    def C(self):
-        '''local settings'''
-        return __(self).localize().one()
 
 
 __all__ = ('Client', 'Host', 'Server', 'Synced')

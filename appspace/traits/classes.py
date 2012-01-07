@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from stuf.utils import either, getter
+from stuf.utils import both, getter
 
 from appspace.ext import Synced, __
 
@@ -78,11 +78,11 @@ class HasTraits(Synced):
                     value.instance_init(inst)
         return inst
 
-    @either
+    @both
     def C(self):
         '''local settings'''
         return __(self).localize().one()
 
-    @either
+    @both
     def traits(self):
         return Traits(self)

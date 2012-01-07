@@ -12,6 +12,23 @@ from appspace.utils import ResetMixin, object_walk
 from .keys import ADefaultSettings, ARequiredSettings, ASettings
 
 
+class lock_set(lazy_set):
+
+    '''lazy assign attributes with a custom setter'''
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        result = self.method(instance)
+        if instance._locked:
+            return setter(instance, self.name, result)
+        return result
+
+    def setter(self, func):
+        self.fget = func
+        return self
+
+
 class Settings(ResetMixin):
 
     '''appspace settings'''
@@ -28,11 +45,13 @@ class Settings(ResetMixin):
         self._local = defaultstuf(set)
         # required settings
         self._required = stuf()
+        # turn off lock initially
+        self._locked = False
 
     def __repr__(self, *args, **kwargs):
         return str(self._final)
 
-    @lazy_set
+    @lock_set
     def defaults(self):
         '''get default settings separately'''
         return frozenstuf(self._default)
@@ -48,9 +67,9 @@ class Settings(ResetMixin):
             self._default.clear()
             self.update_default(value)
         else:
-            raise TypeError('invalid DefaultSettings')
+            raise TypeError('invalid default settings')
 
-    @lazy
+    @lock_set
     def final(self):
         '''finalized settings'''
         final = self._default.copy()
@@ -63,7 +82,7 @@ class Settings(ResetMixin):
         '''return local settings'''
         return self._local
 
-    @lazy_set
+    @lock_set
     def required(self):
         '''get required settings separately'''
         return frozenstuf(self._required)
@@ -79,7 +98,7 @@ class Settings(ResetMixin):
             self._required.clear()
             self.update_required(value)
         else:
-            raise TypeError('invalid settings')
+            raise TypeError('invalid required settings')
 
     def get(self, key, default=None):
         '''
@@ -89,6 +108,10 @@ class Settings(ResetMixin):
         @param default: default value (default: None)
         '''
         return deepget(self._final, key, default)
+
+    def lock(self):
+        '''lock settings'''
+        self._locked = True
 
     def set(self, key, value):
         '''
@@ -111,12 +134,10 @@ class Settings(ResetMixin):
                 this[key] = value
         except ValueError:
             self._final[key] = value
-        self.reset()
 
     def update(self, *args, **kw):
         '''update final setting'''
         self._final.update(*args, **kw)
-        self.reset()
 
     def update_default(self, settings):
         '''
@@ -125,10 +146,9 @@ class Settings(ResetMixin):
         @param settings: new settings
         '''
         if ADefaultSettings.implementedBy(settings):
-            self.reset()
             self._default.update(object_walk(settings))
         else:
-            raise TypeError('invalid settings')
+            raise TypeError('invalid default settings')
 
     def update_required(self, settings):
         '''
@@ -137,10 +157,9 @@ class Settings(ResetMixin):
         @param settings: new settings
         '''
         if ARequiredSettings.implementedBy(settings):
-            self.reset()
             self._required.update(object_walk(settings))
         else:
-            raise TypeError('invalid settings')
+            raise TypeError('invalid required settings')
 
 
 class DefaultSettings(object):

@@ -201,6 +201,10 @@ class AppQuery(Builder):
         settings.update(kw)
         self.appendleft(settings)
         return self
+    
+    def lock(self):
+        '''lock settings so they are read only except locals'''
+        self._settings.lock()
 
     def register(self, model):
         '''

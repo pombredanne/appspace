@@ -4,8 +4,6 @@
 from operator import getitem
 from collections import deque
 
-from stuf.utils import lazy
-
 from appspace.utils import ResetMixin
 
 
@@ -198,17 +196,17 @@ class Sync(ResetMixin):
 
     __str__ = __unicode__
 
-    @lazy
+    @property
     def properties(self):
-        return dict((k, v) for k, v in self.current.iteritems())
+        return self.current.copy()
 
-    @lazy
+    @property
     def private(self):
         return dict(
             (k, v) for k, v in self.current.iteritems() if k.startswith('_')
         )
 
-    @lazy
+    @property
     def public(self):
         return dict(
             (k, v) for k, v in self.current.iteritems()
@@ -245,7 +243,6 @@ class Sync(ResetMixin):
 
     def update_original(self, kw):
         self.original.update(kw)
-        self.reset()
 
 
 __all__ = ('ResetMixin', 'Sync', 'namedqueue')

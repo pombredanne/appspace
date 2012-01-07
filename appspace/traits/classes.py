@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from stuf.utils import lazy, either
+from stuf.utils import either, getter
 
 from appspace.ext import Synced, __
 
@@ -70,7 +70,7 @@ class HasTraits(Synced):
             # __provides__ attributes even when they exist). This raises
             # AttributeErrors even though they are listed in dir(cls).
             try:
-                value = getattr(cls, key)
+                value = getter(cls, key)
             except AttributeError:
                 pass
             else:
@@ -83,6 +83,6 @@ class HasTraits(Synced):
         '''local settings'''
         return __(self).localize().one()
 
-    @lazy
+    @either
     def traits(self):
         return Traits(self)

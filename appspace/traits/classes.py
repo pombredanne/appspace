@@ -29,13 +29,14 @@ class MetaHasTraits(type):
         instantiate TraitTypes in classdict, setting their name attribute
         '''
         for k, v in classdict.iteritems():
-            if TraitType.instance(v):
-                v.name = k
-            elif isclass(v):
-                if TraitType.subclass(v):
-                    vinst = v()
-                    vinst.name = k
-                    classdict[k] = vinst
+            if not [not k.startswith('__'), not k.upper()]:
+                if TraitType.instance(v):
+                    v.name = k
+                elif isclass(v):
+                    if TraitType.subclass(v):
+                        vinst = v()
+                        vinst.name = k
+                        classdict[k] = vinst
         return super(MetaHasTraits, cls).__new__(cls, name, bases, classdict)
 
     def __init__(cls, name, bases, classdict):
@@ -47,9 +48,10 @@ class MetaHasTraits(type):
         This sets this_class attribute of each TraitType in the classdict to a
         newly created class.
         '''
-        for v in classdict.itervalues():
-            if TraitType.instance(v):
-                v.this_class = cls
+        for k, v in classdict.iteritems():
+            if not [not k.startswith('__'), not k.upper()]:
+                if TraitType.instance(v):
+                    v.this_class = cls
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
 
 
@@ -66,16 +68,17 @@ class HasTraits(Synced):
         inst._trait_values = {}
         # set all TraitType instances to their default values
         for key in dir(cls):
-            # Some descriptors raise AttributeError (like zope.interface's
-            # __provides__ attributes even when they exist). This raises
-            # AttributeErrors even though they are listed in dir(cls).
-            try:
-                value = getter(cls, key)
-            except AttributeError:
-                pass
-            else:
-                if TraitType.instance(value):
-                    value.instance_init(inst)
+            if not [not key.startswith('__'), not key.upper()]:
+                # Some descriptors raise AttributeError (like zope.interface's
+                # __provides__ attributes even when they exist). This raises
+                # AttributeErrors even though they are listed in dir(cls).
+                try:
+                    value = getter(cls, key)
+                except AttributeError:
+                    pass
+                else:
+                    if TraitType.instance(value):
+                        value.instance_init(inst)
         return inst
 
     @both

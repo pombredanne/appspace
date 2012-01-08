@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 '''setup for appspace'''
 
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
+
 import os
 import sys
-from setuptools import setup
+
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
 install_requires = ['zope.interface>=3.8.0', 'stuf>=0.8.1']
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
@@ -19,10 +24,7 @@ setup(
     author_email='lcrees@gmail.com',
     license='MIT',
     url='https://bitbucket.org/lcrees/appspace',
-    packages=[
-        'appspace', 'appspace.tests', 'appspace.traits', 'appspace.traits',
-        'appspace.traits.trait_types',
-    ],
+    packages=['appspace', 'appspace.tests', 'appspace.ext', 'appspace.traits'],
     test_suite='appspace.test',
     zip_safe=False,
     keywords='component injection aspect-oriented programming',

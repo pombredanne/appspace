@@ -5,6 +5,7 @@
 from __future__ import absolute_import
 
 from inspect import getmro
+from itertools import ifilter
 
 from stuf import stuf
 from stuf.utils import get_or_default, getcls, setter, selfname, lazy
@@ -195,9 +196,12 @@ class AppQuery(Builder):
         meta = get_or_default(this, 'Meta')
         if meta:
             metas.append(meta)
-        settings = self._settings.local[this.__name__] = stuf(dict(
-            (k, v) for k, v in self.members(m, lambda x: not x.startswith('_'))
-        ) for m in metas)
+        settings = stuf()
+        for m in metas:
+            for k, v in ifilter(
+                lambda x: not x[0].startswith('_'), self.itermembers(m),
+            ):
+                settings[k] = v
         settings.update(kw)
         self.appendleft(settings)
         return self

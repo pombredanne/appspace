@@ -20,7 +20,7 @@ ClassTypes = (ClassType, type)
 
 class ClassBasedTraitType(TraitType):
 
-    '''trait with error reporting for Type, Instance and This'''
+    '''trait with error reporting for Type, Instance, and This'''
 
     def error(self, this, value):
         kind = type(value)

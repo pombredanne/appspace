@@ -29,7 +29,7 @@ class MetaHasTraits(type):
         instantiate TraitTypes in classdict, setting their name attribute
         '''
         for k, v in classdict.iteritems():
-            if not [not k.startswith('__'), not k.upper()]:
+            if not any([not k.startswith('__'), not k.upper()]):
                 if TraitType.instance(v):
                     v.name = k
                 elif isclass(v):
@@ -49,7 +49,7 @@ class MetaHasTraits(type):
         newly created class.
         '''
         for k, v in classdict.iteritems():
-            if not [not k.startswith('__'), not k.upper()]:
+            if not any([not k.startswith('__'), not k.upper()]):
                 if TraitType.instance(v):
                     v.this_class = cls
         super(MetaHasTraits, cls).__init__(name, bases, classdict)
@@ -68,7 +68,7 @@ class HasTraits(Synced):
         inst._trait_values = {}
         # set all TraitType instances to their default values
         for key in dir(cls):
-            if not [not key.startswith('__'), not key.upper()]:
+            if not any([not key.startswith('__'), not key.upper()]):
                 # Some descriptors raise AttributeError (like zope.interface's
                 # __provides__ attributes even when they exist). This raises
                 # AttributeErrors even though they are listed in dir(cls).

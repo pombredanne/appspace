@@ -145,7 +145,9 @@ class ServiceQuery(Builder):
         @param label: application label
         '''
         app = self.app
-        for k, v in self.members(lambda x: self.keyed(AService, x)):
+        keyed = self.keyed
+        check = lambda x: keyed(AService, x)
+        for k, v in self.members(check):
             app(k, label, v)
         client._services.add(label)
         return self
@@ -159,12 +161,13 @@ class ServiceQuery(Builder):
         '''
         app = self.app(label, branch).first()
         metadata = get_or_default(app, 'metadata')
+        get = getter
         if metadata is not None:
             kw = {}
             client = self._this
             for k in metadata:
                 if hasattr(client, k):
-                    v = getter(client, k)
+                    v = get(client, k)
                     if v is not None:
                         kw[k] = v
             if kw:

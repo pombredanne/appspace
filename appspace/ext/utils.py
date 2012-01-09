@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''appspace settings'''
 
+import re
 try:
     from types import ClassType, InstanceType
     classtypes = type, ClassType
@@ -10,22 +11,24 @@ except ImportError:
 
 
 def generic(func):
+    '''
+    create a simple generic function
 
-    '''create a simple generic function'''
-
+    @param func: function to genericize
+    '''
     _sentinel = object()
 
     def _by_class(*args, **kw):
         cls = args[0].__class__
         for t in type(cls.__name__, (cls, object), {}).__mro__:
-            f = _gbt(t, _sentinel)
+            f = _getbytype(t, _sentinel)
             if f is not _sentinel:
                 return f(*args, **kw)
         else:
             return func(*args, **kw)
 
     _by_type = {object: func, InstanceType: _by_class}
-    _gbt = _by_type.get
+    _getbytype = _by_type.get
 
     def when_type(*types):
         '''decorator to add a method that will be called for the given types'''
@@ -43,7 +46,7 @@ def generic(func):
         return decorate
 
     _by_object = {}
-    _gbo = _by_object.get
+    _getbyobject = _by_object.get
 
     def when_object(*obs):
         '''decorator to add a method to be called for the given object(s)'''
@@ -57,10 +60,10 @@ def generic(func):
         return decorate
 
     def dispatch(*args, **kw):
-        f = _gbo(id(args[0]), _sentinel)
+        f = _getbyobject(id(args[0]), _sentinel)
         if f is _sentinel:
             for t in type(args[0]).__mro__:
-                f = _gbt(t, _sentinel)
+                f = _getbytype(t, _sentinel)
                 if f is not _sentinel:
                     return f(*args, **kw)
             else:
@@ -71,7 +74,6 @@ def generic(func):
     dispatch.__dict__ = func.__dict__.copy()
     dispatch.__doc__ = func.__doc__
     dispatch.__module__ = func.__module__
-
     dispatch.when_type = when_type
     dispatch.when_object = when_object
     dispatch.default = func
@@ -79,4 +81,15 @@ def generic(func):
     dispatch.has_type = lambda t: t in _by_type
     return dispatch
 
-__all__ = ['generic']
+
+def sort_nicely(iterable):
+    '''
+    Sort the given iterable in the way that humans expect.
+    
+    @param iterable: iterable to sort
+    '''
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(iterable, key=alphanum_key)
+
+__all__ = ['generic', 'sort_nicely']

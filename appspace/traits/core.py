@@ -16,6 +16,7 @@ class TraitType(object):
     '''base class for all traits'''
 
     appifies(ATraitType)
+
     default_value = Undefined
     info_text = 'any value'
     metadata = {}
@@ -50,7 +51,7 @@ class TraitType(object):
             try:
                 value = this._trait_values[self.name]
             except KeyError:
-                # Check for A dynamic initializer.
+                # Check for a dynamic initializer.
                 if self.name in this._trait_dyn_inits:
                     value = this._trait_dyn_inits[self.name](this)
                     value = self._validate(this, value)
@@ -73,7 +74,7 @@ class TraitType(object):
         if old_value != new_value:
             this._sync.update_current({self.name: new_value})
             this._trait_values[self.name] = new_value
-            this.A.trait(self.name, old_value, new_value)
+#            this.traits.trait(self.name, old_value, new_value)
 
     def _validate(self, this, value):
         if hasattr(self, 'validate'):
@@ -106,10 +107,6 @@ class TraitType(object):
 
     def info(self):
         return self.info_text
-
-    @staticmethod
-    def instance(value):
-        return isinstance(value, TraitType)
 
     def instance_init(self, this):
         '''
@@ -155,7 +152,3 @@ class TraitType(object):
 
     def set_metadata(self, key, value):
         getattr(self, '_metadata', {})[key] = value
-
-    @staticmethod
-    def subclass(value):
-        return issubclass(value, TraitType)

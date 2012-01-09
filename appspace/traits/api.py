@@ -5,13 +5,9 @@ from __future__ import absolute_import
 
 from types import FunctionType
 
-from stuf.utils import clsname, either, getter, deleter, setter
+from stuf.utils import clsname, getcls, getter, deleter, setter
 
-from appspace.utils import getcls
-
-from .core import TraitType
 from .error import TraitError
-from .utils import get_members
 
 __all__ = ['Traits']
 
@@ -35,11 +31,12 @@ class Traits(object):
 
     def __init__(self, this):
         self.this = this
+        self._traits = this._traits
 
     @staticmethod
     def _filter(traits, **md):
         '''
-        get A list of all the traits of this class.
+        get a list of all the traits of this class.
 
         This method A class method equivalent of the `traits` method.
 
@@ -65,12 +62,6 @@ class Traits(object):
             else:
                 result[name] = trait
         return result
-
-    @either
-    def _traits(self):
-        return dict(
-            m for m in get_members(getcls(self)) if TraitType.instance(m[1])
-        )
 
     @classmethod
     def class_filter(cls, **md):
@@ -99,6 +90,7 @@ class Traits(object):
         return cls.class_filter(**md).keys()
 
     def commit(self):
+        '''commit changes'''
         self.this._sync.commit()
         self.sync()
 
@@ -160,34 +152,16 @@ class Traits(object):
         '''
         Shortcut for setting object trait attributes.
 
-        Parameters
-        ----------
-        trait_change_notify : Boolean
-            If **True** (the default), then each value assigned may generate A
-            trait change notification. If **False**, then no trait change
-            notifications will be generated. (see also: trait_setq)
-        traits: list of key/value pairs
-            Trait attributes and their values to be set
-
-        Returns
-        -------
-        self
-            The method returns this object, after setting attributes.
-
-        Description
-        -----------
-        Treats each keyword argument to the method as the name of A trait
+        Treats each keyword argument to the method as the name of a trait
         attribute and sets the corresponding trait attribute to the value
-        specified. This is A useful shorthand when A number of trait attributes
-        need to be set on an object, or A trait attribute value needs to be set
-        in A lambda function. For example, you can write::
+        specified. This is a useful shorthand when a number of trait attributes
+        need to be set on an object, or a trait attribute value needs to be set
+        in a lambda function. For example, you can write::
 
-            person.trait_set(name='Bill', age=27)
-
-        instead of::
-
-            person.name = 'Bill'
-            person.age = 27
+        @param notify: If True, then each value assigned may generate a
+            trait change notification. If False, then no trait change
+            notifications will be generated. (default: True)
+        @param **traits: Trait attributes and their values to be set
         '''
         this = self.this
         if not notify:
@@ -208,6 +182,7 @@ class Traits(object):
         self.set(**dict((k, cur[k]) for k in self.names(**kw)))
 
     def update(self, **kw):
+        '''update traits with new values'''
         sync = self.this._sync
         if sync.changed:
             sync.current.update(sync.changed.copy())
@@ -223,7 +198,7 @@ class Traits(object):
 
     def validate_many(self):
         '''validate model data'''
-        for k, v in self._sync.current.iteritems():
+        for k, v in self.this._sync.current.iteritems():
             if not self.validate_one(k, v):
                 return False
         return True

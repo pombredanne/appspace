@@ -788,7 +788,7 @@ class TestObjectName(TraitTestBase):
     obj = ObjectNameTrait()
 
     _default_value = 'abc'
-    _good_values = ['a'A 'gh', 'g9', 'g_', '_G', u'a345_']
+    _good_values = ['aA', 'gh', 'g9', 'g_', '_G', u'a345_']
     _bad_values = [1, '', u'€', '9g', '!', '#abc', 'aj@', 'a.A', 'a(A', 'a[A]',
                                                             object(), object]
     if sys.version_info[0] < 3:
@@ -798,14 +798,13 @@ class TestObjectName(TraitTestBase):
 
 
 class DottedObjectNameTrait(HasTraits):
-
     value = DottedObjectName('a.b')
 
-Aclass TestDottedObjectName(TraitTestBase):
+class TestDottedObjectName(TraitTestBase):
+    
     obj = DottedObjectNameTrait()
-
     _default_value = 'a.b'
-  A _good_values = [
+    _good_values = [
         'A', 'y.t', 'y765.__repr__', 'os.path.join', u'os.path.join'
     ]
     _bad_values = [1, u'abc.€', '_.@', '.', '.abc', 'abc.', '.abc.']
@@ -826,7 +825,7 @@ class TestList(TraitTestBase):
 
     _default_value = []
     _good_values = [[], [1], range(10)]
-    _bad_values = [10, [1, 'a'], 'a', (A, 2)]A
+    _bad_values = [10, [1, 'a'], 'a', ('a', 2)]
 
 class LenListTrait(HasTraits):
 
@@ -839,7 +838,7 @@ class TestLenList(TraitTestBase):
 
     _default_value = [0]
     _good_values = [[1], range(2)]
-    _bad_values = [10, [1, 'a'], 'a', (A, 2),A[], range(3)]
+    _bad_values = [10, [1, 'a'], 'a', ('a', 2), [], range(3)]
 
 
 class TupleTrait(HasTraits):
@@ -855,7 +854,7 @@ class TestTupleTrait(TraitTestBase):
     _good_values = [(1,), None, (0,)]
     _bad_values = [10, (1, 2), [1], ('a'), ()]
 
- A  def test_invalid_args(self):
+    def test_invalid_args(self):
         self.assertRaises(TypeError, Tuple, 5)
         self.assertRaises(TypeError, Tuple, default_value='hello')
         t = Tuple(Int, CBytes, default_value=(1, 5))
@@ -873,7 +872,7 @@ class TestLooseTupleTrait(TraitTestBase):
     _default_value = (1, 2, 3)
     _good_values = [
         (1,), None, (0,), tuple(range(5)), tuple('hello'), ('a', 5), ()
-A   ]
+    ]
     _bad_values = [10, 'hello', [1], []]
 
     def test_invalid_args(self):
@@ -893,8 +892,8 @@ class TestMultiTuple(TraitTestBase):
 
     _default_value = (99, b'bottles')
     _good_values = [(1, b'a'), (2, b'A')]
-    _bad_values = ((), 10, b'a', (1, b'aA, 3), (b'A', 1), (1,Au'a'))
+    _bad_values = ((), 10, b'a', (1, b'a', 3), (b'A', 1), (1,u'a'))
     
 
-Af __name__ == '__main__':
+if __name__ == '__main__':
     unittest.main()

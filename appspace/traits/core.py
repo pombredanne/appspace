@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 
+from appspace.ext import __
 from appspace.keys import appifies
 from appspace.ext.keys import NoDefaultSpecified, Undefined
 
@@ -45,9 +46,9 @@ class TraitType(object):
         '''
         get the value of the trait by self.name for the instance
 
-        Default values are instantiated when `HasTraits.__new__` is called.
+        Default values are instantiated when `Traits.__new__` is called.
         Thus by the time this method gets called either the default value or
-        a user defined value (they called `__set__`) in the `HasTraits`
+        a user defined value (they called `__set__`) in the `Traits`
         instance.
         '''
         if this is None:
@@ -67,7 +68,7 @@ class TraitType(object):
                         'default value and dynamic initializer are absent'
                     )
             except Exception:
-                # HasTraits should call set_default_value to populate
+                # Traits should call set_default_value to populate
                 # this.  So this should never be reached.
                 raise TraitError('default value not set properly')
             else:
@@ -79,7 +80,7 @@ class TraitType(object):
         if old_value != new_value:
             this._sync.update_current({self.name: new_value})
             this._trait_values[self.name] = new_value
-            this.A.events.trait(self.name, old_value, new_value)
+            __(this).trait(self.name, old_value, new_value)
 
     def _validate(self, this, value):
         if hasattr(self, 'validate'):
@@ -98,7 +99,7 @@ class TraitType(object):
                 self.name, class_of(this), self.info(), repr_type(value)
             )
         else:
-            e = '%s trait must be %s, but A value of %r was specified' % (
+            e = '%s trait must be %s, but a value of %r was specified' % (
                 self.name, self.info(), repr_type(value)
             )
         raise TraitError(e)
@@ -121,13 +122,13 @@ class TraitType(object):
 
     def instance_init(self, value):
         '''
-        called by HasTraits.__new__ to finish init'ing.
+        called by Traits.__new__ to finish init'ing.
 
-        @param value: newly create parent `HasTraits` instance
+        @param value: newly create parent `Traits` instance
 
         Some stages of initialization must be delayed until the parent
-        HasTraits instance has been created.  This method is called in
-        HasTraits.__new__ after the instance has been created.
+        Traits instance has been created.  This method is called in
+        Traits.__new__ after the instance has been created.
 
         This method trigger the creation and validation of default values and
         also things like the resolution of str given class names in the
@@ -143,7 +144,7 @@ class TraitType(object):
 
         This method is called by instance_init to create and validate the
         default value. The creation and validation of default values must be
-        delayed until the `HasTraits` class has been instantiated.
+        delayed until the `Traits` class has been instantiated.
         '''
         # Check for A deferred initializer defined in the same class as the
         # trait declaration or above.

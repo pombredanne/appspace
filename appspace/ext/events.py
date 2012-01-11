@@ -40,7 +40,7 @@ class EventManager(object):
 
     '''appspace event manager'''
 
-    __slots__ = ('A', '_enabled')
+    __slots__ = ('appspace', '_enabled')
 
     appifies(AEventManager)
 
@@ -50,7 +50,7 @@ class EventManager(object):
 
         @param appspace: appspace to store events in
         '''
-        self.A = appspace
+        self.appspace = appspace
         self._enabled = True
 
     def __repr__(self):
@@ -122,7 +122,10 @@ class EventManager(object):
 
         @param label: event label
         '''
-        return getitem(get_apps(self.appspace.easy_lookup(AEvent, label)), 0)
+        app = self.appspace.easy_lookup(AEvent, label)
+        if app is not None:
+            return getitem(get_apps(app), 0)
+        return None
 
     def react(self, label):
         '''

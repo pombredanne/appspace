@@ -73,11 +73,10 @@ class Traits(Synced):
         inst = super(Traits, cls).__new__(cls, *args, **kw)
         inst._trait_dyn_inits = {}
         inst._trait_values = {}
-        inst._traits = {}
+        traits = inst._traits = {}
         # set all TraitType instances to their default values
         keyer = __.keyer
         iskey = __.iskey
-        traits = inst._traits
         for k, v in vars(cls).iteritems():
             if all([keyer(ATraitType, v), iskey(k)]):
                 v.instance_init(inst)
@@ -274,9 +273,10 @@ class Traits(Synced):
         '''
         try:
             # return if data is valid
-            if self._traits[trait].validate(trait, value):
-                return True
-            # return False if data is invalid
+            self._traits[trait].validate(trait, value)
+            return True
+        # return False if data is invalid
+        except TraitError:
             return False
         # attributes are True if not specified
         except KeyError:

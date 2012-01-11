@@ -155,6 +155,11 @@ class AppQuery(Builder):
         '''default settings by their lonesome'''
         self.appendleft(self._settings.defaults)
         return self
+    
+    def enable(self):
+        '''toggle if trait events are allowed'''
+        self.appendleft(setter(self, '_enable', not self._enable))
+        return self
 
     def event(self, label, priority=False, **kw):
         '''
@@ -169,11 +174,6 @@ class AppQuery(Builder):
             return self
         # register event if priority and keywords passed
         self.appendleft(self._manager.register(label, priority, **kw))
-        return self
-
-    def enable(self):
-        '''toggle if trait events are allowed'''
-        self.appendleft(setter(self, '_enable', not self._enable))
         return self
 
     def fire(self, event, *args, **kw):
@@ -241,6 +241,16 @@ class AppQuery(Builder):
             return self
         self.appendleft(self._settings.get(label, default))
         return self
+    
+    def trait(self, name, old_value, new_value):
+        '''
+        process trait related event
+
+        @param label: trait event label
+        @param old_value: old trait value
+        @param new_value: new trait value
+        '''
+        self._events.trait(name, old_value, new_value)
 
     def trigger(self, label):
         '''

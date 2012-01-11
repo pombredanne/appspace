@@ -23,21 +23,27 @@ class TraitType(object):
     name = ''
     this_class = ''
 
-    def __init__(self, default_value=NoDefaultSpecified, **md):
+    def __init__(self, default_value=NoDefaultSpecified, **metadata):
+        '''
+        init
+
+        @param default_value: default value for trait
+            (default: NoDefaultSpecified)
+        '''
         if default_value is not NoDefaultSpecified:
             self.default_value = default_value
-        if len(md) > 0:
+        if len(metadata) > 0:
             if len(self.metadata) > 0:
                 self._metadata = self.metadata.copy()
-                self._metadata.update(md)
+                self._metadata.update(metadata)
             else:
-                self._metadata = md
+                self._metadata = metadata
         else:
             self._metadata = self.metadata
 
     def __get__(self, this, that=None):
         '''
-        get the value of the trait by self.name for the instance.
+        get the value of the trait by self.name for the instance
 
         Default values are instantiated when `HasTraits.__new__` is called.
         Thus by the time this method gets called either the default value or
@@ -98,20 +104,26 @@ class TraitType(object):
         raise TraitError(e)
 
     def get_default_value(self):
-        '''create A new instance of the default value'''
+        '''create a new instance of the default value'''
         return self.default_value
 
     def get_metadata(self, key):
+        '''
+        get metadata
+
+        @param key: metadata key
+        '''
         return getattr(self, '_metadata', {}).get(key, None)
 
     def info(self):
+        '''information text'''
         return self.info_text
 
-    def instance_init(self, this):
+    def instance_init(self, value):
         '''
         called by HasTraits.__new__ to finish init'ing.
 
-        @param this: newly create parent `HasTraits` instance
+        @param value: newly create parent `HasTraits` instance
 
         Some stages of initialization must be delayed until the parent
         HasTraits instance has been created.  This method is called in
@@ -121,11 +133,13 @@ class TraitType(object):
         also things like the resolution of str given class names in the
         `Type` or `Instance` class.
         '''
-        self.set_default_value(this)
+        self.set_default_value(value)
 
-    def set_default_value(self, this):
+    def set_default_value(self, value):
         '''
-        set the default value on a per instance basis.
+        set the default value on a per instance basis
+
+        @param value: a default value
 
         This method is called by instance_init to create and validate the
         default value. The creation and validation of default values must be
@@ -133,7 +147,7 @@ class TraitType(object):
         '''
         # Check for A deferred initializer defined in the same class as the
         # trait declaration or above.
-        mro = type(this).mro()
+        mro = type(value).mro()
         cls = None
         meth_name = '_%s_default' % self.name
         for cls in mro[:mro.index(self.this_class) + 1]:
@@ -142,11 +156,17 @@ class TraitType(object):
         else:
             # We didn't find one. Do static initialization.
             dv = self.get_default_value()
-            newdv = self._validate(this, dv)
-            this._trait_values[self.name] = newdv
+            newdv = self._validate(value, dv)
+            value._trait_values[self.name] = newdv
             return
         # Complete the dynamic initialization.
-        this._trait_dyn_inits[self.name] = cls.__dict__[meth_name]
+        value._trait_dyn_inits[self.name] = cls.__dict__[meth_name]
 
     def set_metadata(self, key, value):
+        '''
+        set metadata
+
+        @param key: metadata key
+        @param value: metadata value
+        '''
         getattr(self, '_metadata', {})[key] = value

@@ -91,9 +91,9 @@ class Type(ClassBasedTraitType):
             return result + ' or None'
         return result
 
-    def instance_init(self, this):
+    def instance_init(self, value):
         self._resolve_classes()
-        super(Type, self).instance_init(this)
+        super(Type, self).instance_init(value)
 
     def validate(self, this, value):
         '''Validates that the value is a valid object instance.'''
@@ -199,9 +199,9 @@ class Instance(ClassBasedTraitType):
             return result + ' or None'
         return result
 
-    def instance_init(self, this):
+    def instance_init(self, value):
         self._resolve_classes()
-        super(Instance, self).instance_init(this)
+        super(Instance, self).instance_init(value)
 
     def validate(self, this, value):
         if value is None:

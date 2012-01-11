@@ -4,17 +4,19 @@
 from __future__ import absolute_import
 
 from inspect import isclass
+from types import FunctionType
 
-from stuf.utils import both
+from stuf.utils import both, clsname, getcls, getter, deleter, setter
 
+from appspace.keys import appifies
 from appspace.ext import Synced, __
 
-from .api import Traits
 from .core import TraitType
-from .keys import ATraitType
+from .error import TraitError
+from .keys import AHasTraits, ATraitType
 
 
-class MetaHasTraits(type):
+class MetaTraits(type):
 
     '''
     metaclass to make sure TraitType class attributes are instantiated with
@@ -35,42 +37,51 @@ class MetaHasTraits(type):
                     classdict[k] = vinst
                 else:
                     v.name = k
-        return super(MetaHasTraits, cls).__new__(cls, name, bases, classdict)
+        return super(MetaTraits, cls).__new__(cls, name, bases, classdict)
 
     def __init__(cls, name, bases, classdict):
         '''
         init
 
-        finish initializing HasTraits class
+        finish initializing Traits class
 
         This sets this_class attribute of each TraitType in the classdict to a
         newly created class.
         '''
-        classtraits = cls._classtraits
+        cls._classtraits = classtraits = {}
         for k, v in classdict.iteritems():
             if all([__.keyer(ATraitType, v), __.iskey(k)]):
                 v.this_class = cls
                 classtraits[k] = v
-        super(MetaHasTraits, cls).__init__(name, bases, classdict)
+        super(MetaTraits, cls).__init__(name, bases, classdict)
 
 
-class HasTraits(Synced):
+class Traits(Synced):
 
-    __metaclass__ = MetaHasTraits
+    __metaclass__ = MetaTraits
+
+    appifies(AHasTraits)
 
     _descriptor = TraitType
-    _classtraits = {}
 
     def __new__(cls, *args, **kw):
-        inst = super(HasTraits, cls).__new__(cls, *args, **kw)
+        '''
+        new
+
+        initalize traits for instance
+        '''
+        inst = super(Traits, cls).__new__(cls, *args, **kw)
         inst._trait_dyn_inits = {}
         inst._trait_values = {}
         inst._traits = {}
         # set all TraitType instances to their default values
+        keyer = __.keyer
+        iskey = __.iskey
+        traits = inst._traits
         for k, v in vars(cls).iteritems():
-            if all([__.keyer(ATraitType, v), __.iskey(k)]):
+            if all([keyer(ATraitType, v), iskey(k)]):
                 v.instance_init(inst)
-                inst._traits[k] = v
+                traits[k] = v
         return inst
 
     @both
@@ -78,7 +89,212 @@ class HasTraits(Synced):
         '''local settings'''
         return __(self).localize().one()
 
-    @both
-    def traits(self):
-        '''traits handler'''
-        return Traits(self)
+    @staticmethod
+    def _filter(traits, **metadata):
+        '''
+        get a list of all the traits of this class
+
+        @param traits: traits
+        @param **metadata: metadata to filter by
+
+        This method is a class method equivalent of the traits method.
+
+        The traits returned know nothing about the values that HasTrait's
+        instances are holding.
+
+        This follows the same algorithm as traits does and does not allow for
+        any simple way of specifying merely that a metadata name exists, but
+        has any value.  This is because get_metadata returns None if a metadata
+        key doesn't exist.
+        '''
+        if not metadata:
+            return traits
+        for meta_name, meta_eval in metadata.iteritems():
+            if type(meta_eval) is not FunctionType:
+                metadata[meta_name] = _SimpleTest(meta_eval)
+        result = {}
+        for name, trait in traits.iteritems():
+            get_metadata = trait.get_metadata
+            for meta_name, meta_eval in metadata.iteritems():
+                if not meta_eval(get_metadata(meta_name)):
+                    break
+            else:
+                result[name] = trait
+        return result
+
+    @classmethod
+    def class_filter(cls, **metadata):
+        '''
+        get a list of all the traits of this class
+
+        @param **metadata: metadata to filter by
+
+        This method a class method equivalent of the `traits` method.
+
+        The traits returned know nothing about the values that HasTrait's
+        instances are holding.
+
+        This follows the same algorithm as traits does and does not allow for
+        any simple way of specifying merely that A metadata name exists, but
+        has any value.  This is because get_metadata returns None if A metadata
+        key doesn't exist.
+        '''
+        return cls._filter(cls._classtraits, **metadata)
+
+    @classmethod
+    def class_names(cls, **metadata):
+        '''
+        get a list of all the names of this classes traits.
+
+        @param **metadata: metadata to filter by
+
+        This method is just like the :meth:`trait_names` method, but is unbound
+        '''
+        return cls.class_filter(**metadata).keys()
+
+    def commit(self):
+        '''commit changes'''
+        self._sync.commit()
+        self.sync()
+
+    def members(self, **metadata):
+        '''
+        get trait list for class
+
+        @param **metadata: metadata to filter by
+
+        Returned TraitTypes know nothing about other values that any other of
+        HasTrait's instances are holding.
+
+        This follows the same algorithm as traits does and does not allow for
+        any simple way of specifying merely that A metadata name exists, but
+        has any value.  This is because get_metadata returns None if A metadata
+        key doesn't exist.
+        '''
+        return self._filter(self._traits, **metadata)
+
+    def metadata(self, label, key):
+        '''
+        get metadata values for trait by key
+
+        @param label: trait label
+        @param key: key in trait metadata
+        '''
+        try:
+            return getter(getcls(self.this), label).get_metadata(key)
+        except AttributeError:
+            raise TraitError(
+                '%s has no trait %s' % (clsname(self.this), label)
+            )
+
+    def names(self, **metadata):
+        '''
+        get all names of this instance's traits
+
+        @param **metadata: metadata to filter by
+        '''
+        return self.members(**metadata).keys()
+
+    def reset(self, labels=None, **metadata):
+        '''
+        @param traits: list of strings naming trait attributes to reset
+
+        Resets each of the traits whose names are specified in the traits
+        list to their default values. If traits is None or omitted, the
+        method resets all explicitly-defined object trait attributes to their
+        default values. A list of attributes that the method was unable to
+        reset, which is empty if all the attributes were successfully reset.
+        '''
+        if labels is None:
+            labels = self.names(**metadata)
+        this = self.this
+        unresetable = []
+        uappend = unresetable.append
+        for label in labels:
+            try:
+                deleter(this, label)
+            except (AttributeError, TraitError):
+                uappend(label)
+        return unresetable
+
+    def set(self, notify=True, **traits):
+        '''
+        shortcut for setting object trait attributes
+
+        @param notify: If True, then each value assigned may generate a
+            trait change notification. If False, then no trait change
+            notifications will be generated. (default: True)
+        @param **traits: Trait attributes and their values to be set
+
+        Treats each keyword argument to the method as the name of a trait
+        attribute and sets the corresponding trait attribute to the value
+        specified. This is a useful shorthand when a number of trait attributes
+        need to be set on an object, or a trait attribute value needs to be set
+        in a lambda function.
+        '''
+        this = self
+        if not notify:
+            this.A.events.enabled = False
+            try:
+                for name, value in traits.iteritems():
+                    setter(this, name, value)
+            finally:
+                this.A.events.enabled = True
+            return self
+        for name, value in traits.items():
+            setter(this, name, value)
+        return self
+
+    def sync(self, **kw):
+        '''synchronize traits with current instance property values'''
+        cur = self._sync.current
+        self.set(**dict((k, cur[k]) for k in self.names(**kw)))
+
+    def update(self, **kw):
+        '''update traits with new values'''
+        sync = self._sync
+        if sync.changed:
+            sync.current.update(sync.changed.copy())
+        else:
+            self.sync(**kw)
+
+    def validate_many(self):
+        '''validate model data'''
+        for k, v in self._sync.current.iteritems():
+            if not self.validate_one(k, v):
+                return False
+        return True
+
+    def validate_one(self, trait, value):
+        '''
+        validate one trait
+
+        @param trait: trait name
+        @param value: value to validate
+        '''
+        try:
+            # return if data is valid
+            if self._traits[trait].validate(trait, value):
+                return True
+            # return False if data is invalid
+            return False
+        # attributes are True if not specified
+        except KeyError:
+            return True
+
+
+class _SimpleTest:
+
+    '''simple test'''
+
+    def __init__(self, value):
+        self.value = value
+
+    def __call__(self, test):
+        return test == self.value
+
+    def __repr__(self):
+        return '<SimpleTest(%r)' % self.value
+
+    def __str__(self):
+        return self.__repr__()

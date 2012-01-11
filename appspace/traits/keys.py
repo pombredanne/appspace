@@ -13,7 +13,7 @@ class ATraitType(AppspaceKey):
     name = Attribute('attribute name')
     this_class = Attribute('class pointer')
 
-    def instance_init(this):
+    def instance_init(value):
         '''initialize instance with instance'''
 
 

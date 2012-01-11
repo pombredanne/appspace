@@ -32,7 +32,7 @@ Notes
 -----
 Our implementation of traits is based on Python's descriptor prototol. This
 class is the base class for all such descriptors. The only magic we use is
-a custom metaclass for the main :class:`HasTraits` class that does the
+a custom metaclass for the main :class:`Traits` class that does the
 following:
 
 1. Sets the :attr:`name` attribute of every :class:`TraitType` instance in
@@ -57,7 +57,7 @@ from __future__ import absolute_import
 
 from inspect import ismodule
 
-from .classes import HasTraits
+from .classes import Traits
 from .core import TraitType, Undefined, NoDefaultSpecified
 from .containers import (
     List, Container, CaselessStrEnum, Enum, Any, Tuple, Dict

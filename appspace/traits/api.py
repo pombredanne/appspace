@@ -7,7 +7,10 @@ from types import FunctionType
 
 from stuf.utils import clsname, getcls, getter, deleter, setter
 
+from appspace.keys import appifies
+
 from .error import TraitError
+from appspace.traits.keys import ATraits
 
 __all__ = ['Traits']
 
@@ -29,16 +32,21 @@ class _SimpleTest:
 
 class Traits(object):
 
+    appifies(ATraits)
+
     def __init__(self, this):
         self.this = this
-        self._traits = this._traits
+        try:
+            self._traits = this._traits
+        except AttributeError:
+            self._traits = this._classtraits
 
     @staticmethod
     def _filter(traits, **md):
         '''
         get a list of all the traits of this class.
 
-        This method A class method equivalent of the `traits` method.
+        This method is a class method equivalent of the `traits` method.
 
         The traits returned know nothing about the values that HasTrait's
         instances are holding.
@@ -193,8 +201,9 @@ class Traits(object):
         try:
             if self._traits[trait].validate(trait, value):
                 return True
-        except KeyError:
             return False
+        except KeyError:
+            return True
 
     def validate_many(self):
         '''validate model data'''

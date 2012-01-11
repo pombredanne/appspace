@@ -15,6 +15,9 @@ def generic(func):
     create a simple generic function
 
     @param func: function to genericize
+
+    This is a variation on version 0.8 of Philip J. Eby's simplegeneric module
+    (http://pypi.python.org/pypi/simplegeneric).
     '''
     _sentinel = object()
 

@@ -34,7 +34,6 @@ class TraitType(object):
                 self._metadata = md
         else:
             self._metadata = self.metadata
-#        self.init()
 
     def __get__(self, this, that=None):
         '''
@@ -42,7 +41,7 @@ class TraitType(object):
 
         Default values are instantiated when `HasTraits.__new__` is called.
         Thus by the time this method gets called either the default value or
-        A user defined value (they called `__set__`) in the `HasTraits`
+        a user defined value (they called `__set__`) in the `HasTraits`
         instance.
         '''
         if this is None:
@@ -74,7 +73,7 @@ class TraitType(object):
         if old_value != new_value:
             this._sync.update_current({self.name: new_value})
             this._trait_values[self.name] = new_value
-#            this.traits.trait(self.name, old_value, new_value)
+            this.A.events.trait(self.name, old_value, new_value)
 
     def _validate(self, this, value):
         if hasattr(self, 'validate'):
@@ -126,12 +125,11 @@ class TraitType(object):
 
     def set_default_value(self, this):
         '''
-        set the default value on A per instance basis.
+        set the default value on a per instance basis.
 
         This method is called by instance_init to create and validate the
-        default value.  The creation and validation of default values must be
-        delayed until the parent :class:`HasTraits` class has been
-        instantiated.
+        default value. The creation and validation of default values must be
+        delayed until the `HasTraits` class has been instantiated.
         '''
         # Check for A deferred initializer defined in the same class as the
         # trait declaration or above.

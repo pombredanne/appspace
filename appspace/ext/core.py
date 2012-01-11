@@ -208,11 +208,32 @@ class Query(deque):
         for key in dir(this):
             if not any([key.startswith('__'), key.isupper()]):
                 try:
-                    value = getattr(this, key)
+                    value = getter(this, key)
                 except AttributeError:
                     pass
                 else:
                     yield key, value
+
+    @staticmethod
+    def iskey(key):
+        '''validate key'''
+        return all([not key.startswith('_'), not key.isupper()])
+
+    @staticmethod
+    def keyer(key, this):
+        '''
+        check if item provides an app key
+
+        @param label: app key
+        @param this: object to check
+        '''
+        try:
+            return key.providedBy(this)
+        except (AttributeError, TypeError):
+            try:
+                return key.implementedBy(this)
+            except (AttributeError, TypeError):
+                return False
 
     @staticmethod
     def keyed(key, this):
@@ -222,13 +243,7 @@ class Query(deque):
         @param label: app key
         @param this: object to check
         '''
-        try:
-            return key.providedBy(this[1])
-        except (AttributeError, TypeError):
-            try:
-                return key.implementedBy(this[1])
-            except (AttributeError, TypeError):
-                return False
+        return Query.keyer(key, this[1])
 
     def last(self):
         '''fetch the last result'''

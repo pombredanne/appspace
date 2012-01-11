@@ -52,7 +52,7 @@ class namedqueue(object):
 
     def add_left(self, key, value):
         '''
-        dd item to left side of queue
+        add item to left side of queue
 
         @param key: key in queue
         @param value: value to put in queue
@@ -245,4 +245,4 @@ class Sync(ResetMixin):
         self.original.update(kw)
 
 
-__all__ = ('ResetMixin', 'Sync', 'namedqueue')
+__all__ = ('Sync', 'namedqueue')

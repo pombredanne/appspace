@@ -2,6 +2,8 @@
 # pylint: disable-msg=e1001,e1002
 '''appspace extension service management'''
 
+from __future__ import absolute_import
+
 from functools import partial, wraps
 
 from stuf.utils import getter, get_or_default

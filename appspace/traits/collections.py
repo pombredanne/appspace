@@ -11,7 +11,7 @@ from stuf.utils import clsname
 from .core import TraitType
 from .error import TraitError
 from .language import Instance
-from .utils import repr_type, class_of
+from .utils import class_of, repr_type
 
 SequenceTypes = (ListType, TupleType, set, frozenset)
 
@@ -50,9 +50,7 @@ class Container(Instance):
         container to that TraitType.
 
         If only one arg is given and it is not a Trait, it is taken as
-        ``default_value``:
-
-        ``c = List([1,2,3])``
+        default_value
         '''
         istrait = lambda t: isinstance(t, type) and issubclass(t, TraitType)
         # allow List([values]):

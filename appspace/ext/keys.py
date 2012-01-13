@@ -3,6 +3,8 @@
 # pylint: disable-msg=f0401,e0213,e0211
 '''appspace extension keys'''
 
+from __future__ import absolute_import
+
 from inspect import ismodule
 
 from appspace.keys import AppspaceKey, Attribute
@@ -103,7 +105,7 @@ class ARequiredSettings(ASettings):
     '''required settings key'''
 
 
-class NoDefaultSpecified(object):
+class NoDefault(object):
 
     '''no default'''
 
@@ -116,7 +118,7 @@ class Undefined(object):
     '''undefined value'''
 
 
-NoDefaultSpecified = NoDefaultSpecified()
+NoDefault = NoDefault()
 Undefined = Undefined()
 
 __all__ = sorted(name for name, obj in locals().iteritems() if not any([

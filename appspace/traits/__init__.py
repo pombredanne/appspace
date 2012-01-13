@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-A lightweight Traits like module.
+A lightweight Traits like library.
 
 This is designed to provide a lightweight, simple, pure Python version of
 many of the capabilities of enthought.traits.  This includes:
@@ -35,12 +35,11 @@ class is the base class for all such descriptors. The only magic we use is
 a custom metaclass for the main :class:`Traits` class that does the
 following:
 
-1. Sets the :attr:`name` attribute of every :class:`TraitType` instance in
+1. Sets the :attr:`name` attribute of every TraitType instance in
    the class dict to the name of the attribute.
-2. Sets the :attr:`this_class` attribute of every :class:`TraitType`
-   instance in the class dict to the *class* that declared the trait. This
-   is used by the :class:`This` trait to allow subclasses to accept
-   superclasses for :class:`This` values.
+2. Sets the attribute of every TraitType instance in the class dict to the
+   class that declared the trait. This is used by the This trait to allow
+   subclasses to accept superclasses for This values.
 
 Authors:
 
@@ -57,10 +56,10 @@ from __future__ import absolute_import
 
 from inspect import ismodule
 
-from .classes import Traits
-from .core import TraitType, Undefined, NoDefaultSpecified
-from .containers import (
-    List, Container, CaselessStrEnum, Enum, Any, Tuple, Dict
+from .classes import Traits, TraitSync
+from .core import NoDefault, TraitType, Undefined
+from .collections import (
+    Any, CaselessStrEnum, Container, Dict, Enum, List, Tuple,
 )
 from .strings import Bytes, CBytes, CUnicode, CheckedUnicode, Unicode
 from .language import DottedObjectName, Instance, ObjectName, This, Type

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-'''traits types'''
+'''trait types'''
 
 from __future__ import absolute_import
 
 from appspace.ext import __
 from appspace.keys import appifies
-from appspace.ext.keys import NoDefaultSpecified, Undefined
+from appspace.ext.keys import NoDefault, Undefined
 
 from .keys import ATraitType
 from .error import TraitError
@@ -24,23 +24,17 @@ class TraitType(object):
     name = ''
     this_class = ''
 
-    def __init__(self, default_value=NoDefaultSpecified, **metadata):
+    def __init__(self, default_value=NoDefault, **metadata):
         '''
         init
 
-        @param default_value: default value for trait
-            (default: NoDefaultSpecified)
+        @param default_value: default trait value (default: NoDefault)
         '''
-        if default_value is not NoDefaultSpecified:
+        if default_value is not NoDefault:
             self.default_value = default_value
-        if len(metadata) > 0:
-            if len(self.metadata) > 0:
-                self._metadata = self.metadata.copy()
-                self._metadata.update(metadata)
-            else:
-                self._metadata = metadata
-        else:
-            self._metadata = self.metadata
+        self._metadata = self.metadata.copy()
+        if metadata:
+            self._metadata.update(metadata)
 
     def __get__(self, this, that=None):
         '''
@@ -53,36 +47,40 @@ class TraitType(object):
         '''
         if this is None:
             return self
-        else:
-            try:
-                value = this._trait_values[self.name]
-            except KeyError:
-                # Check for a dynamic initializer.
-                if self.name in this._trait_dyn_inits:
-                    value = this._trait_dyn_inits[self.name](this)
-                    value = self._validate(this, value)
-                    this._trait_values[self.name] = value
-                    return value
-                else:
-                    raise TraitError(
-                        'default value and dynamic initializer are absent'
-                    )
-            except Exception:
-                # Traits should call set_default_value to populate
-                # this.  So this should never be reached.
-                raise TraitError('default value not set properly')
-            else:
+        sync = this._sync
+        try:
+            value = sync._traits[self.name]
+        except KeyError:
+            # Check for a dynamic initializer.
+            if self.name in this._trait_dyn_inits:
+                value = this._trait_dyn_inits[self.name](this)
+                value = self._validate(this, value)
+                sync.update_traits({self.name: value})
                 return value
+            else:
+                raise TraitError(
+                    'default value and dynamic initializer are absent'
+                )
+        except:
+            # Traits should call set_default_value to populate this. So this
+            # should never be reached.
+            raise TraitError('default value not set properly')
+        else:
+            return value
 
     def __set__(self, this, value):
+        # validate new value
         new_value = self._validate(this, value)
+        # fetch old value
         old_value = self.__get__(this)
+        # if changed...
         if old_value != new_value:
-            this._sync.update_current({self.name: new_value})
-            this._trait_values[self.name] = new_value
-            __(this).trait(self.name, old_value, new_value)
+            name = self.name
+            this._sync.update_traits({name: new_value})
+            __(this).trait(name, old_value, new_value)
 
     def _validate(self, this, value):
+        # valideate value "this"
         if hasattr(self, 'validate'):
             return self.validate(this, value)
         elif hasattr(self, 'is_valid_for'):
@@ -94,6 +92,12 @@ class TraitType(object):
         return value
 
     def error(self, this, value):
+        '''
+        handle value errors
+
+        @param this: instance
+        @param value: incorrect value
+        '''
         if this is not None:
             e = '%s trait of %s instance must be %s but value %s specified' % (
                 self.name, class_of(this), self.info(), repr_type(value)
@@ -122,7 +126,7 @@ class TraitType(object):
 
     def instance_init(self, value):
         '''
-        called by Traits.__new__ to finish init'ing.
+        called by Traits.__new__ to finish init'ing instance
 
         @param value: newly create parent `Traits` instance
 
@@ -131,8 +135,8 @@ class TraitType(object):
         Traits.__new__ after the instance has been created.
 
         This method trigger the creation and validation of default values and
-        also things like the resolution of str given class names in the
-        `Type` or `Instance` class.
+        also things like the resolution of str given class names in the Type or
+        Instance class.
         '''
         self.set_default_value(value)
 
@@ -140,17 +144,18 @@ class TraitType(object):
         '''
         set the default value on a per instance basis
 
-        @param value: a default value
+        @param value: a value
 
         This method is called by instance_init to create and validate the
         default value. The creation and validation of default values must be
-        delayed until the `Traits` class has been instantiated.
+        delayed until the Traits class has been instantiated.
         '''
         # Check for A deferred initializer defined in the same class as the
         # trait declaration or above.
         mro = type(value).mro()
         cls = None
-        meth_name = '_%s_default' % self.name
+        name = self.name
+        meth_name = '_{name}_default'.format(name=name)
         for cls in mro[:mro.index(self.this_class) + 1]:
             if meth_name in cls.__dict__:
                 break
@@ -158,10 +163,10 @@ class TraitType(object):
             # We didn't find one. Do static initialization.
             dv = self.get_default_value()
             newdv = self._validate(value, dv)
-            value._trait_values[self.name] = newdv
+            value._sync.update_traits({name: newdv})
             return
         # Complete the dynamic initialization.
-        value._trait_dyn_inits[self.name] = cls.__dict__[meth_name]
+        value._trait_dyn_inits[name] = cls.__dict__[meth_name]
 
     def set_metadata(self, key, value):
         '''

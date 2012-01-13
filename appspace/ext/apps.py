@@ -17,7 +17,7 @@ from appspace.builders import Appspace, Patterns, patterns
 from .core import Builder
 from .settings import Settings
 from .events import EventManager
-from .keys import NoDefaultSpecified, AEventManager, ASettings
+from .keys import AEventManager, ASettings, NoDefault
 
 
 def on(*events):
@@ -155,7 +155,7 @@ class AppQuery(Builder):
         '''default settings by their lonesome'''
         self.appendleft(self._settings.defaults)
         return self
-    
+
     def enable(self):
         '''toggle if trait events are allowed'''
         self.appendleft(setter(self, '_enable', not self._enable))
@@ -228,15 +228,15 @@ class AppQuery(Builder):
         self.appendleft(self._settings.required)
         return self
 
-    def setting(self, label, value=NoDefaultSpecified, default=None):
+    def setting(self, label, value=NoDefault, default=None):
         '''
         change setting in application settings
 
         @param label: setting label
-        @param value: value in settings (default: NoDefaultSpecified)
+        @param value: value in settings (default: NoDefault)
         @param default: setting value (default: None)
         '''
-        if value is not NoDefaultSpecified:
+        if value is not NoDefault:
             self._settings.set(label, value)
             return self
         self.appendleft(self._settings.get(label, default))

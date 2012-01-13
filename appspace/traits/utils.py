@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 '''appspace trait utilities'''
 
+from __future__ import absolute_import
+
 from types import InstanceType
-from stuf.utils import clsname, getter
+from stuf.utils import clsname
 
 from appspace.utils import getcls
 
@@ -23,27 +25,6 @@ def class_of(this):
     if isinstance(this, basestring):
         return add_article(this)
     return add_article(clsname(this))
-
-
-def get_members(this, predicate=None):
-    '''
-    version of inspect.getmembers that handles missing attributes.
-
-    This is useful when there are descriptor based attributes that for some
-    reason raise AttributeError even though they exist.
-    '''
-    results = []
-    rappend = results.append
-    for key in dir(this):
-        try:
-            value = getter(this, key)
-        except AttributeError:
-            pass
-        else:
-            if not predicate or predicate(value):
-                rappend((key, value))
-    results.sort()
-    return results
 
 
 def repr_type(this):

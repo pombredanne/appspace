@@ -3,7 +3,15 @@
 # pylint: disable-msg=f0401,e0213,e0211
 '''traits keys'''
 
+from __future__ import absolute_import
+
 from appspace.keys import AppspaceKey, Attribute
+
+
+class ATraits(AppspaceKey):
+
+    C = Attribute('local settings')
+    traits = Attribute('traits handler')
 
 
 class ATraitType(AppspaceKey):
@@ -15,14 +23,3 @@ class ATraitType(AppspaceKey):
 
     def instance_init(value):
         '''initialize instance with instance'''
-
-
-class ATraits(AppspaceKey):
-    pass
-
-
-class AHasTraits(AppspaceKey):
-    
-    
-    C = Attribute('local settings')
-    traits = Attribute('traits handler')

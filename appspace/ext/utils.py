@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 '''appspace settings'''
 
+from __future__ import absolute_import
+
 import re
 try:
     from types import ClassType, InstanceType

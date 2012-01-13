@@ -6,14 +6,25 @@ from __future__ import absolute_import
 from inspect import isclass
 from types import FunctionType
 
+from stuf import stuf
 from stuf.utils import both, clsname, getcls, getter, deleter, setter
 
 from appspace.keys import appifies
-from appspace.ext import Synced, __
+from appspace.ext import Synced, Sync, __
 
 from .core import TraitType
 from .error import TraitError
-from .keys import AHasTraits, ATraitType
+from .keys import ATraits, ATraitType
+
+
+class TraitSync(Sync):
+
+    '''trait sync'''
+
+    def __init__(self, original, **kw):
+        super(TraitSync, self).__init__(original, **kw)
+        self._traits = stuf()
+        self._current_traits = stuf()
 
 
 class MetaTraits(type):
@@ -60,7 +71,7 @@ class Traits(Synced):
 
     __metaclass__ = MetaTraits
 
-    appifies(AHasTraits)
+    appifies(ATraits)
 
     _descriptor = TraitType
 
@@ -72,7 +83,6 @@ class Traits(Synced):
         '''
         inst = super(Traits, cls).__new__(cls, *args, **kw)
         inst._trait_dyn_inits = {}
-        inst._trait_values = {}
         traits = inst._traits = {}
         # set all TraitType instances to their default values
         keyer = __.keyer
@@ -196,6 +206,7 @@ class Traits(Synced):
 
     def reset(self, labels=None, **metadata):
         '''
+        @param labels: labels to search for (default: None)
         @param traits: list of strings naming trait attributes to reset
 
         Resets each of the traits whose names are specified in the traits
@@ -251,11 +262,7 @@ class Traits(Synced):
 
     def update(self, **kw):
         '''update traits with new values'''
-        sync = self._sync
-        if sync.changed:
-            sync.current.update(sync.changed.copy())
-        else:
-            self.sync(**kw)
+        self._sync.update_current(kw)
 
     def validate_many(self):
         '''validate model data'''
@@ -298,3 +305,6 @@ class _SimpleTest:
 
     def __str__(self):
         return self.__repr__()
+
+
+__all__ = ['Traits']

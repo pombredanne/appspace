@@ -4,11 +4,7 @@
 
 from __future__ import absolute_import
 
-from inspect import getmro
-from itertools import ifilter
-
-from stuf import stuf
-from stuf.utils import get_or_default, getcls, setter, selfname, lazy
+from stuf.utils import setter, selfname, lazy
 
 from appspace.managers import Manager
 from appspace.error import ConfigurationError
@@ -156,11 +152,6 @@ class AppQuery(Builder):
         self.appendleft(self._settings.defaults)
         return self
 
-    def enable(self):
-        '''toggle if trait events are allowed'''
-        self.appendleft(setter(self, '_enable', not self._enable))
-        return self
-
     def event(self, label, priority=False, **kw):
         '''
         create new event
@@ -185,27 +176,6 @@ class AppQuery(Builder):
         self.appendleft(self._events.fire(event, *args, **kw))
         return self
 
-    def localize(self, **kw):
-        '''
-        generate local component settings
-
-        **kw: settings to add to local settings
-        '''
-        this = self._this
-        metas = [b.Meta for b in getmro(getcls(this)) if hasattr(b, 'Meta')]
-        meta = get_or_default(this, 'Meta')
-        if meta:
-            metas.append(meta)
-        settings = stuf()
-        for m in metas:
-            for k, v in ifilter(
-                lambda x: not x[0].startswith('_'), self.itermembers(m),
-            ):
-                settings[k] = v
-        settings.update(kw)
-        self.appendleft(settings)
-        return self
-    
     def lock(self):
         '''lock settings so they are read only except locals'''
         self._settings.lock()
@@ -241,16 +211,6 @@ class AppQuery(Builder):
             return self
         self.appendleft(self._settings.get(label, default))
         return self
-    
-    def trait(self, name, old_value, new_value):
-        '''
-        process trait related event
-
-        @param label: trait event label
-        @param old_value: old trait value
-        @param new_value: new trait value
-        '''
-        self._events.trait(name, old_value, new_value)
 
     def trigger(self, label):
         '''
@@ -270,7 +230,7 @@ class AppQuery(Builder):
         '''
         self._events.unbind(event, self.app(label, branch).first())
         return self
-    
+
 
 # shortcut
 __ = AppQuery

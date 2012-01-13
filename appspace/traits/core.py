@@ -3,10 +3,10 @@
 
 from __future__ import absolute_import
 
-from appspace.ext import __
 from appspace.keys import appifies
 from appspace.ext.keys import NoDefault, Undefined
 
+from .query import T
 from .keys import ATraitType
 from .error import TraitError
 from .utils import class_of, repr_type
@@ -65,7 +65,7 @@ class TraitType(object):
         if old_value != new_value:
             name = self.name
             this._sync.update_traits({name: new_value})
-            __(this).trait(name, old_value, new_value)
+            T(this).trait(name, old_value, new_value)
 
     def _validate(self, this, value):
         # valideate value "this"
@@ -138,7 +138,7 @@ class TraitType(object):
         default value. The creation and validation of default values must be
         delayed until the Traits class has been instantiated.
         '''
-        # Check for A deferred initializer defined in the same class as the
+        # Check for a deferred initializer defined in the same class as the
         # trait declaration or above.
         mro = type(value).mro()
         cls = None

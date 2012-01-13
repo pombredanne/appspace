@@ -6,25 +6,15 @@ from __future__ import absolute_import
 from inspect import isclass
 from types import FunctionType
 
-from stuf import stuf
 from stuf.utils import both, clsname, getcls, getter, deleter, setter
 
+from appspace.ext import Synced
 from appspace.keys import appifies
-from appspace.ext import Synced, Sync, __
 
+from .query import T
+from .keys import ATraits
 from .core import TraitType
 from .error import TraitError
-from .keys import ATraits, ATraitType
-
-
-class TraitSync(Sync):
-
-    '''trait sync'''
-
-    def __init__(self, original, **kw):
-        super(TraitSync, self).__init__(original, **kw)
-        self._traits = stuf()
-        self._current_traits = stuf()
 
 
 class MetaTraits(type):
@@ -40,8 +30,9 @@ class MetaTraits(type):
 
         instantiate TraitTypes in classdict, setting their name attribute
         '''
+        istrait = T.istrait
         for k, v in classdict.iteritems():
-            if all([__.keyer(ATraitType, v), __.iskey(k)]):
+            if istrait(k, v):
                 if isclass(v):
                     vinst = v()
                     vinst.name = k
@@ -59,9 +50,10 @@ class MetaTraits(type):
         This sets this_class attribute of each TraitType in the classdict to a
         newly created class.
         '''
+        istrait = T.istrait
         cls._classtraits = classtraits = {}
         for k, v in classdict.iteritems():
-            if all([__.keyer(ATraitType, v), __.iskey(k)]):
+            if istrait(k, v):
                 v.this_class = cls
                 classtraits[k] = v
         super(MetaTraits, cls).__init__(name, bases, classdict)
@@ -83,11 +75,10 @@ class Traits(Synced):
         '''
         inst = super(Traits, cls).__new__(cls, *args, **kw)
         traits = inst._traits = {}
+        istrait = T.istrait
         # set all TraitType instances to their default values
-        keyer = __.keyer
-        iskey = __.iskey
         for k, v in vars(cls).iteritems():
-            if all([keyer(ATraitType, v), iskey(k)]):
+            if istrait(k, v):
                 v.instance_init(inst)
                 traits[k] = v
         return inst
@@ -95,7 +86,7 @@ class Traits(Synced):
     @both
     def C(self):
         '''local settings'''
-        return __(self).localize().one()
+        return T(self).localize().one()
 
     @staticmethod
     def _filter(traits, **metadata):
@@ -250,7 +241,7 @@ class Traits(Synced):
             finally:
                 this.A.events.enabled = True
             return self
-        for name, value in traits.items():
+        for name, value in traits.iteritems():
             setter(this, name, value)
         return self
 
@@ -306,4 +297,4 @@ class _SimpleTest:
         return self.__repr__()
 
 
-__all__ = ['Traits']
+__all__ = ['Traits', 'TraitSync']

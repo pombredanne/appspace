@@ -12,14 +12,13 @@ from appspace.utils import ResetMixin
 
 from .services import S
 from .collections import Sync
-from .keys import AClient, AServer
+from .keys import AClient, AServer, ASynched
 
 
+@appifies(AClient)
 class Client(ResetMixin):
 
     '''consumes services from other instances'''
-
-    appifies(AClient)
 
     def __getattr__(self, key):
         try:
@@ -34,13 +33,13 @@ class Client(ResetMixin):
         return set()
 
 
+@appifies(AServer)
 class Server(ResetMixin):
 
     '''hosts services for other instances'''
 
-    appifies(AServer)
 
-
+@appifies(ASynched)
 class Synced(ResetMixin):
 
     '''instance with synchronizing functionality'''

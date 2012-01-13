@@ -10,11 +10,11 @@ from inspect import ismodule
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
-from zope.interface import implements, directlyProvides, providedBy
+from zope.interface import implementer, directlyProvides, providedBy
 
 AppStore = AdapterRegistry
 apped = directlyProvides
-appifies = implements
+appifies = implementer
 get_apps = providedBy
 # primary key
 AppspaceKey = InterfaceClass('AppspaceKey')

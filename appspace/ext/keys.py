@@ -105,6 +105,11 @@ class ARequiredSettings(ASettings):
     '''required settings key'''
 
 
+class ASynched(AppspaceKey):
+    
+    '''synced key'''
+
+
 class NoDefault(object):
 
     '''no default'''

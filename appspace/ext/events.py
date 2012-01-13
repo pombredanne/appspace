@@ -5,7 +5,6 @@ from __future__ import absolute_import
 
 from collections import deque
 from operator import attrgetter, getitem
-from inspect import getargspec, ismethod
 
 from stuf.utils import setter
 
@@ -55,20 +54,6 @@ class EventManager(object):
 
     def __repr__(self):
         return str(self.appspace.manager.lookupAll([AEvent], AEvent))
-
-    @property
-    def enabled(self):
-        '''are trait events allowed'''
-        return self._enabled
-
-    @enabled.setter
-    def enabled(self, value):
-        '''
-        enable trait events
-
-        @param value: True or False
-        '''
-        self._enabled = value
 
     def bind(self, label, app):
         '''
@@ -154,45 +139,6 @@ class EventManager(object):
         apped(NewEvent, ANewEvent)
         self.appspace.easy_register(AEvent, label, new_event)
         return new_event
-
-    def trait(self, label, old_value, new_value):
-        '''
-        process trait related event
-
-        @param label: trait event label
-        @param old_value: old trait value
-        @param new_value: new trait value
-        '''
-        if self.enabled:
-            # First dynamic ones
-            callables = self.react(label)
-            # Call them all now
-            for C in callables:
-                # Traits catches and logs errors here.  I allow them to raise
-                if callable(C):
-                    argspec = getargspec(C)
-                    nargs = len(argspec[0])
-                    # Bound methods have an additional 'self' argument
-                    # I don't know how to treat unbound methods, but they
-                    # can't really be used for callbacks.
-                    if ismethod(C):
-                        offset = -1
-                    else:
-                        offset = 0
-                    if nargs + offset == 0:
-                        C()
-                    elif nargs + offset == 1:
-                        C(label)
-                    elif nargs + offset == 2:
-                        C(label, new_value)
-                    elif nargs + offset == 3:
-                        C(label, old_value, new_value)
-                    else:
-                        raise TypeError(
-                            'trait changed callback must have 0-3 arguments'
-                        )
-                else:
-                    raise TypeError('trait changed callback must be callable')
 
     def unbind(self, label, app):
         '''

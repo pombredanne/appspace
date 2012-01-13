@@ -4,17 +4,27 @@
 from __future__ import absolute_import
 
 from inspect import isclass
-from types import FunctionType
 
+from stuf import stuf
 from stuf.utils import both, clsname, getcls, getter, deleter, setter
 
-from appspace.ext import Synced
 from appspace.keys import appifies
+from appspace.ext import Synced, Sync
 
 from .query import T
 from .keys import ATraits
 from .core import TraitType
 from .error import TraitError
+
+
+class TraitSync(Sync):
+
+    '''trait sync'''
+
+    def __init__(self, original, **kw):
+        super(TraitSync, self).__init__(original, **kw)
+        self._traits = stuf()
+        self._trait_values = stuf()
 
 
 class MetaTraits(type):
@@ -59,11 +69,10 @@ class MetaTraits(type):
         super(MetaTraits, cls).__init__(name, bases, classdict)
 
 
+@appifies(ATraits)
 class Traits(Synced):
 
     __metaclass__ = MetaTraits
-
-    appifies(ATraits)
 
     _descriptor = TraitType
 
@@ -74,52 +83,19 @@ class Traits(Synced):
         initalize traits for instance
         '''
         inst = super(Traits, cls).__new__(cls, *args, **kw)
-        traits = inst._traits = {}
+        traits = inst._sync.update_traits
         istrait = T.istrait
         # set all TraitType instances to their default values
         for k, v in vars(cls).iteritems():
             if istrait(k, v):
                 v.instance_init(inst)
-                traits[k] = v
+                traits(k, v)
         return inst
 
     @both
     def C(self):
         '''local settings'''
         return T(self).localize().one()
-
-    @staticmethod
-    def _filter(traits, **metadata):
-        '''
-        get a list of all the traits of this class
-
-        @param traits: traits
-        @param **metadata: metadata to filter by
-
-        This method is a class method equivalent of the traits method.
-
-        The traits returned know nothing about the values that Traits'
-        instances are holding.
-
-        This follows the same algorithm as traits does and does not allow for
-        any simple way of specifying merely that a metadata name exists, but
-        has any value.  This is because get_metadata returns None if a metadata
-        key doesn't exist.
-        '''
-        if not metadata:
-            return traits
-        for meta_name, meta_eval in metadata.iteritems():
-            if type(meta_eval) is not FunctionType:
-                metadata[meta_name] = _SimpleTest(meta_eval)
-        result = {}
-        for name, trait in traits.iteritems():
-            get_metadata = trait.get_metadata
-            for meta_name, meta_eval in metadata.iteritems():
-                if not meta_eval(get_metadata(meta_name)):
-                    break
-            else:
-                result[name] = trait
-        return result
 
     @classmethod
     def class_filter(cls, **metadata):
@@ -138,7 +114,7 @@ class Traits(Synced):
         has any value.  This is because get_metadata returns None if A metadata
         key doesn't exist.
         '''
-        return cls._filter(cls._classtraits, **metadata)
+        return T.traits(cls._classtraits, **metadata)
 
     @classmethod
     def class_names(cls, **metadata):
@@ -170,7 +146,7 @@ class Traits(Synced):
         has any value.  This is because get_metadata returns None if A metadata
         key doesn't exist.
         '''
-        return self._filter(self._traits, **metadata)
+        return T.traits(self._sync._traits, **metadata)
 
     def metadata(self, label, key):
         '''
@@ -270,7 +246,7 @@ class Traits(Synced):
         '''
         try:
             # return if data is valid
-            self._traits[trait].validate(trait, value)
+            self._sync._traits[trait].validate(trait, value)
             return True
         # return False if data is invalid
         except TraitError:
@@ -278,23 +254,6 @@ class Traits(Synced):
         # attributes are True if not specified
         except KeyError:
             return True
-
-
-class _SimpleTest:
-
-    '''simple test'''
-
-    def __init__(self, value):
-        self.value = value
-
-    def __call__(self, test):
-        return test == self.value
-
-    def __repr__(self):
-        return '<SimpleTest(%r)' % self.value
-
-    def __str__(self):
-        return self.__repr__()
 
 
 __all__ = ['Traits', 'TraitSync']

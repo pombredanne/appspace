@@ -41,11 +41,10 @@ class ServiceMixin(object):
         return new_app
 
 
+@appifies(AServer)
 class forward(ServiceMixin, factory):
 
     '''builds application in appspace and forwards host functionality to it'''
-
-    appifies(AServer)
 
 
 class remote(ServiceMixin, direct):
@@ -63,13 +62,12 @@ class servicer(factory):
         return new_app
 
 
+@appifies(AServiceManager)
 class ServiceManager(Registry):
 
     '''service manager'''
 
     __slots__ = ('_key', '_settings')
-
-    appifies(AServiceManager)
 
     def __init__(self, ns='default'):
         '''

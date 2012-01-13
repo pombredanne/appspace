@@ -4,9 +4,7 @@
 from __future__ import absolute_import
 
 from types import InstanceType
-from stuf.utils import clsname
-
-from appspace.utils import getcls
+from stuf.utils import clsname, getcls
 
 
 def add_article(name):

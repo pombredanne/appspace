@@ -4,6 +4,7 @@
 
 from __future__ import absolute_import
 
+import uuid
 from inspect import isclass
 from operator import attrgetter, itemgetter
 from collections import Mapping, Sequence, deque
@@ -388,6 +389,11 @@ class Query(deque):
         '''
         app = self.app(label, branch).first()
         return self(sorted(data, key=app))
+    
+    @staticmethod
+    def uuid():
+        '''universal unique identifier'''
+        return uuid.uuid4().hex.upper()
     
 
 # query shortcut

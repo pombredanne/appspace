@@ -22,13 +22,12 @@ def include(module):
     return ('include', module)
 
 
+@appifies(AAppspace)
 class Appspace(object):
 
     '''appspace interface'''
 
     __slots__ = ['manager']
-
-    appifies(AAppspace)
 
     def __init__(self, manager):
         '''
@@ -163,11 +162,10 @@ class Patterns(object):
 patterns = Patterns.patterns
 
 
+@appifies(ABranch)
 class Branch(object):
 
     '''branch configuration'''
-
-    appifies(ABranch)
 
     @classmethod
     def build(cls):
@@ -178,11 +176,10 @@ class Branch(object):
         ]
 
 
+@appifies(ANamespace)
 class Namespace(object):
 
     '''configuration namespace'''
-
-    appifies(ANamespace)
 
     @classmethod
     def _pack(cls, this, that):

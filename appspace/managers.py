@@ -10,13 +10,12 @@ from .registry import Registry
 from .keys import AApp, ALazyApp, AManager, appifies
 
 
+@appifies(AManager)
 class Manager(Registry):
 
     '''state manager'''
 
     __slots__ = ('_key', '_label', '_settings')
-
-    appifies(AManager)
 
     def __init__(self, label='appconf', ns='default'):
         '''
@@ -67,13 +66,12 @@ class Manager(Registry):
         super(Manager, self).set(label, app)
 
 
+@appifies(ALazyApp)
 class LazyApp(object):
 
     '''lazy app loader'''
 
     __slots__ = ['path']
-
-    appifies(ALazyApp)
 
     def __init__(self, path):
         '''

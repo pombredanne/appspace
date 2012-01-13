@@ -56,6 +56,7 @@ from __future__ import absolute_import
 
 from inspect import ismodule
 
+from .query import T
 from .classes import Traits, TraitSync
 from .core import NoDefault, TraitType, Undefined
 from .collections import (

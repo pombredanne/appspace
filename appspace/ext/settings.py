@@ -29,11 +29,10 @@ class lock_set(lazy_set):
         return self
 
 
+@appifies(ASettings)
 class Settings(ResetMixin):
 
     '''appspace settings'''
-
-    appifies(ASettings)
 
     def __init__(self):
         super(Settings, self).__init__()
@@ -162,18 +161,16 @@ class Settings(ResetMixin):
             raise TypeError('invalid required settings')
 
 
+@appifies(ADefaultSettings)
 class DefaultSettings(object):
 
     '''default settings'''
 
-    appifies(ADefaultSettings)
 
-
+@appifies(ARequiredSettings)
 class RequiredSettings(object):
 
     '''required settings'''
-
-    appifies(ARequiredSettings)
 
 
 __all__ = ('DefaultSettings', 'RequiredSettings', 'Settings')

@@ -65,7 +65,7 @@ class TraitType(object):
         if old_value != new_value:
             name = self.name
             this._sync.update_traits({name: new_value})
-            T(this).trait(name, old_value, new_value)
+            T(this).fire(name, old_value, new_value)
 
     def _validate(self, this, value):
         # valideate value "this"
@@ -140,21 +140,8 @@ class TraitType(object):
         '''
         # Check for a deferred initializer defined in the same class as the
         # trait declaration or above.
-        mro = type(value).mro()
-        cls = None
-        name = self.name
-        meth_name = '_{name}_default'.format(name=name)
-        for cls in mro[:mro.index(self.this_class) + 1]:
-            if meth_name in cls.__dict__:
-                break
-        else:
-            # We didn't find one. Do static initialization.
-            dv = self.get_default_value()
-            newdv = self._validate(value, dv)
-            value._sync.update_traits({name: newdv})
-            return
-        # Complete the dynamic initialization.
-        value._trait_dyn_inits[name] = cls.__dict__[meth_name]
+        dv = self.get_default_value()
+        value._sync.update_traits({self.name: self._validate(value, dv)})
 
     def set_metadata(self, key, value):
         '''

@@ -51,11 +51,11 @@ class Type(ClassBasedTraitType):
 
         @param default_value: default value must be a subclass of klass. If an
             str, str must be a fully specified class name, like 'foo.bar.Bah'.
-            The string is resolved into real class, when the parent HasTraits
+            The string is resolved into real class, when the parent Traits
             class is instantiated.
         @param klass: values of this trait must be a subclass of klass. The
             klass may be specified in a string like: 'foo.bar.MyClass'. The
-            string is resolved into real class, when the parent HasTraits class
+            string is resolved into real class, when the parent Traits class
              is instantiated.
         @param allow_none: indicates whether None is allowed as an assignable
             value. Even if False, default value may be None.
@@ -180,8 +180,8 @@ class Instance(ClassBasedTraitType):
         '''
         instantiate default value instance
 
-        Called when the containing HasTraits classes' __new__ method is
-        called to ensure that a unique instance is created for each HasTraits
+        Called when the containing Traits classes' __new__ method is
+        called to ensure that a unique instance is created for each Traits
         instance.
         '''
         dv = self.default_value

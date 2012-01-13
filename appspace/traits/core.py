@@ -47,20 +47,8 @@ class TraitType(object):
         '''
         if this is None:
             return self
-        sync = this._sync
         try:
-            value = sync._traits[self.name]
-        except KeyError:
-            # Check for a dynamic initializer.
-            if self.name in this._trait_dyn_inits:
-                value = this._trait_dyn_inits[self.name](this)
-                value = self._validate(this, value)
-                sync.update_traits({self.name: value})
-                return value
-            else:
-                raise TraitError(
-                    'default value and dynamic initializer are absent'
-                )
+            value = this._sync._traits[self.name]
         except:
             # Traits should call set_default_value to populate this. So this
             # should never be reached.

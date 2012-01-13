@@ -82,7 +82,6 @@ class Traits(Synced):
         initalize traits for instance
         '''
         inst = super(Traits, cls).__new__(cls, *args, **kw)
-        inst._trait_dyn_inits = {}
         traits = inst._traits = {}
         # set all TraitType instances to their default values
         keyer = __.keyer
@@ -108,7 +107,7 @@ class Traits(Synced):
 
         This method is a class method equivalent of the traits method.
 
-        The traits returned know nothing about the values that HasTrait's
+        The traits returned know nothing about the values that Traits'
         instances are holding.
 
         This follows the same algorithm as traits does and does not allow for
@@ -140,7 +139,7 @@ class Traits(Synced):
 
         This method a class method equivalent of the `traits` method.
 
-        The traits returned know nothing about the values that HasTrait's
+        The traits returned know nothing about the values that Trait's
         instances are holding.
 
         This follows the same algorithm as traits does and does not allow for
@@ -173,7 +172,7 @@ class Traits(Synced):
         @param **metadata: metadata to filter by
 
         Returned TraitTypes know nothing about other values that any other of
-        HasTrait's instances are holding.
+        Trait's instances are holding.
 
         This follows the same algorithm as traits does and does not allow for
         any simple way of specifying merely that A metadata name exists, but

@@ -25,11 +25,10 @@ from appspace.traits import (
    Unicode, Undefined, Type, This,  Instance, Tuple, ObjectName,
    DottedObjectName, Traits)
 
-
 # Helper classes for testing
 
 
-class HasTraitsStub(Traits):
+class TraitsStub(Traits):
 
     def _notify_trait(self, name, old, new):
         self._notify_name = name
@@ -49,7 +48,7 @@ class TestTraitType(unittest.TestCase):
         self.assertEquals(a.A, Undefined)
 
     def test_set(self):
-        class A(HasTraitsStub):
+        class A(TraitsStub):
             A = TraitType
 
         a = A()
@@ -64,7 +63,7 @@ class TestTraitType(unittest.TestCase):
             def validate(self, inst, value):
                 return -1
 
-        class A(HasTraitsStub):
+        class A(TraitsStub):
             tt = MyTT
 
         a = A()
@@ -124,45 +123,8 @@ class TestTraitType(unittest.TestCase):
         a = A()
         self.assertRaises(TraitError, A.tt.error, a, 10)
 
-    def test_dynamic_initializer(self):
-        class A(Traits):
-            x = Int(10)
 
-            def _x_default(self):
-                return 11
-
-        class B(A):
-            x = Int(20)
-
-        class C(A):
-            def _x_default(self):
-                return 21
-
-        a = A()
-        self.assertEquals(a._trait_values, {})
-        self.assertEquals(A._trait_dyn_inits.keys(), ['x'])
-        self.assertEquals(a.x, 11)
-        self.assertEquals(a._trait_values, {'x': 11})
-        b = B()
-        self.assertEquals(b._trait_values, {'x': 20})
-        self.assertEquals(A._trait_dyn_inits.keys(), ['x'])
-        self.assertEquals(b.x, 20)
-        c = C()
-        self.assertEquals(c._trait_values, {})
-        self.assertEquals(A._trait_dyn_inits.keys(), ['x'])
-        self.assertEquals(C.x, 21)
-        self.assertEquals(c._trait_values, {'x': 21})
-        # Ensure that the base class remains unmolested when the _default
-        # initializer gets overridden in a subclass.
-        a = A()
-        c = C()
-        self.assertEquals(a._trait_values, {})
-        self.assertEquals(A._trait_dyn_inits.keys(), ['x'])
-        self.assertEquals(a.x, 11)
-        self.assertEquals(a._trait_values, {'x': 11})
-
-
-class TestHasTraitsMeta(unittest.TestCase):
+class TestTraitsMeta(unittest.TestCase):
 
     def test_metaclass(self):
         self.assertEquals(type(Traits), MetaTraits)
@@ -206,7 +168,7 @@ class TestHasTraitsMeta(unittest.TestCase):
         self.assertEquals(B.ttt.this_class, B)
 
 
-class TestHasTraitsNotify(unittest.TestCase):
+class TestTraitsNotify(unittest.TestCase):
 
     def setUp(self):
         self._notify1 = []
@@ -359,7 +321,7 @@ class TestHasTraitsNotify(unittest.TestCase):
         self.assertEquals(len(a._trait_notifiers['A']), 0)
 
 
-class TestHasTraits(unittest.TestCase):
+class TestTraits(unittest.TestCase):
 
     def test_trait_names(self):
         class A(Traits):

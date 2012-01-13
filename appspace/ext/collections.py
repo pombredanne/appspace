@@ -354,10 +354,10 @@ class Sync(object):
         self.current.update(kw)
         # update changed data reference
         self.changed.update(kw)
-        # flag as modified
-        self.modified = True
         # clear any cleaned data
         self.cleaned.clear()
+        # flag as modified
+        self.modified = True
 
     def update_original(self, kw):
         '''

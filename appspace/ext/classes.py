@@ -36,7 +36,7 @@ class Client(ResetMixin):
 @appifies(AServer)
 class Server(ResetMixin):
 
-    '''hosts services for other instances'''
+    '''provides services for other instances'''
 
 
 @appifies(ASynched)
@@ -45,6 +45,7 @@ class Synced(ResetMixin):
     '''instance with synchronizing functionality'''
 
     _element = attrgetter('element')
+    _syncer = Sync
 
     def __repr__(self):
         return self.__str__()
@@ -54,7 +55,7 @@ class Synced(ResetMixin):
 
     @lazy
     def _sync(self):
-        return Sync(self._element(self), **self._attrs)
+        return self._syncer(self._element(self), **self._attrs)
 
 
 __all__ = ('Client', 'Server', 'Synced')

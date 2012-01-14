@@ -269,10 +269,7 @@ class Sync(object):
             yield k, v
 
     def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return unicode(dict(i for i in self.current.iteritems()))
+        return unicode(dict(iter(self)))
 
     @property
     def private(self):

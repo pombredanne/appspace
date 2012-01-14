@@ -60,7 +60,13 @@ class TraitQuery(AppQuery):
 
     @classmethod
     def istrait(cls, key, value):
-        return cls.keyer(ATrait, value) and cls.iskey(key)
+        '''
+        detect Trait
+
+        @param key: Trait name
+        @param value: Trait value
+        '''
+        return all([cls.keyer(ATrait, value), cls.iskey(key)])
 
     def localize(self, **kw):
         '''
@@ -129,11 +135,11 @@ class TraitQuery(AppQuery):
             callables = self.react(label)
             # Call them all now
             for C in callables:
-                # Traits catches and logs errors here.  I allow them to raise
+                # Traits catches and logs errors here. I allow them to raise.
                 if callable(C):
                     argspec = getargspec(C)
                     nargs = len(argspec[0])
-                    # Bound methods have an additional 'self' argument
+                    # Bound methods have an additional 'self' argument.
                     # I don't know how to treat unbound methods, but they
                     # can't really be used for callbacks.
                     if ismethod(C):
@@ -150,10 +156,10 @@ class TraitQuery(AppQuery):
                         C(label, old_value, new_value)
                     else:
                         raise TypeError(
-                            'trait changed callback must have 0-3 arguments'
+                            'Trait callback must have 0-3 arguments'
                         )
                 else:
-                    raise TypeError('trait changed callback must be callable')
+                    raise TypeError('Trait callback must be callable')
         
 
 T = TraitQuery

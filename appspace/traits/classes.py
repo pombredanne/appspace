@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from inspect import isclass
 
 from stuf import stuf
-from stuf.utils import both, clsname, getcls, getter, deleter, setter
+from stuf.utils import both, clsname, getcls, getter, deleter, lazy, setter
 
 from appspace.keys import appifies
 from appspace.ext import Sync, Synced
@@ -29,6 +29,7 @@ class TraitSync(Sync):
         @param **kw: any updated data
         '''
         super(TraitSync, self).__init__(original, **kw)
+        # traits
         self.traits = stuf()
 
     def update_traits(self, kw):
@@ -91,6 +92,7 @@ class Traits(Synced):
     __metaclass__ = MetaTraits
 
     _descriptor = Trait
+    _syncer = TraitSync
 
     def __new__(cls, *args, **kw):
         '''
@@ -99,14 +101,20 @@ class Traits(Synced):
         initalize Traits
         '''
         inst = super(Traits, cls).__new__(cls, *args, **kw)
-        update_traits = inst._sync.update_traits
+        traits = inst._trait_values = {}
         istrait = T.istrait
         # set all Trait instances to their default values
         for k, v in vars(cls).iteritems():
             if istrait(k, v):
                 v.instance_init(inst)
-                update_traits(k, v)
+                traits[k] = v
         return inst
+
+    @lazy
+    def _sync(self):
+        sync = self._syncer(self._element(self), **self._attrs)
+        sync.update_traits(self._trait_values)
+        return sync
 
     @both
     def C(self):
@@ -143,7 +151,6 @@ class Traits(Synced):
     def commit(self):
         '''commit changes'''
         self._sync.commit()
-        self.sync()
 
     def members(self, **metadata):
         '''
@@ -221,13 +228,13 @@ class Traits(Synced):
         if not notify:
             T(this).enabled = False
             try:
-                for name, value in traits.iteritems():
-                    setr(this, name, value)
+                for k, v in traits.iteritems():
+                    setr(this, k, v)
             finally:
                 T(this).enabled = True
             return self
-        for name, value in traits.iteritems():
-            setr(this, name, value)
+        for k, v in traits.iteritems():
+            setr(this, k, v)
         return self
 
     def update(self, **kw):

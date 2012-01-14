@@ -51,7 +51,7 @@ class Trait(object):
         except:
             # Traits should call set_default_value to populate this. So this
             # should never be reached.
-            raise TraitError('default value not set properly')
+            raise  # TraitError('default value not set properly')
         else:
             return value
 
@@ -105,7 +105,7 @@ class Trait(object):
 
         @param key: metadata key
         '''
-        return getattr(self, '_metadata', {}).get(key, None)
+        return self._metadata.get(key, None)
 
     def info(self):
         '''information text'''
@@ -122,7 +122,7 @@ class Trait(object):
         instance has been created.
 
         This method triggers the creation and validation of default values and
-        also things like the resolution of str class names in the Type or
+        also things like the resolution of string class names in the Type or
         Instance class.
         '''
         self.set_default_value(value)
@@ -137,7 +137,7 @@ class Trait(object):
         default value. The creation and validation of default values must be
         delayed until the class has been instantiated.
         '''
-        value._sync.update_traits({
+        value._trait_values.update({
             self.name: self._validate(value, self.get_default_value())
         })
 
@@ -148,4 +148,4 @@ class Trait(object):
         @param key: metadata key
         @param value: metadata value
         '''
-        setitem(getattr(self, '_metadata', {}), key, value)
+        self._metadata[key] = value

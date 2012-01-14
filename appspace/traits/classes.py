@@ -32,10 +32,7 @@ class TraitSync(Sync):
 
 class MetaTraits(type):
 
-    '''
-    metaclass to make sure Traits are instantiated with their name attribute
-    set
-    '''
+    '''makes sure Traits are instantiated with their name attribute set'''
 
     def __new__(cls, name, bases, classdict):
         '''
@@ -75,7 +72,7 @@ class MetaTraits(type):
 @appifies(ATraits)
 class Traits(Synced):
 
-    '''class with traits'''
+    '''class with Traits'''
 
     __metaclass__ = MetaTraits
 
@@ -85,7 +82,7 @@ class Traits(Synced):
         '''
         new
 
-        initalize traits for instance
+        initalize Traits
         '''
         inst = super(Traits, cls).__new__(cls, *args, **kw)
         traits = inst._sync.update_traits
@@ -105,7 +102,7 @@ class Traits(Synced):
     @classmethod
     def class_members(cls, **metadata):
         '''
-        get a list of this class's Traits
+        get a list of Traits
 
         @param **metadata: metadata to filter by
 
@@ -114,10 +111,9 @@ class Traits(Synced):
         The traits returned know nothing about the values that Traits are
         holding.
 
-        This follows the same algorithm as traits does and does not allow for
-        any simple way of specifying merely that a metadata name exists, but
-        has any value.  This is because get_metadata returns None if a metadata
-        key doesn't exist.
+        This does not allow for any simple way of specifying merely that a
+        metadata name exists but has any value. This is because get_metadata
+        returns None if a metadata key doesn't exist.
         '''
         return T.traits(cls._classtraits, **metadata)
 
@@ -128,7 +124,7 @@ class Traits(Synced):
 
         @param **metadata: metadata to filter by
 
-        This method is just like the members method but is unbound
+        This method is just like the 'names' method but is unbound
         '''
         return cls.class_members(**metadata).keys()
 
@@ -139,31 +135,30 @@ class Traits(Synced):
 
     def members(self, **metadata):
         '''
-        get trait list for class
+        get Trait list for class
 
         @param **metadata: metadata to filter by
 
-        Traits know nothing about other values that other Trait's are holding.
+        Traits know nothing about the values of other Traits.
 
-        This follows the same algorithm as traits does and does not allow for
-        any simple way of specifying merely that a metadata name exists, but
-        has any value.  This is because get_metadata returns None if A metadata
-        key doesn't exist.
+        This doesn't allow for any simple way of specifying merely that a
+        metadata name exists but has any value. This is because get_metadata
+        returns None if a metadata key doesn't exist.
         '''
         return T.traits(self._sync.traits, **metadata)
 
     def metadata(self, label, key):
         '''
-        get metadata values for trait by key
+        get metadata values for Trait by key
 
-        @param label: trait label
-        @param key: key in trait metadata
+        @param label: Trait label
+        @param key: key in Trait metadata
         '''
         try:
             return getter(getcls(self.this), label).get_metadata(key)
         except AttributeError:
             raise TraitError(
-                '%s has no trait %s' % (clsname(self.this), label)
+                '%s has no Trait %s' % (clsname(self.this), label)
             )
 
     def names(self, **metadata):
@@ -177,13 +172,12 @@ class Traits(Synced):
     def reset(self, labels=None, **metadata):
         '''
         @param labels: labels to search for (default: None)
-        @param traits: list of strings naming Traits to reset
+        @param metadata: list of strings naming Traits to reset
 
-        Resets each of the Traits whose names are specified in the traits
-        argument to their default values. If traits is None or omitted, the
-        method resets all explicitly-defined Traits to their default values. A
-        list of Traits that the method was unable to reset will be empty all
-        Traits were successfully reset.
+        Resets each Trait named by the 'labels' argument to its default values.
+        If that argument is None or left out, all Traits are reset to their
+        default values. The list of Traits that the method was unable to reset
+        will be empty if all Traits were successfully reset.
         '''
         if labels is None:
             labels = self.names(**metadata)
@@ -201,15 +195,14 @@ class Traits(Synced):
         '''
         shortcut for setting Traits
 
-        @param notify: If True, then each value assigned may generate a
-            Trait change notification. If False, then no Trait change
-            notifications will be generated. (default: True)
-        @param **traits: Trait and values set them to
+        @param notify: If True, then each value assigned may generate an event.
+        If False, then no event is generated. (default: True)
+        @param **traits: Trait and values
 
-        Treats each keyword argument to the method as the name of a Trait and
-        sets the corresponding Trait to the value specified. This is a useful
-        shorthand when a number of Traits need to be set on an object or a
-        Trait value needs to be set in a lambda function.
+        Treats each keyword argument as a Trait name and sets the Trait to the
+        value specified. This is a useful shorthand when a number of Traits
+        need to be set on an object or a Trait value needs to be set with a
+        lambda function.
         '''
         this = self
         if not notify:
@@ -226,15 +219,15 @@ class Traits(Synced):
 
     def sync(self, **kw):
         '''synchronize traits with current instance property values'''
-        cur = self._sync.current
-        self.set(**dict((k, cur[k]) for k in self.names(**kw)))
+        t = self._sync.traits
+        self.set(**dict((k, t[k]) for k in self.names(**kw)))
 
     def update(self, **kw):
         '''update traits with new values'''
         self._sync.update_traits(kw)
 
     def validate_many(self):
-        '''validate model data'''
+        '''validate all Trait values'''
         for k, v in self._sync.traits.iteritems():
             if not self.validate_one(k, v):
                 return False
@@ -244,7 +237,7 @@ class Traits(Synced):
         '''
         validate one trait
 
-        @param trait: trait name
+        @param trait: Trait name
         @param value: value to validate
         '''
         # return if data is valid

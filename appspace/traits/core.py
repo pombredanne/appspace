@@ -30,7 +30,7 @@ class Trait(object):
         '''
         init
 
-        @param default_value: default trait value (default: NoDefault)
+        @param default_value: default Trait value (default: NoDefault)
         '''
         if default_value is not NoDefault:
             self.default_value = default_value
@@ -40,7 +40,7 @@ class Trait(object):
 
     def __get__(self, this, that=None):
         '''
-        get the value of the trait by self.name for the instance
+        get the value of Trait by self.name for the instance
 
         Default values are instantiated when Traits.__new__ is called. Thus by
         the time this method gets called either the default value or a user
@@ -88,11 +88,11 @@ class Trait(object):
         @param value: incorrect value
         '''
         if this is not None:
-            e = '%s trait of %s instance must be %s but value %s specified' % (
+            e = '%s Trait of %s instance must be %s but value %s specified' % (
                 self.name, class_of(this), self.info(), repr_type(value)
             )
         else:
-            e = '%s trait must be %s but a value of %r was specified' % (
+            e = '%s Trait must be %s but a value of %r was specified' % (
                 self.name, self.info(), repr_type(value)
             )
         raise TraitError(e)
@@ -119,25 +119,25 @@ class Trait(object):
 
         @param value: newly created parent Traits instance
 
-        Some stages of initialization must be delayed until the parent Traits
-        instance has been created.  This method is called in Traits.__new__
-        after the instance has been created.
+        Some stages of initialization must be delayed until the parent instance
+        has been created. This method is called in Traits.__new__ after the
+        instance has been created.
 
-        This method trigger the creation and validation of default values and
-        also things like the resolution of str given class names in the Type or
+        This method triggers the creation and validation of default values and
+        also things like the resolution of str class names in the Type or
         Instance class.
         '''
         self.set_default_value(value)
 
     def set_default_value(self, value):
         '''
-        set the default trait value on a per Traits instance basis
+        set the default Trait value on a per instance basis
 
-        @param value: a value
+        @param value: default Trait value
 
         This method is called by instance_init to create and validate the
         default value. The creation and validation of default values must be
-        delayed until the Traits class has been instantiated.
+        delayed until the class has been instantiated.
         '''
         # Check for a deferred initializer defined in the same class as the
         # trait declaration or above.

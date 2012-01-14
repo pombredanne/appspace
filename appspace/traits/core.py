@@ -49,7 +49,7 @@ class Trait(object):
         except:
             # Traits should call set_default_value to populate this. So this
             # should never be reached.
-            raise  # TraitError('default value not set properly')
+            raise TraitError('default value not set properly')
         else:
             return value
 
@@ -125,19 +125,18 @@ class Trait(object):
         '''
         self.set_default_value(value)
 
-    def set_default_value(self, value):
+    def set_default_value(self, trait):
         '''
         set the default Trait value on a per instance basis
 
-        @param value: default Trait value
+        @param trait: a Trait
 
         This method is called by instance_init to create and validate the
         default value. The creation and validation of default values must be
         delayed until the class has been instantiated.
         '''
-        value._trait_values.update({
-            self.name: self._validate(value, self.get_default_value())
-        })
+        value = self._validate(trait, self.get_default_value())
+        trait._trait_values[self.name] = value
 
     def set_metadata(self, key, value):
         '''

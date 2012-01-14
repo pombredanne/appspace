@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from inspect import isclass
 
 from stuf import stuf
-from stuf.utils import both, clsname, getcls, getter, deleter, lazy, setter
+from stuf.utils import both, clsname, getcls, getter, deleter, lazy
 
 from appspace.keys import appifies
 from appspace.ext import Sync, Synced
@@ -101,19 +101,23 @@ class Traits(Synced):
         initalize Traits
         '''
         inst = super(Traits, cls).__new__(cls, *args, **kw)
-        traits = inst._trait_values = {}
-        istrait = T.istrait
-        # set all Trait instances to their default values
-        for k, v in vars(cls).iteritems():
-            if istrait(k, v):
-                v.instance_init(inst)
-                traits[k] = v
+        # set all Traits to their default values
+        cls._trait_values = {}
+        cls._trait_errors = {}
+        for v in cls._classtraits.itervalues():
+            v.instance_init(inst)
         return inst
 
     @lazy
     def _sync(self):
+        '''sync provider'''
+        # initialize with any arguments
         sync = self._syncer(self._element(self), **self._attrs)
-        sync.update_traits(self._trait_values)
+        # initialize with default Trait values
+        sync.traits.update(self._trait_values)
+        # sync with any Trait values passes as arguments
+        current = sync.current
+        sync.traits.update((k, current[k]) for k in self._classtraits.keys())
         return sync
 
     @both
@@ -214,27 +218,25 @@ class Traits(Synced):
         '''
         shortcut for setting Traits
 
-        @param notify: If True, then each value assigned may generate an event.
-        If False, then no event is generated. (default: True)
+        @param notify: whether to generate an event (default: True)
         @param **traits: Trait and values
 
         Treats each keyword argument as a Trait name and sets the Trait to the
         value specified. This is a useful shorthand when a number of Traits
-        need to be set on an object or a Trait value needs to be set with a
+        need to be set on an object or a Trait's value needs to be set with a
         lambda function.
         '''
-        this = self
-        setr = setter
+        setr = setattr
         if not notify:
-            T(this).enabled = False
+            T(self).enabled = False
             try:
                 for k, v in traits.iteritems():
-                    setr(this, k, v)
+                    setr(self, k, v)
             finally:
-                T(this).enabled = True
+                T(self).enabled = True
             return self
         for k, v in traits.iteritems():
-            setr(this, k, v)
+            setr(self, k, v)
         return self
 
     def update(self, **kw):
@@ -244,10 +246,10 @@ class Traits(Synced):
     def validate_many(self):
         '''validate all Trait values'''
         validate_one = self.validate_one
+        validations = list()
         for k, v in self._sync.traits.iteritems():
-            if not validate_one(k, v):
-                return False
-        return True
+            validations.append(validate_one(k, v))
+        return all(validations)
 
     def validate_one(self, trait, value):
         '''
@@ -258,10 +260,11 @@ class Traits(Synced):
         '''
         # return if data is valid
         try:
-            self._sync.traits[trait].validate(trait, value)
+            self._classtraits[trait].validate(trait, value)
             return True
         # return False if data is invalid
-        except TraitError:
+        except TraitError, e:
+            self._trait_errors[trait] = e
             return False
         # attributes are True if not specified
         except KeyError:

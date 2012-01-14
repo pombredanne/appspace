@@ -132,7 +132,7 @@ class TraitQuery(AppQuery):
         '''
         if self.enabled:
             # First dynamic ones
-            callables = self.react(label)
+            callables = self.react(label).one()
             # Call them all now
             for C in callables:
                 # Traits catches and logs errors here. I allow them to raise.

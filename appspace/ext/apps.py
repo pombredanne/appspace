@@ -167,18 +167,27 @@ class AppQuery(Builder):
         self.appendleft(self._manager.register(label, priority, **kw))
         return self
 
-    def fire(self, event, *args, **kw):
+    def fire(self, label, *args, **kw):
         '''
         fire event, passing in arbitrary positional arguments and keywords
 
-        @param event: event label
+        @param label: event label
         '''
-        self.appendleft(self._events.fire(event, *args, **kw))
+        self.appendleft(self._events.fire(label, *args, **kw))
         return self
 
     def lock(self):
         '''lock settings so they are read only except locals'''
         self._settings.lock()
+
+    def react(self, label):
+        '''
+        returns objects bound to an event
+
+        @param label: event label
+        '''
+        self.appendleft(self._events.react(label))
+        return self
 
     def register(self, model):
         '''

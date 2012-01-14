@@ -14,11 +14,10 @@ from .error import TraitError
 from .utils import class_of, repr_type
 
 
+@appifies(ATrait)
 class Trait(object):
 
     '''base class for all traits'''
-
-    appifies(ATrait)
 
     default_value = Undefined
     info_text = 'any value'
@@ -35,12 +34,11 @@ class Trait(object):
         if default_value is not NoDefault:
             self.default_value = default_value
         self._metadata = self.metadata.copy()
-        if metadata:
-            self._metadata.update(metadata)
+        self._metadata.update(metadata)
 
     def __get__(self, this, that=None):
         '''
-        get the value of Trait by self.name for the instance
+        get value of Trait by self.name for the instance
 
         Default values are instantiated when Traits.__new__ is called. Thus by
         the time this method gets called either the default value or a user
@@ -82,23 +80,23 @@ class Trait(object):
 
     def error(self, this, value):
         '''
-        handle value errors
+        handle Trait errors
 
         @param this: instance
         @param value: incorrect value
         '''
         if this is not None:
-            e = '%s Trait of %s instance must be %s but value %s specified' % (
-                self.name, class_of(this), self.info(), repr_type(value)
+            e = '%s Trait of %s must be %s but value %s specified' % (
+                self.name, class_of(this), self.info(), repr_type(value),
             )
         else:
             e = '%s Trait must be %s but a value of %r was specified' % (
-                self.name, self.info(), repr_type(value)
+                self.name, self.info(), repr_type(value),
             )
         raise TraitError(e)
 
     def get_default_value(self):
-        '''create a new instance of the default value'''
+        '''create a new instance with default value'''
         return self.default_value
 
     def get_metadata(self, key):
@@ -139,10 +137,9 @@ class Trait(object):
         default value. The creation and validation of default values must be
         delayed until the class has been instantiated.
         '''
-        # Check for a deferred initializer defined in the same class as the
-        # trait declaration or above.
-        dv = self.get_default_value()
-        value._sync.update_traits({self.name: self._validate(value, dv)})
+        value._sync.update_traits({
+            self.name: self._validate(value, self.get_default_value())
+        })
 
     def set_metadata(self, key, value):
         '''

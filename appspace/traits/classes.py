@@ -22,12 +22,28 @@ class TraitSync(Sync):
     '''trait sync'''
 
     def __init__(self, original, **kw):
+        '''
+        init
+
+        @param original: original data
+        @param **kw: any updated data
+        '''
         super(TraitSync, self).__init__(original, **kw)
-        self._traits = stuf()
-        self._trait_values = stuf()
+        self.traits = stuf()
 
     def update_traits(self, kw):
-        pass
+        '''
+        update current data
+
+        @param kw: keyword arguments
+        '''
+        self.traits.update(kw)
+        # update current
+        self.current.update(kw)
+        # update changed data reference
+        self.changed.update(kw)
+        # flag as modified
+        self.modified = True
 
 
 class MetaTraits(type):
@@ -53,8 +69,6 @@ class MetaTraits(type):
 
     def __init__(cls, name, bases, classdict):
         '''
-        init
-
         finish initializing
 
         Sets this_class attribute of each Trait in the classdict to a newly
@@ -85,13 +99,13 @@ class Traits(Synced):
         initalize Traits
         '''
         inst = super(Traits, cls).__new__(cls, *args, **kw)
-        traits = inst._sync.update_traits
+        update_traits = inst._sync.update_traits
         istrait = T.istrait
         # set all Trait instances to their default values
         for k, v in vars(cls).iteritems():
             if istrait(k, v):
                 v.instance_init(inst)
-                traits(k, v)
+                update_traits(k, v)
         return inst
 
     @both
@@ -102,15 +116,13 @@ class Traits(Synced):
     @classmethod
     def class_members(cls, **metadata):
         '''
-        get a list of Traits
+        get Trait list for class
 
         @param **metadata: metadata to filter by
 
         This method is the class method equivalent of the members method.
 
-        The traits returned know nothing about the values that Traits are
-        holding.
-
+        The Traits returned know nothing about values that other Traits hold.
         This does not allow for any simple way of specifying merely that a
         metadata name exists but has any value. This is because get_metadata
         returns None if a metadata key doesn't exist.
@@ -135,7 +147,7 @@ class Traits(Synced):
 
     def members(self, **metadata):
         '''
-        get Trait list for class
+        get a list of Traits
 
         @param **metadata: metadata to filter by
 
@@ -205,37 +217,34 @@ class Traits(Synced):
         lambda function.
         '''
         this = self
+        setr = setter
         if not notify:
             T(this).enabled = False
             try:
                 for name, value in traits.iteritems():
-                    setter(this, name, value)
+                    setr(this, name, value)
             finally:
                 T(this).enabled = True
             return self
         for name, value in traits.iteritems():
-            setter(this, name, value)
+            setr(this, name, value)
         return self
 
-    def sync(self, **kw):
-        '''synchronize traits with current instance property values'''
-        t = self._sync.traits
-        self.set(**dict((k, t[k]) for k in self.names(**kw)))
-
     def update(self, **kw):
-        '''update traits with new values'''
+        '''update Traits with new values'''
         self._sync.update_traits(kw)
 
     def validate_many(self):
         '''validate all Trait values'''
+        validate_one = self.validate_one
         for k, v in self._sync.traits.iteritems():
-            if not self.validate_one(k, v):
+            if not validate_one(k, v):
                 return False
         return True
 
     def validate_one(self, trait, value):
         '''
-        validate one trait
+        validate one Trait
 
         @param trait: Trait name
         @param value: value to validate

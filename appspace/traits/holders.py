@@ -110,8 +110,12 @@ class List(Container):
     klass = list
 
     def __init__(
-        self, trait=None, default_value=None, minlen=0, maxlen=sys.maxint,
-        allow_none=True, **md
+        self, trait=None, 
+        default_value=None, 
+        minlen=0, 
+        maxlen=sys.maxint,
+        allow_none=True, 
+        **md
     ):
         '''
         create a List trait type from a list, set, or tuple.

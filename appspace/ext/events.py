@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace events'''
+'''extension event handling'''
 
 from __future__ import absolute_import
 

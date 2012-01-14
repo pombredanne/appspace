@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable-msg=e1001,e1002
-'''appspace extension service management'''
+'''extension services management'''
 
 from __future__ import absolute_import
 

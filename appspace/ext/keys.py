@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #@PydevCodeAnalysisIgnore
 # pylint: disable-msg=f0401,e0213,e0211
-'''appspace extension keys'''
+'''extension keys'''
 
 from __future__ import absolute_import
 

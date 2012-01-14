@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # pylint: disable-msg=w0702
 '''
-appspace string traits
+stringy traits
 
 We should always be explicit about whether we're using bytes or unicode, both
-for Python 3 conversion and for reliable unicode behaviour on Python 2. So
-we don't have a Str type.
+for Python 3 conversion and for reliable unicode behavior on Python 2. So we
+don't have a Str type.
 '''
 
 from __future__ import absolute_import

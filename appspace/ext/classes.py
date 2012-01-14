@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace extension classes'''
+'''extension hosts'''
 
 from __future__ import absolute_import
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable-msg=w0212,w0201,w0221,w0613,w0612
 '''
-Tests for appspace.utils.traitlets.
+traits tests
 
 Authors:
 

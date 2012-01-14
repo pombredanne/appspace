@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace utilities'''
+'''utilities'''
 
 from __future__ import absolute_import
 

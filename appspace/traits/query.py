@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''trait query'''
+'''traits query'''
 
 from __future__ import absolute_import
 

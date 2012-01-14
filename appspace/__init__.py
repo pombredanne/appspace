@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from inspect import ismodule
 
-from .builders import Branch, Patterns, Namespace, include, patterns
+from .builders import Branch, Namespace, Patterns, include, patterns
 
 __version__ = (0, 5, 0)
 

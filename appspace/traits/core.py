@@ -3,8 +3,6 @@
 
 from __future__ import absolute_import
 
-from operator import setitem
-
 from appspace.keys import appifies
 from appspace.ext.keys import NoDefault, Undefined
 

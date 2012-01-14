@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''appspace settings'''
+'''extension settings management'''
 
 from __future__ import absolute_import
 
@@ -32,7 +32,7 @@ class lock_set(lazy_set):
 @appifies(ASettings)
 class Settings(ResetMixin):
 
-    '''appspace settings'''
+    '''settings management'''
 
     def __init__(self):
         super(Settings, self).__init__()

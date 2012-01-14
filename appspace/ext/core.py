@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable-msg=w0221
-'''appspace extension query'''
+'''extension core classes'''
 
 from __future__ import absolute_import
 

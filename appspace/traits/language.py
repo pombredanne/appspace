@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''python language trait types'''
+'''python language specific traits'''
 
 from __future__ import absolute_import
 

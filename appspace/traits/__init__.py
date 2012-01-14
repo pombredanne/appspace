@@ -7,7 +7,7 @@ many of the capabilities of enthought.traits.  This includes:
 
 * Validation
 * Type specification with defaults
-* Static and dynamic notification
+* Static notification
 * Basic predefined types
 * An API that is similar to enthought.traits
 
@@ -15,14 +15,14 @@ We don't support:
 
 * Delegation
 * Automatic GUI generation
-* A full set of trait types.  Most importantly, we don't provide container
+* A full set of Traits.  Most importantly, we don't provide container
   traits (list, dict, tuple) that can trigger notifications if their
   contents change.
 * API compatibility with enthought.traits
 
 There are also some important difference in our design:
 
-* enthought.traits does not validate default values.  We do.
+* enthought.traits does not validate default values. We do.
 
 We choose to create this module because we need these capabilities, but we need
 them to be pure Python so they work in all Python implementations, including

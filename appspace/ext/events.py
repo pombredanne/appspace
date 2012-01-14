@@ -35,13 +35,12 @@ class Event(object):
         )
 
 
+@ appifies(AEventManager)
 class EventManager(object):
 
     '''appspace event manager'''
 
     __slots__ = ('appspace', '_enabled')
-
-    appifies(AEventManager)
 
     def __init__(self, appspace):
         '''

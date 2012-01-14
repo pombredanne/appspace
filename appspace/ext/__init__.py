@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from inspect import ismodule
 
-from .collections import Sync
+from .holders import Sync
 from .apps import AppPatterns, on, __
 from .core import Q, B, direct, factory
 from .classes import Client, Server, Synced

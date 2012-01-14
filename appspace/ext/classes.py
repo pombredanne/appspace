@@ -11,7 +11,7 @@ from appspace.keys import appifies
 from appspace.utils import ResetMixin
 
 from .services import S
-from .collections import Sync
+from .holders import Sync
 from .keys import AClient, AServer, ASynched
 
 

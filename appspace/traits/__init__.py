@@ -59,7 +59,7 @@ from inspect import ismodule
 from .query import T
 from .classes import Traits, TraitSync
 from .core import NoDefault, Trait, Undefined
-from .collections import (
+from .holders import (
     Any, CaselessStrEnum, Container, Dict, Enum, List, Tuple,
 )
 from .strings import Bytes, CBytes, CUnicode, CheckedUnicode, Unicode

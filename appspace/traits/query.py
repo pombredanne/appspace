@@ -5,14 +5,14 @@ from __future__ import absolute_import
 
 from itertools import ifilter
 from types import FunctionType
-from inspect import getmro, getargspec, ismethod
+from inspect import getargspec, getmro, ismethod
 
 from stuf import stuf
-from stuf.utils import get_or_default, getcls, setter
+from stuf.utils import get_or_default, getcls
 
 from appspace.ext.apps import AppQuery
 
-from .keys import ATraitType
+from .keys import ATrait
 
 
 class _SimpleTest:
@@ -60,7 +60,7 @@ class TraitQuery(AppQuery):
 
     @classmethod
     def istrait(cls, key, value):
-        return cls.keyer(ATraitType, value) and cls.iskey(key)
+        return cls.keyer(ATrait, value) and cls.iskey(key)
 
     def localize(self, **kw):
         '''

@@ -8,7 +8,7 @@ from types import ListType, TupleType
 
 from stuf.utils import clsname
 
-from .core import TraitType
+from .core import Trait
 from .error import TraitError
 from .language import Instance
 from .utils import class_of, repr_type
@@ -16,7 +16,7 @@ from .utils import class_of, repr_type
 SequenceTypes = (ListType, TupleType, set, frozenset)
 
 
-class Any(TraitType):
+class Any(Trait):
 
     default_value = None
     info_text = 'any value'
@@ -47,12 +47,12 @@ class Container(Instance):
         creates a copy of the default_value.
 
         trait can be specified, which restricts the type of elements in the
-        container to that TraitType.
+        container to that Trait.
 
         If only one arg is given and it is not a Trait, it is taken as
         default_value
         '''
-        istrait = lambda t: isinstance(t, type) and issubclass(t, TraitType)
+        istrait = lambda t: isinstance(t, type) and issubclass(t, Trait)
         # allow List([values]):
         if default_value is None and not istrait(trait):
             default_value = trait
@@ -129,7 +129,7 @@ class List(Container):
         copy of the default_value.
 
         trait can be specified, which restricts the type of elements in the
-        container to that TraitType.
+        container to that Trait.
 
         If only one arg is given and it is not a Trait, it is taken as
         "default_value": "c = List([1,2,3])"
@@ -199,7 +199,7 @@ class Tuple(Container):
         '''
         default_value = md.pop('default_value', None)
         allow_none = md.pop('allow_none', True)
-        istrait = lambda t: isinstance(t, type) and issubclass(t, TraitType)
+        istrait = lambda t: isinstance(t, type) and issubclass(t, Trait)
         # allow Tuple((values,)):
         if all([
             len(traits) == 1,
@@ -272,7 +272,7 @@ class Dict(Instance):
         )
         
         
-class Enum(TraitType):
+class Enum(Trait):
 
     '''enum whose value must be in a given sequence'''
 

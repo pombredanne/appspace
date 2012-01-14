@@ -3,10 +3,10 @@
 
 from __future__ import absolute_import
 
-from .core import TraitType
+from .core import Trait
 
 
-class Bool(TraitType):
+class Bool(Trait):
 
     '''boolean (True, False) trait'''
 
@@ -30,7 +30,7 @@ class CBool(Bool):
             self.error(this, value)
 
 
-class Int(TraitType):
+class Int(Trait):
 
     '''integer trait'''
 
@@ -54,7 +54,7 @@ class CInt(Int):
             self.error(this, value)
 
 
-class Integer(TraitType):
+class Integer(Trait):
 
     '''
     integer trait.
@@ -76,7 +76,7 @@ class Integer(TraitType):
         self.error(obj, value)
 
 
-class Long(TraitType):
+class Long(Trait):
 
     '''long integer trait.'''
 
@@ -102,7 +102,7 @@ class CLong(Long):
             self.error(this, value)
 
 
-class Float(TraitType):
+class Float(Trait):
 
     '''float trait'''
 
@@ -128,7 +128,7 @@ class CFloat(Float):
             self.error(this, value)
 
 
-class Complex(TraitType):
+class Complex(Trait):
 
     '''trait for complex numbers'''
 

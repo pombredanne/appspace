@@ -21,7 +21,7 @@ except ImportError:
 from appspace.traits.error import TraitError
 from appspace.traits.classes import MetaTraits
 from appspace.traits import (
-   TraitType, List, Any, CBytes, Int, Long, Integer, Float, Complex, Bytes,
+   Trait, List, Any, CBytes, Int, Long, Integer, Float, Complex, Bytes,
    Unicode, Undefined, Type, This,  Instance, Tuple, ObjectName,
    DottedObjectName, Traits)
 
@@ -43,13 +43,13 @@ class TestTraitType(unittest.TestCase):
 
     def test_get_undefined(self):
         class A(Traits):
-            A = TraitType
+            A = Trait
         a = A()
         self.assertEquals(a.A, Undefined)
 
     def test_set(self):
         class A(TraitsStub):
-            A = TraitType
+            A = Trait
 
         a = A()
         a.A = 10
@@ -59,7 +59,7 @@ class TestTraitType(unittest.TestCase):
         self.assertEquals(a._notify_new, 10)
 
     def test_validate(self):
-        class MyTT(TraitType):
+        class MyTT(Trait):
             def validate(self, inst, value):
                 return -1
 
@@ -71,7 +71,7 @@ class TestTraitType(unittest.TestCase):
         self.assertEquals(a.tt, -1)
 
     def test_default_validate(self):
-        class MyIntTT(TraitType):
+        class MyIntTT(Trait):
             def validate(self, obj, value):
                 if isinstance(value, int):
                     return value
@@ -88,7 +88,7 @@ class TestTraitType(unittest.TestCase):
         self.assertRaises(TraitError, B)
 
     def test_is_valid_for(self):
-        class MyTT(TraitType):
+        class MyTT(Trait):
             def is_valid_for(self, value):
                 return True
 
@@ -100,7 +100,7 @@ class TestTraitType(unittest.TestCase):
         self.assertEquals(a.tt, 10)
 
     def test_value_for(self):
-        class MyTT(TraitType):
+        class MyTT(Trait):
             def value_for(self, value):
                 return 20
 
@@ -113,13 +113,13 @@ class TestTraitType(unittest.TestCase):
 
     def test_info(self):
         class A(Traits):
-            tt = TraitType
+            tt = Trait
         a = A()
         self.assertEquals(a.tt.info(), 'any value')
 
     def test_error(self):
         class A(Traits):
-            tt = TraitType
+            tt = Trait
         a = A()
         self.assertRaises(TraitError, A.tt.error, a, 10)
 

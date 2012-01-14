@@ -14,7 +14,7 @@ class ATraits(AppspaceKey):
     traits = Attribute('traits handler')
 
 
-class ATraitType(AppspaceKey):
+class ATrait(AppspaceKey):
 
     '''trait property key'''
 

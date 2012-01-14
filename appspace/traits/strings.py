@@ -13,10 +13,10 @@ from __future__ import absolute_import
 import re
 import sys
 
-from .core import TraitType
+from .core import Trait
 
 
-class Bytes(TraitType):
+class Bytes(Trait):
 
     '''trait for strings'''
 
@@ -40,7 +40,7 @@ class CBytes(Bytes):
             self.error(this, value)
 
 
-class Unicode(TraitType):
+class Unicode(Trait):
 
     '''trait for unicode strings'''
 

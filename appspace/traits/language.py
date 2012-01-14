@@ -12,13 +12,13 @@ from stuf.utils import clsname, selfname
 from appspace.utils import lazy_import
 
 from .utils import class_of
-from .core import TraitType
+from .core import Trait
 from .error import TraitError
 
 ClassTypes = (ClassType, type)
 
 
-class ClassBasedTraitType(TraitType):
+class ClassBasedTraitType(Trait):
 
     '''trait with error reporting for Type, Instance, and This'''
 
@@ -239,7 +239,7 @@ class This(ClassBasedTraitType):
             self.error(this, value)
 
 
-class ObjectName(TraitType):
+class ObjectName(Trait):
 
     '''
     string holding a valid object name for this version of Python

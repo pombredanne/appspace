@@ -35,9 +35,9 @@ class is the base class for all such descriptors. The only magic we use is
 a custom metaclass for the main :class:`Traits` class that does the
 following:
 
-1. Sets the :attr:`name` attribute of every TraitType instance in
+1. Sets the :attr:`name` attribute of every Trait instance in
    the class dict to the name of the attribute.
-2. Sets the attribute of every TraitType instance in the class dict to the
+2. Sets the attribute of every Trait instance in the class dict to the
    class that declared the trait. This is used by the This trait to allow
    subclasses to accept superclasses for This values.
 
@@ -58,7 +58,7 @@ from inspect import ismodule
 
 from .query import T
 from .classes import Traits, TraitSync
-from .core import NoDefault, TraitType, Undefined
+from .core import NoDefault, Trait, Undefined
 from .collections import (
     Any, CaselessStrEnum, Container, Dict, Enum, List, Tuple,
 )

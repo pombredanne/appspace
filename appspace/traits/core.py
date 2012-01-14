@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
-'''trait types'''
+'''traits'''
 
 from __future__ import absolute_import
+
+from operator import setitem
 
 from appspace.keys import appifies
 from appspace.ext.keys import NoDefault, Undefined
 
 from .query import T
-from .keys import ATraitType
+from .keys import ATrait
 from .error import TraitError
 from .utils import class_of, repr_type
 
 
-class TraitType(object):
+class Trait(object):
 
     '''base class for all traits'''
 
-    appifies(ATraitType)
+    appifies(ATrait)
 
     default_value = Undefined
     info_text = 'any value'
@@ -40,15 +42,14 @@ class TraitType(object):
         '''
         get the value of the trait by self.name for the instance
 
-        Default values are instantiated when `Traits.__new__` is called.
-        Thus by the time this method gets called either the default value or
-        a user defined value (they called `__set__`) in the `Traits`
-        instance.
+        Default values are instantiated when Traits.__new__ is called. Thus by
+        the time this method gets called either the default value or a user
+        defined value (they called __set__) in the Traits instance.
         '''
         if this is None:
             return self
         try:
-            value = this._sync._traits[self.name]
+            value = this._sync.traits[self.name]
         except:
             # Traits should call set_default_value to populate this. So this
             # should never be reached.
@@ -68,13 +69,13 @@ class TraitType(object):
             T(this).fire(name, old_value, new_value)
 
     def _validate(self, this, value):
-        # valideate value "this"
+        # valideate value for "this"
         if hasattr(self, 'validate'):
             return self.validate(this, value)
         elif hasattr(self, 'is_valid_for'):
             if self.is_valid_for(value):
                 return value
-            raise TraitError('invalid value for type: %r' % value)
+            raise TraitError('invalid value for type %r' % value)
         elif hasattr(self, 'value_for'):
             return self.value_for(value)
         return value
@@ -91,7 +92,7 @@ class TraitType(object):
                 self.name, class_of(this), self.info(), repr_type(value)
             )
         else:
-            e = '%s trait must be %s, but a value of %r was specified' % (
+            e = '%s trait must be %s but a value of %r was specified' % (
                 self.name, self.info(), repr_type(value)
             )
         raise TraitError(e)
@@ -116,11 +117,11 @@ class TraitType(object):
         '''
         called by Traits.__new__ to finish init'ing instance
 
-        @param value: newly create parent `Traits` instance
+        @param value: newly created parent Traits instance
 
-        Some stages of initialization must be delayed until the parent
-        Traits instance has been created.  This method is called in
-        Traits.__new__ after the instance has been created.
+        Some stages of initialization must be delayed until the parent Traits
+        instance has been created.  This method is called in Traits.__new__
+        after the instance has been created.
 
         This method trigger the creation and validation of default values and
         also things like the resolution of str given class names in the Type or
@@ -130,7 +131,7 @@ class TraitType(object):
 
     def set_default_value(self, value):
         '''
-        set the default value on a per instance basis
+        set the default trait value on a per Traits instance basis
 
         @param value: a value
 
@@ -145,9 +146,9 @@ class TraitType(object):
 
     def set_metadata(self, key, value):
         '''
-        set metadata
+        set trait metadata
 
         @param key: metadata key
         @param value: metadata value
         '''
-        getattr(self, '_metadata', {})[key] = value
+        setitem(getattr(self, '_metadata', {}), key, value)

@@ -1,16 +1,28 @@
-'''appspace exceptions'''
+# -*- coding: utf-8 -*-
+'''exceptions'''
 
-from zope.component.interfaces import ComponentLookupError
+from __future__ import absolute_import
 
-# app lookup exception
-AppLookupError = ComponentLookupError
+from .keys import AppLookupError
+
+AppLookupError = AppLookupError
 
 
 class ConfigurationError(Exception):
 
-    '''Appspace configuration exception'''
+    '''appspace configuration exception'''
+
+
+class NoAppspaceError(Exception):
+
+    '''no appspace found error'''
 
 
 class NoAppError(Exception):
 
-    '''No application found exception'''
+    '''mo application found exception'''
+
+
+__all__ = (
+    'AppLookupError', 'ConfigurationError', 'NoAppspaceError', 'NoAppError',
+)

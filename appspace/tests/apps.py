@@ -1,6 +1,10 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import
+
 from appspace import patterns
 
-apps = patterns(
+appconf = patterns(
     '',
     ('square', 'math.sqrt'),
     ('fabulous', 'math.fabs'),

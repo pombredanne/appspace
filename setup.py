@@ -1,23 +1,32 @@
+# -*- coding: utf-8 -*-
 '''setup for appspace'''
 
+from __future__ import absolute_import
+
 import os
+import sys
+
 try:
     from setuptools import setup
 except ImportError:
-    from distutils.util import setup
+    from distutils.core import setup
+
+install_requires = ['zope.interface>=3.8.0', 'stuf>=0.8.1']
+if sys.version_info[0] == 2 and sys.version_info[1] < 7:
+    install_requires.extend(['importlib', 'ordereddict', 'unittest2'])
 
 setup(
     name='appspace',
-    version='0.1.1',
-    description='Loosely coupled application plumbing',
-    long_description=open(os.path.join(os.getcwd(), 'README'), 'rb').read(),
+    version='0.5.0',
+    description='easily construct applications with easy building blocks',
+    long_description=open(os.path.join(os.getcwd(), 'README.rst'), 'r').read(),
     author='L. C. Rees',
     author_email='lcrees@gmail.com',
     license='MIT',
     url='https://bitbucket.org/lcrees/appspace',
-    packages = ['appspace', 'appspace.test'],
+    packages=['appspace', 'appspace.tests', 'appspace.ext', 'appspace.traits'],
     test_suite='appspace.test',
-    zip_safe = False,
+    zip_safe=False,
     keywords='component injection aspect-oriented programming',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -26,9 +35,11 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 2.6',
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries',
         'Topic :: Utilities',
     ],
-    install_requires=['zope.component>=3.10.0']
+    install_requires=install_requires,
 )

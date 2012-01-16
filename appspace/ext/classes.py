@@ -47,11 +47,24 @@ class Synced(ResetMixin):
     _element = attrgetter('element')
     _syncer = Sync
 
-    def __repr__(self):
-        return self.__str__()
+    def __getitem__(self, key):
+        return self._sync.current[key]
 
-    def __str__(self):
-        return unicode(dict(i for i in self._sync.public.iteritems()))
+    def __setitem__(self, key, value):
+        return self._sync.update_current({key: value})
+
+    def __delitem__(self, key):
+        return self._sync.delete(key)
+
+    def __contains__(self, key):
+        return key in self._sync
+
+    def __iter__(self):
+        for k, v in self._sync:
+            yield k, v
+
+    def __repr__(self):
+        return str(dict(i for i in self._sync.public.iteritems()))
 
     @lazy
     def _sync(self):

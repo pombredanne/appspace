@@ -113,7 +113,7 @@ class Sync(object):
             yield k, v
 
     def __repr__(self):
-        return unicode(dict(iter(self)))
+        return str(dict(iter(self)))
 
     @property
     def private(self):
@@ -131,7 +131,7 @@ class Sync(object):
     def public(self):
         '''public data (key does not start with '_')'''
         return stuf(
-            (k, v) for k, v in self.current.iteritems()
+            (k, v) for k, v in self.current.iteritems()\
             if not k.startswith('_')
         )
 
@@ -151,6 +151,21 @@ class Sync(object):
         previous = stuf(i for i in self)
         previous.update(kw)
         return previous
+
+    def delete(self, key):
+        '''
+        delete item
+
+        @param key: key to delete
+        '''
+        # delete current
+        del self.current[key]
+        # delete from changed data
+        self.changed.pop(key, None)
+        # delete from cleaned data
+        self.cleaned.pop(key, None)
+        # flag as modified
+        self.modified = True
 
     def diff(self):
         '''diff between current and original version'''

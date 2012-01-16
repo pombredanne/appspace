@@ -10,7 +10,7 @@ from keyword import iskeyword
 from importlib import import_module
 
 from stuf import stuf
-from stuf.utils import OrderedDict, deleter, getcls, getter, lazybase
+from stuf.utils import OrderedDict, getcls, lazybase
 
 
 def lazy_import(path, attribute=None):
@@ -24,12 +24,12 @@ def lazy_import(path, attribute=None):
         try:
             dot = path.rindex('.')
             # import module
-            path = getter(import_module(path[:dot]), path[dot + 1:])
+            path = getattr(import_module(path[:dot]), path[dot + 1:])
         # If nothing but module name, import the module
         except AttributeError:
             path = import_module(path)
         if attribute:
-            path = getter(path, attribute)
+            path = getattr(path, attribute)
     return path
 
 
@@ -133,7 +133,7 @@ class ResetMixin(object):
         # because that's how the python descriptor protocol works.
         for key, value in classdict.iteritems():
             if all([key in instdict, isinstance(value, desc)]):
-                deleter(self, key)
+                delattr(self, key)
 
 
 __all__ = (

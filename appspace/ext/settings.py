@@ -19,14 +19,9 @@ class lock_set(lazy_set):
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        result = self.method(instance)
         if instance._locked:
-            return setter(instance, self.name, result)
-        return result
-
-    def setter(self, func):
-        self.fget = func
-        return self
+            return setter(instance, self.name, self.method(instance))
+        return self.method(instance)
 
 
 @appifies(ASettings)
@@ -122,7 +117,7 @@ class Settings(ResetMixin):
         try:
             path, key = key.rsplit('.', 1)
             try:
-                setter(deepget(self._final, key), key, value)
+                setattr(deepget(self._final, key), key, value)
             except AttributeError:
                 paths = path.split('.')
                 this = self._final

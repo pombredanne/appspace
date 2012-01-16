@@ -128,13 +128,13 @@ class AppQuery(Builder):
 
     def bind(self, event, label, branch=False):
         '''
-        bind app to event
+        bind get to event
 
         @param event: event label
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        self._events.bind(event, self.app(label, branch).first())
+        self._events.bind(event, self.get(label, branch).first())
         return self
 
     def burst(self, label, queue):
@@ -237,7 +237,7 @@ class AppQuery(Builder):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        self._events.unbind(event, self.app(label, branch).first())
+        self._events.unbind(event, self.get(label, branch).first())
         return self
 
 

@@ -29,47 +29,47 @@ class Manager(Registry):
 
     def get(self, label):
         '''
-        fetch app
+        fetch get
 
-        @param label: app or branch label
+        @param label: get or branch label
         '''
-        app = super(Manager, self).get(label)
-        if ALazyApp.providedBy(app):
-            app = self.load(label, app.path)
-        return app
+        get = super(Manager, self).get(label)
+        if ALazyApp.providedBy(get):
+            get = self.load(label, get.path)
+        return get
 
     def load(self, label, module):
         '''
-        load branch or app from appspace
+        load branch or get from appspace
 
-        @param label: app or branch label
+        @param label: get or branch label
         @param module: module path
         '''
         # register branch appspace from include
         if isinstance(module, tuple):
-            app = lazy_import(module[-1], self._label)
-        # register app
+            get = lazy_import(module[-1], self._label)
+        # register get
         else:
-            app = lazy_import(module)
-        self.set(label, app)
-        return app
+            get = lazy_import(module)
+        self.set(label, get)
+        return get
 
-    def set(self, label, app):
+    def set(self, label, get):
         '''
-        register branch or app in appspace
+        register branch or get in appspace
 
         @param label: appspace label
-        @param app: app to add to appspace
+        @param get: get to add to appspace
         '''
-        if isinstance(app, (basestring, tuple)):
-            app = LazyApp(app)
-        super(Manager, self).set(label, app)
+        if isinstance(get, (basestring, tuple)):
+            get = LazyApp(get)
+        super(Manager, self).set(label, get)
 
 
 @appifies(ALazyApp)
 class LazyApp(object):
 
-    '''lazy app loader'''
+    '''lazy get loader'''
 
     __slots__ = ['path']
 
@@ -82,7 +82,7 @@ class LazyApp(object):
         self.path = path
 
     def __repr__(self):
-        return 'app@{path}'.format(path=self.path)
+        return 'get@{path}'.format(path=self.path)
 
 
 __all__ = ('Manager', 'LazyApp')

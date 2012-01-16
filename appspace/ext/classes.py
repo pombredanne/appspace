@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from operator import attrgetter
 
-from stuf.utils import lazy, setter
+from stuf.utils import lazy
 
 from appspace.keys import appifies
 from appspace.utils import ResetMixin
@@ -26,7 +26,7 @@ class Client(ResetMixin):
         except AttributeError:
             # check for services
             if any([not key.startswith('__'), not key.upper()]):
-                return setter(self, key, S(self).fetch(key))
+                return setattr(self, key, S(self).fetch(key))
 
     @lazy
     def _services(self):

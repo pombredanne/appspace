@@ -10,8 +10,6 @@ from operator import attrgetter, itemgetter
 from collections import Mapping, Sequence, deque
 from itertools import groupby, ifilter, ifilterfalse, imap
 
-from stuf.utils import getter
-
 from appspace.utils import getcls
 from appspace.managers import Manager
 from appspace.builders import Appspace
@@ -34,7 +32,7 @@ class direct(object):
         self.branch = branch
 
     def __get__(self, this, that):
-        return Q(that).app(self.label, self.branch).one()
+        return Q(that).get(self.label, self.branch).one()
 
     def __set__(self, this, value):
         raise AttributeError('attribute is read-only')
@@ -61,9 +59,9 @@ class factory(direct):
     def __get__(self, this, that):
         new_app = super(factory, self).__get__(this, that)
         if isclass(new_app):
-            attrs = [getter(this, attr) for attr in self.attrs]
+            attrs = [getattr(this, attr) for attr in self.attrs]
             new_app = new_app(*attrs, **self.extra)
-            B(that).app(self.label, self.branch, new_app)
+            B(that).set(new_app, self.label, self.branch)
         return new_app
 
 
@@ -96,13 +94,17 @@ class Query(deque):
     def __call__(self, *args):
         return getcls(self)(self._appspace, *args, **dict(this=self._this))
 
-    def app(self, label, branch=False):
+    def _quikget(self, label, branch=False):
+        if branch:
+            return self._appspace[branch][label]
+        return self._appspace[label]
+
+    def get(self, label, branch=False):
         '''
-        add or get application from appspace
+        get application from appspace
 
         @param label: application label
         @param branch: branch label (default: False)
-        @param app: new application (default: False)
         '''
         # return app from branch
         if branch:
@@ -140,7 +142,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.app(label, branch).first()
+        app = self.get(label, branch).first()
         return self(app(i) for i in data)
 
     def filter(self, data, label, branch=False):
@@ -151,7 +153,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         return self(ifilter(app, data))
 
     def find(self, data, label, branch=False):
@@ -162,7 +164,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         for item in ifilter(app, data):
             self.appendleft(item)
             return self
@@ -184,7 +186,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         return self(groupby(data, app))
 
     def invoke(self, data, label, branch=False, *args, **kw):
@@ -196,7 +198,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         return self(app(i, *args, **kw) for i in data)
 
     @staticmethod
@@ -209,7 +211,7 @@ class Query(deque):
         for key in dir(this):
             if not any([key.startswith('__'), key.isupper()]):
                 try:
-                    value = getter(this, key)
+                    value = getattr(this, key)
                 except AttributeError:
                     pass
                 else:
@@ -219,6 +221,16 @@ class Query(deque):
     def iskey(key):
         '''validate key'''
         return all([not key.startswith('_'), not key.isupper()])
+
+    @classmethod
+    def keyed(cls, key, this):
+        '''
+        check if item provides an app key
+
+        @param label: app key
+        @param this: object to check
+        '''
+        return cls.keyer(key, this[1])
 
     @staticmethod
     def keyer(key, this):
@@ -235,16 +247,6 @@ class Query(deque):
                 return key.implementedBy(this)
             except (AttributeError, TypeError):
                 return False
-
-    @staticmethod
-    def keyed(key, this):
-        '''
-        check if item provides an app key
-
-        @param label: app key
-        @param this: object to check
-        '''
-        return Query.keyer(key, this[1])
 
     def last(self):
         '''fetch the last result'''
@@ -270,7 +272,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         return self(imap(app, data))
 
     def max(self, data, label, branch=False):
@@ -281,7 +283,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         self.appendleft(max(data, key=app))
         return self
 
@@ -301,7 +303,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         self.appendleft(min(data, key=app))
         return self
 
@@ -351,7 +353,7 @@ class Query(deque):
         @param branch: branch label (default: False)
         @param initial: initial value (default: None)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         self.appendleft(reduce(app, data, initial))
         return self
 
@@ -363,7 +365,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         return self(ifilterfalse(app, data))
 
     def right(self, data, label, branch=False, initial=None):
@@ -375,19 +377,19 @@ class Query(deque):
         @param branch: branch label (default: False)
         @param initial: initial value (default: None)
         '''
-        app = lambda x, y: self.app(label, branch).first()(y, x)
+        app = lambda x, y: self._quikget(label, branch)(y, x)
         self.appendleft(reduce(app, reversed(data), initial))
         return self
 
     def sorted(self, data, label, branch=False):
         '''
-        sort by key function in appspace
+        sort by key app in appspace
 
         @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         return self(sorted(data, key=app))
     
     @staticmethod
@@ -408,28 +410,6 @@ class Builder(Query):
     def _manage_class(self):
         return Appspace(Manager())
 
-    def app(self, label, branch=False, app=False):
-        '''
-        add or get application from appspace
-
-        @param label: application label
-        @param branch: branch label (default: False)
-        @param app: new application (default: False)
-        '''
-        # process new application
-        if app:
-            # use branch manager
-            if branch:
-                manager = self.branch(branch).one().manager
-            # use passed manager
-            else:
-                manager = self._manager
-            # add to appspace
-            manager.set(label, app)
-            self.appendleft(app)
-            return self
-        return Query.app(self, label, branch)
-
     def branch(self, label):
         '''
         add or fetch branch appspace
@@ -446,14 +426,34 @@ class Builder(Query):
             self.appendleft(new_appspace)
             return self
         raise ConfigurationError('invalid branch configuration')
+    
+    def set(self, app, label, branch=False):
+        '''
+        add application to appspace
+
+        @param app: new application
+
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        # use branch manager
+        if branch:
+            manager = Query.branch(self, branch).one().manager
+        # use passed manager
+        else:
+            manager = self._manager
+        # add to appspace
+        manager.set(label, app)
+        self.appendleft(app)
+        return self
 
     @staticmethod
     def key(key, app):
         '''
-        key an app
+        key an get
 
-        @param key: key to key app
-        @param app: app to key
+        @param key: key to key get
+        @param get: get to key
         '''
         apped(app, key)
         return app

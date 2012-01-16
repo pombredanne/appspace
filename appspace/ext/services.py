@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 from functools import partial, wraps
 
-from stuf.utils import getter, get_or_default
+from stuf.utils import get_or_default
 
 from appspace.keys import appifies
 from appspace.error import NoAppError
@@ -144,24 +144,28 @@ class ServiceQuery(Builder):
         @param client: client needing services
         @param label: application label
         '''
-        app = self.app
+        sget = self.get
+        sset = self.set
         keyed = self.keyed
         check = lambda x: keyed(AService, x)
         for k, v in self.members(check):
-            app(k, label, v)
+            try:
+                sget(k, label)
+            except NoAppError:
+                sset(k, label, v)
         client._services.add(label)
         return self
 
-    def service(self, label, branch):
+    def service(self, label, branch=False):
         '''
         add or get service from appspace
 
         @param label: application label
-        @param branch: branch label
+        @param branch: branch label (defalut: False)
         '''
-        app = self.app(label, branch).first()
+        app = self._quikget(label, branch)
         metadata = get_or_default(app, 'metadata')
-        get = getter
+        get = getattr
         if metadata is not None:
             kw = {}
             client = self._this

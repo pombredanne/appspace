@@ -6,8 +6,6 @@ from __future__ import absolute_import
 from collections import deque
 from operator import attrgetter, getitem
 
-from stuf.utils import setter
-
 from appspace.keys import appifies, get_apps, apped
 
 from .keys import AEventManager, AEvent
@@ -27,7 +25,7 @@ class Event(object):
         self.label = label
         self.priority = priority
         for k, v in kw.iteritems():
-            setter(self, k, v)
+            setattr(self, k, v)
 
     def __repr__(self):
         return 'Event{label}@Priority{priority}'.format(

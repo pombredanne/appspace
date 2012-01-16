@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from inspect import isclass
 
 from stuf import stuf
-from stuf.utils import both, clsname, getcls, getter, deleter, lazy
+from stuf.utils import both, clsname, getcls, lazy
 
 from appspace.keys import appifies
 from appspace.ext import Sync, Synced
@@ -178,7 +178,7 @@ class Traits(Synced):
         @param key: key in Trait metadata
         '''
         try:
-            return getter(getcls(self.this), label).get_metadata(key)
+            return getattr(getcls(self.this), label).get_metadata(key)
         except AttributeError:
             raise TraitError(
                 '%s has no Trait %s' % (clsname(self.this), label)
@@ -209,7 +209,7 @@ class Traits(Synced):
         uappend = unresetable.append
         for label in labels:
             try:
-                deleter(this, label)
+                delattr(this, label)
             except (AttributeError, TraitError):
                 uappend(label)
         return unresetable

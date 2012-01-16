@@ -32,26 +32,26 @@ class Registry(AppStore):
 
     def easy_lookup(self, key, label):
         '''
-        streamlined app lookup
+        streamlined get lookup
 
         @param key: key to lookup
         @param label: label to lookup
         '''
         return self.lookup1(key, key, label)
 
-    def easy_register(self, key, label, app):
+    def easy_register(self, key, label, get):
         '''
-        streamlined app registration
+        streamlined get registration
 
         @param key: key to register
         @param label: label to register
-        @param app: app to register
+        @param get: get to register
         '''
-        self.register([key], key, label, app)
+        self.register([key], key, label, get)
 
     def easy_unregister(self, key, label):
         '''
-        streamlined app unregistration
+        streamlined get unregistration
 
         @param key: key to lookup
         @param label: label to lookup
@@ -60,23 +60,23 @@ class Registry(AppStore):
 
     def get(self, label):
         '''
-        fetch app
+        fetch get
 
-        @param label: app or branch label
+        @param label: get or branch label
         '''
-        app = self.easy_lookup(self._key, label)
-        if app is None:
-            raise AppLookupError(app, label)
-        return app
+        get = self.easy_lookup(self._key, label)
+        if get is None:
+            raise AppLookupError(get, label)
+        return get
 
-    def set(self, label, app):
+    def set(self, label, get):
         '''
-        register branch or app in appspace
+        register branch or get in appspace
 
         @param label: appspace label
-        @param app: app to add to appspace
+        @param get: get to add to appspace
         '''
-        self.register([self._key], self._key, label, app)
+        self.register([self._key], self._key, label, get)
 
 
 __all__ = ['Registry']

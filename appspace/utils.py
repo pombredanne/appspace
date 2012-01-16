@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 from inspect import isclass
 from functools import wraps
+from keyword import iskeyword
 
 from importlib import import_module
 
@@ -79,6 +80,31 @@ def object_walk(this):
     return this_stuf
 
 
+class CheckName(object):
+
+    '''ensures a string is a legal Python name'''
+
+    # Illegal characters for Python names
+    ic = '()[]{}@,:`=;+*/%&|^><\'"#\\$?!~'
+
+    def __call__(self, name):
+        '''
+        ensures a string is a legal python name
+
+        @param name: name to check
+        '''
+        # Remove characters that are illegal in a Python name
+        name = name.strip().lower().replace('-', '_').replace(
+            '.', '_'
+        ).replace(' ', '_')
+        name = ''.join(i for i in name if i not in self.ic)
+        # Add _ if value is a Python keyword
+        return name + '_' if iskeyword(name) else name
+
+
+checkname = CheckName()
+
+
 class ResetMixin(object):
 
     '''
@@ -110,4 +136,6 @@ class ResetMixin(object):
                 deleter(self, key)
 
 
-__all__ = ('ResetMixin', 'lazy_import', 'lru_cache', 'object_walk')
+__all__ = (
+    'ResetMixin', 'checkname', 'lazy_import', 'lru_cache', 'object_walk',
+)

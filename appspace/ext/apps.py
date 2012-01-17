@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import setter, selfname, lazy
+from stuf.utils import lazy, selfname
 
 from appspace.managers import Manager
 from appspace.error import ConfigurationError
@@ -196,9 +196,9 @@ class AppQuery(Builder):
         @param model: class to be model
         '''
         # attach manager
-        setter(model, 'A', self._appspace)
+        setattr(model, 'A', self._appspace)
         # attach manager settings
-        setter(model, 'S', self._settings.final)
+        setattr(model, 'S', self._settings.final)
         self.appendleft(model)
         return self
 
@@ -258,7 +258,7 @@ class On(object):
         method = self.method
         for arg in self.events:
             ebind(arg, method)
-        return setter(that, selfname(method), method)
+        return setattr(that, selfname(method), method)
 
 
 __all__ = ('AppManager', 'AppPatterns', 'AppQuery',  '__', 'on')

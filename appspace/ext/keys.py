@@ -10,11 +10,6 @@ from inspect import ismodule
 from appspace.keys import AppspaceKey, Attribute
 
 
-class AClient(AppspaceKey):
-
-    '''appspace client key'''
-
-
 class AEvent(AppspaceKey):
 
     '''event key'''
@@ -68,26 +63,6 @@ class AEventManager(AppspaceKey):
         @param event: event label
         @param priority: priority of event (default: 1)
         '''
-
-
-class AMaster(AppspaceKey):
-
-    '''appspace master key'''
-
-
-class AServer(AppspaceKey):
-
-    '''appspace server key'''
-
-
-class AService(AppspaceKey):
-
-    '''appspace service'''
-
-
-class AServiceManager(AppspaceKey):
-
-    '''appspace service manager'''
     
     
 class ASettings(AppspaceKey):

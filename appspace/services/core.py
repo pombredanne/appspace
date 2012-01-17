@@ -6,14 +6,14 @@ from __future__ import absolute_import
 
 from functools import partial, wraps
 
-from stuf.utils import get_or_default
+from stuf.utils import get_or_default, setter
 
 from appspace.keys import appifies
 from appspace.error import NoAppError
 from appspace.builders import Appspace
 from appspace.registry import Registry
+from appspace.ext.core import Builder, direct, factory
 
-from .core import Builder, direct, factory
 from .keys import AServiceManager, AService, AServer
 
 
@@ -38,7 +38,7 @@ class ServiceMixin(object):
     def __get__(self, this, that):
         new_app = super(ServiceMixin, self).__get__(this, that)
         S(new_app).scan(this, self.label)
-        return new_app
+        return setter(that, self.label, new_app)
 
 
 @appifies(AServer)
@@ -59,7 +59,7 @@ class servicer(factory):
     def __get__(self, this, that):
         new_app = super(servicer, self).__get__(this, that)
         S.key(AService, new_app)
-        return new_app
+        return setter(that, self.label, new_app)
 
 
 @appifies(AServiceManager)

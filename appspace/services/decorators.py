@@ -3,57 +3,43 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import setter
+from functools import wraps
 
-from appspace.keys import appifies
 from appspace.query import direct, factory
 
-from .keys import AService, AServer
+from .query import S
+from .keys import AService
 
 
-class ServiceMixin(object):
-
-    def __get__(self, this, that):
-        new_app = super(ServiceMixin, self).__get__(this, that)
-#        S(new_app).scan(this, self.label)
-        return setter(that, self.label, new_app)
-
-
-@appifies(AServer)
-class forward(ServiceMixin, factory):
+class forward(factory):
 
     '''builds application in appspace and forwards host functionality to it'''
 
 
-class remote(ServiceMixin, direct):
+class remote(direct):
 
     '''makes remote functionality directly available to client'''
 
 
-@appifies(AService)
-class service(object):
+def service(*metadata):
+    '''
+    marks method as service
 
-    def __init__(self, method, *metadata):
-        '''
-        marks method as service
-
-        @param *metadata: metadata to set on decorated method
-        '''
-        self.method = method
-        self.method.metadata = metadata
-
-    def __get__(self, this, that):
-        return self.method
+    @param *metadata: metadata to set on decorated method
+    '''
+    def wrapped(this):
+        this.metadata = metadata
+        S.key(AService, this)
+        @wraps(this) #@IgnorePep8
+        def wrapper(*args, **kw):
+            return this(*args, **kw)
+        return wrapper
+    return wrapped
 
 
 class servicer(factory):
 
     '''builds service and makes it available to clients'''
 
-    def __get__(self, this, that):
-        new_app = super(servicer, self).__get__(this, that)
-#        S.key(AService, new_app)
-        return setter(that, self.label, new_app)
 
-
-__all__ = ('ServiceQuery', 'S', 'service')
+__all__ = ('servicer', 'forward', 'remote', 'service')

@@ -3,6 +3,8 @@
 
 from __future__ import absolute_import
 
+from operator import attrgetter
+
 from stuf.utils import lazy
 
 from appspace.keys import appifies
@@ -10,24 +12,19 @@ from appspace.query import ResetMixin
 
 from .query import S
 from .keys import AClient, AServer
-from .core import forward, remote, service, servicer
+from .decorators import forward, remote
 
 
 class client(type):
 
-    '''makes sure Traits are instantiated with their name attribute set'''
+    '''capture server names'''
 
-    def __new__(cls, name, bases, classdict):
-        '''
-        new
-
-        instantiate Traits in classdict, setting their name attribute
-        '''
-        cls._servers = dict(
-            (k, v) for k, v in classdict.iteritems()
-            if isinstance(v, (forward, remote))
+    def __init__(cls, name, bases, classdict):
+        items = (forward, remote)
+        cls._servers = set(
+            k for k, v in classdict.iteritems() if isinstance(v, items)
         )
-        return super(client, cls).__new__(cls, name, bases, classdict)
+        super(client, cls).__init__(name, bases, classdict)
 
 
 @appifies(AClient)
@@ -42,29 +39,33 @@ class Client(ResetMixin):
             return object.__getattribute__(self, key)
         except AttributeError:
             # check for services
-            if any([not key.startswith('__'), not key.upper()]):
-                return setattr(self, key, S(self).fetch(key))
+            query = self._query.service
+            finder = attrgetter(key)
+            for k in self._servers:
+                try:
+                    first = finder(getattr(self, k))
+                    result = self.__dict__[key] = query(first).one()
+                    return result
+                except AttributeError:
+                    pass
+            else:
+                raise AttributeError('{key}'.format(key=key))
 
     @lazy
-    def _services(self):
-        return set()
+    def _query(self):
+        return S(self)
 
 
-class server(type):
-
-    '''makes sure Traits are instantiated with their name attribute set'''
-
-    def __new__(cls, name, bases, classdict):
-        '''
-        new
-
-        instantiate Traits in classdict, setting their name attribute
-        '''
-        cls._services = dict(
-            (k, v) for k, v in classdict.iteritems()
-            if isinstance(v, (servicer, service))
-        )
-        return super(server, cls).__new__(cls, name, bases, classdict)
+#class server(type):
+#
+#    '''capture services and names'''
+#
+#    def __init__(cls, name, bases, classdict):
+#        items = (servicer, service)
+#        cls._services = set(
+#            k for k, v in classdict.iteritems() if isinstance(v, items)
+#        )
+#        super(server, cls).__init__(name, bases, classdict)
 
 
 @appifies(AServer)
@@ -72,7 +73,7 @@ class Server(ResetMixin):
 
     '''provides services for other instances'''
 
-    __metaclass__ = server
+#    __metaclass__ = server
 
 
 __all__ = ('Client', 'Server')

@@ -8,12 +8,6 @@ from __future__ import absolute_import
 from appspace.keys import AppspaceKey, Attribute
 
 
-class ATraits(AppspaceKey):
-
-    C = Attribute('local settings')
-    traits = Attribute('traits handler')
-
-
 class ATrait(AppspaceKey):
 
     '''trait property key'''
@@ -23,3 +17,11 @@ class ATrait(AppspaceKey):
 
     def instance_init(value):
         '''initialize instance with instance'''
+
+
+class ATraits(AppspaceKey):
+    
+    '''traits property key'''
+
+    C = Attribute('local settings')
+    traits = Attribute('traits handler')

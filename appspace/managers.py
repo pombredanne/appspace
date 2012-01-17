@@ -29,14 +29,14 @@ class Manager(Registry):
 
     def get(self, label):
         '''
-        fetch get
+        fetch app
 
         @param label: get or branch label
         '''
-        get = super(Manager, self).get(label)
-        if ALazyApp.providedBy(get):
-            get = self.load(label, get.path)
-        return get
+        app = super(Manager, self).get(label)
+        if ALazyApp.providedBy(app):
+            app = self.load(label, app.path)
+        return app
 
     def load(self, label, module):
         '''
@@ -47,23 +47,23 @@ class Manager(Registry):
         '''
         # register branch appspace from include
         if isinstance(module, tuple):
-            get = lazy_import(module[-1], self._label)
+            app = lazy_import(module[-1], self._label)
         # register get
         else:
-            get = lazy_import(module)
-        self.set(label, get)
-        return get
+            app = lazy_import(module)
+        self.set(label, app)
+        return app
 
-    def set(self, label, get):
+    def set(self, label, app):
         '''
         register branch or get in appspace
 
         @param label: appspace label
         @param get: get to add to appspace
         '''
-        if isinstance(get, (basestring, tuple)):
-            get = LazyApp(get)
-        super(Manager, self).set(label, get)
+        if isinstance(app, (basestring, tuple)):
+            app = LazyApp(app)
+        super(Manager, self).set(label, app)
 
 
 @appifies(ALazyApp)
@@ -82,7 +82,7 @@ class LazyApp(object):
         self.path = path
 
     def __repr__(self):
-        return 'get@{path}'.format(path=self.path)
+        return 'app@{path}'.format(path=self.path)
 
 
 __all__ = ('Manager', 'LazyApp')

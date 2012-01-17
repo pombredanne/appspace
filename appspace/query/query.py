@@ -69,7 +69,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        self.appendleft(self._appspace[branch][label](*args, **kw))
+        self.appendleft(self._quikget(label, branch)(*args, **kw))
         return self
 
     def branch(self, label):
@@ -90,7 +90,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self.get(label, branch).first()
+        app = self._quikget(label, branch)
         return self(app(i) for i in data)
 
     def filter(self, data, label, branch=False):

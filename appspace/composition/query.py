@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from appspace.query.core import Builder
+from appspace.query import B
 from appspace.query.keys import NoDefault
 from appspace.error import ConfigurationError
 from appspace.builders import Appspace, Patterns, patterns
@@ -11,7 +11,7 @@ from appspace.builders import Appspace, Patterns, patterns
 from .core import AppManager, AppPatterns
 
 
-class AppQuery(Builder):
+class AppQuery(B):
 
     '''appspace query'''
 
@@ -21,7 +21,7 @@ class AppQuery(Builder):
 
         @param appspace: appspace or appspace server
         '''
-        Builder.__init__(self, appspace, *args, **kw)
+        B.__init__(self, appspace, *args, **kw)
         # appspace settings
         self._settings = self._appspace.manager.settings
         self._events = self._appspace.manager.events

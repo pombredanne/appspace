@@ -28,18 +28,18 @@ class AppManager(Manager):
         @param ns: label for internal namespace
         '''
         super(AppManager, self).__init__(label, ns)
-        self.easy_register(ASettings, 'default', Settings)
-        self.easy_register(AEventManager, 'default', EventManager)
+        self.ez_register(ASettings, 'default', Settings)
+        self.ez_register(AEventManager, 'default', EventManager)
 
     @lazy
     def events(self):
         '''get appspace events manager'''
-        return self.easy_lookup(AEventManager, self._settings)(self)
+        return self.ez_lookup(AEventManager, self._settings)(self)
 
     @lazy
     def settings(self):
         '''get appspace settings'''
-        return self.easy_lookup(ASettings, self._settings)()
+        return self.ez_lookup(ASettings, self._settings)()
 
 
 class AppPatterns(Patterns):

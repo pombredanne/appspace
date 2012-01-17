@@ -109,6 +109,10 @@ class Traits(Synced):
         return inst
 
     @lazy
+    def _query(self):
+        return T(self)
+
+    @lazy
     def _sync(self):
         '''sync provider'''
         # initialize with any arguments
@@ -168,7 +172,7 @@ class Traits(Synced):
         metadata name exists but has any value. This is because get_metadata
         returns None if a metadata key doesn't exist.
         '''
-        return T.traits(self._sync.traits, **metadata)
+        return self._query.traits(self._sync.traits, **metadata)
 
     def metadata(self, label, key):
         '''

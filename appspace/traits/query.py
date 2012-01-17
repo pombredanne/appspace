@@ -10,7 +10,7 @@ from inspect import getargspec, getmro, ismethod
 from stuf import stuf
 from stuf.utils import get_or_default, getcls
 
-from appspace.composition.core import AppQuery
+from appspace.composition import __
 
 from .keys import ATrait
 
@@ -32,7 +32,7 @@ class _SimpleTest:
         return self.__repr__()
 
 
-class TraitQuery(AppQuery):
+class TraitQuery(__):
 
     '''trait query'''
 
@@ -40,7 +40,7 @@ class TraitQuery(AppQuery):
         '''
         @param appspace: appspace or appspace server
         '''
-        AppQuery.__init__(self, appspace, *args, **kw)
+        __.__init__(self, appspace, *args, **kw)
         # enable for traits
         self._enabled = True
 
@@ -139,9 +139,9 @@ class TraitQuery(AppQuery):
                 if callable(C):
                     argspec = getargspec(C)
                     nargs = len(argspec[0])
-                    # Bound methods have an additional 'self' argument.
-                    # I don't know how to treat unbound methods, but they
-                    # can't really be used for callbacks.
+                    # Bound methods have an additional 'self' argument. I don't
+                    # know how to treat unbound methods, but they can't really
+                    # be used for callbacks.
                     if ismethod(C):
                         offset = -1
                     else:

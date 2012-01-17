@@ -11,7 +11,7 @@ from .classes import ResetMixin
 from .decorators import direct, factory
 
 __all__ = sorted(name for name, obj in locals().iteritems() if not any([
-    name.startswith('_') and name != '__', ismodule(obj),
+    name.startswith('_'), ismodule(obj),
 ]))
 
 del ismodule

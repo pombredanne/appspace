@@ -18,6 +18,7 @@ class Builder(Query):
 
     @property
     def _manage_class(self):
+        # manager class
         return Appspace(Manager())
 
     def branch(self, label):
@@ -69,7 +70,5 @@ class Builder(Query):
         return app
 
 
-# builder shortcut
 B = Builder
-
-__all__ = ('B', 'Builder', 'Q', 'Query')
+__all__ = ['B']

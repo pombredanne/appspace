@@ -16,7 +16,7 @@ from appspace.error import NoAppError
 from appspace.builders import Appspace
 
 
-from .keys import AServiceManager, AService, AServer
+from .keys import AServiceManager, AService
 
 
 @appifies(AServiceManager)
@@ -47,13 +47,13 @@ class ServiceQuery(B):
         '''
         B.__init__(self, appspace, *args, **kw)
         # get existing service manager...
-        self._appspace = self._manager.easy_lookup(
+        self._appspace = self._manager.ez_lookup(
             AServiceManager, 'services',
         )
         # ... or initialize new service manager
         if self._appspace is None:
             self._appspace = self._manage_class
-            self._manager.easy_register(
+            self._manager.ez_register(
                 AServiceManager, 'services', self._appspace
             )
         self._manager = self._appspace.manager
@@ -62,35 +62,25 @@ class ServiceQuery(B):
     def _manage_class(self):
         return Appspace(ServiceManager())
 
-    def fetch(self, label):
-        '''
-        fetch a service
-
-        @param label: application label
-        '''
-        services = self._this._services
-        # discover services
-        query = self.service
-        # search services for application
-        for serv in services:
-            try:
-                value = query(label, serv).one()
-                if value is not None:
-                    return value
-            except NoAppError:
-                pass
-        else:
-            raise AttributeError('{label} not found'.format(label=label))
-
-    @classmethod
-    def isserver(cls, key, value):
-        '''
-        detect service
-
-        @param key: Trait name
-        @param value: Trait value
-        '''
-        return all([cls.keyer(AServer, value), cls.iskey(key)])
+#    def fetch(self, label):
+#        '''
+#        fetch a service
+#
+#        @param label: application label
+#        '''
+#        services = self._this._services
+#        # discover services
+#        query = self.service
+#        # search services for application
+#        for serv in services:
+#            try:
+#                value = query(label, serv).one()
+#                if value is not None:
+#                    return value
+#            except NoAppError:
+#                pass
+#        else:
+#            raise AttributeError('{label} not found'.format(label=label))
 
     def scan(self, client, label):
         '''
@@ -111,14 +101,14 @@ class ServiceQuery(B):
         client._services.add(label)
         return self
 
-    def service(self, label, branch=False):
+    def service(self, app): #label, branch=False):
         '''
         add or get service from appspace
 
         @param label: application label
         @param branch: branch label (defalut: False)
         '''
-        app = self._quikget(label, branch)
+#        app = self._quikget(label, branch)
         metadata = get_or_default(app, 'metadata')
         get = getattr
         if metadata is not None:

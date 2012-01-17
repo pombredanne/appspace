@@ -30,7 +30,7 @@ class Registry(AppStore):
     def __repr__(self):
         return str(self.lookupAll([self._key], self._key))
 
-    def easy_lookup(self, key, label):
+    def ez_lookup(self, key, label):
         '''
         streamlined get lookup
 
@@ -39,44 +39,44 @@ class Registry(AppStore):
         '''
         return self.lookup1(key, key, label)
 
-    def easy_register(self, key, label, get):
+    def ez_register(self, key, label, app):
         '''
         streamlined get registration
 
         @param key: key to register
         @param label: label to register
-        @param get: get to register
+        @param app: app to register
         '''
-        self.register([key], key, label, get)
+        self.register([key], key, label, app)
 
-    def easy_unregister(self, key, label):
+    def ez_unregister(self, key, label):
         '''
         streamlined get unregistration
 
         @param key: key to lookup
         @param label: label to lookup
         '''
-        self.unregister([key], key, label, self.easy_lookup(key, label))
+        self.unregister([key], key, label, self.ez_lookup(key, label))
 
     def get(self, label):
         '''
-        fetch get
+        fetch app
 
-        @param label: get or branch label
+        @param label: app or branch label
         '''
-        get = self.easy_lookup(self._key, label)
-        if get is None:
-            raise AppLookupError(get, label)
-        return get
+        app = self.ez_lookup(self._key, label)
+        if app is None:
+            raise AppLookupError(app, label)
+        return app
 
-    def set(self, label, get):
+    def set(self, label, app):
         '''
-        register branch or get in appspace
+        register branch or app in appspace
 
         @param label: appspace label
-        @param get: get to add to appspace
+        @param app: app to add to appspace
         '''
-        self.register([self._key], self._key, label, get)
+        self.register([self._key], self._key, label, app)
 
 
 __all__ = ['Registry']

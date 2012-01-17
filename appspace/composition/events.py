@@ -104,7 +104,7 @@ class EventManager(object):
 
         @param label: event label
         '''
-        app = self.appspace.easy_lookup(AEvent, label)
+        app = self.appspace.ez_lookup(AEvent, label)
         if app is not None:
             return getitem(get_apps(app), 0)
         return None
@@ -134,7 +134,7 @@ class EventManager(object):
             '''event'''
         new_event = NewEvent(priority, **kw)
         apped(NewEvent, ANewEvent)
-        self.appspace.easy_register(AEvent, label, new_event)
+        self.appspace.ez_register(AEvent, label, new_event)
         return new_event
 
     def unbind(self, label, app):
@@ -152,7 +152,7 @@ class EventManager(object):
 
         @param label: event label
         '''
-        self.appspace.easy_unregister(AEvent, label)
+        self.appspace.ez_unregister(AEvent, label)
 
 
 __all__ = ('Event', 'EventManager')

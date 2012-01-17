@@ -7,13 +7,16 @@ from __future__ import absolute_import
 from stuf.utils import lazy, selfname
 
 from appspace.managers import Manager
+from appspace.query.core import Builder
+from appspace.query.keys import NoDefault
 from appspace.error import ConfigurationError
 from appspace.builders import Appspace, Patterns, patterns
 
-from .core import Builder
+
 from .settings import Settings
 from .events import EventManager
-from .keys import AEventManager, ASettings, NoDefault
+
+from .keys import AEventManager, ASettings
 
 
 def on(*events):

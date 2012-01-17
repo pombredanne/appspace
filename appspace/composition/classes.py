@@ -8,7 +8,7 @@ from operator import attrgetter
 from stuf.utils import lazy
 
 from appspace.keys import appifies
-from appspace.utils import ResetMixin
+from appspace.query.classes import ResetMixin
 
 from .holders import Sync
 from .keys import ASynched
@@ -17,7 +17,7 @@ from .keys import ASynched
 @appifies(ASynched)
 class Synced(ResetMixin):
 
-    '''instance with synchronizing functionality'''
+    '''class with synchronizing functionality'''
 
     _element = attrgetter('element')
     _syncer = Sync
@@ -43,6 +43,7 @@ class Synced(ResetMixin):
 
     @lazy
     def _sync(self):
+        # synchronizing handler
         return self._syncer(self._element(self), **self._attrs)
 
 

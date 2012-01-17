@@ -4,7 +4,7 @@
 from __future__ import absolute_import
 
 from appspace.keys import appifies
-from appspace.ext.keys import NoDefault, Undefined
+from appspace.query.keys import NoDefault, Undefined
 
 from .query import T
 from .keys import ATrait

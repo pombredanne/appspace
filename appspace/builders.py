@@ -159,9 +159,6 @@ class Patterns(object):
         return Factory(label, cls._manager, *args, **kw).build()
 
 
-patterns = Patterns.patterns
-
-
 @appifies(ABranch)
 class Branch(object):
 
@@ -205,4 +202,5 @@ class Namespace(object):
         return this
 
 
+patterns = Patterns.patterns
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')

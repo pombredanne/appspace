@@ -12,7 +12,7 @@ from appspace.keys import appifies
 from appspace.error import NoAppError
 from appspace.builders import Appspace
 from appspace.registry import Registry
-from appspace.ext.core import Builder, direct, factory
+from appspace.query.core import Builder, direct, factory
 
 from .keys import AServiceManager, AService, AServer
 

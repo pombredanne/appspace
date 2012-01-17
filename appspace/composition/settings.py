@@ -7,8 +7,9 @@ from stuf import defaultstuf, frozenstuf, stuf
 from stuf.utils import deepget, lazy, lazy_set, setter
 
 from appspace.keys import appifies
-from appspace.utils import ResetMixin, object_walk
+from appspace.query.classes import ResetMixin
 
+from .utils import object_walk
 from .keys import ADefaultSettings, ARequiredSettings, ASettings
 
 

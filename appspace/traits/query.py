@@ -10,7 +10,7 @@ from inspect import getargspec, getmro, ismethod
 from stuf import stuf
 from stuf.utils import get_or_default, getcls
 
-from appspace.ext.apps import AppQuery
+from appspace.composition.core import AppQuery
 
 from .keys import ATrait
 

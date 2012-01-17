@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from stuf.utils import lazy
 
 from appspace.keys import appifies
-from appspace.utils import ResetMixin
+from appspace.query import ResetMixin
 
 from .core import S
 from .keys import AClient, AServer

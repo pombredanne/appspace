@@ -1,68 +1,16 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=w0221
-'''extension core classes'''
+'''query'''
 
 from __future__ import absolute_import
 
 import uuid
-from inspect import isclass
 from operator import attrgetter, itemgetter
 from collections import Mapping, Sequence, deque
 from itertools import groupby, ifilter, ifilterfalse, imap
 
-from appspace.utils import getcls
-from appspace.managers import Manager
-from appspace.builders import Appspace
-from appspace.keys import AAppspace, apped
-from appspace.error import ConfigurationError, NoAppError
-
-
-class direct(object):
-
-    '''passes application from appspace directly to host'''
-
-    def __init__(self, label, branch=False):
-        '''
-        init
-
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        self.label = label
-        self.branch = branch
-
-    def __get__(self, this, that):
-        return Q(that).get(self.label, self.branch).one()
-
-    def __set__(self, this, value):
-        raise AttributeError('attribute is read-only')
-
-    def __delete__(self, this):
-        raise AttributeError('attribute is read-only')
-
-
-class factory(direct):
-
-    '''builds application stored in appspace and passes it to host'''
-
-    def __init__(self, label, branch=False, *args, **kw):
-        '''
-        init
-
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        super(factory, self).__init__(label, branch)
-        self.attrs = args
-        self.extra = kw
-
-    def __get__(self, this, that):
-        new_app = super(factory, self).__get__(this, that)
-        if isclass(new_app):
-            attrs = [getattr(this, attr) for attr in self.attrs]
-            new_app = new_app(*attrs, **self.extra)
-            B(that).set(new_app, self.label, self.branch)
-        return new_app
+from stuf.utils import getcls
+from appspace.keys import AAppspace
+from appspace.error import NoAppError
 
 
 class Query(deque):
@@ -398,68 +346,5 @@ class Query(deque):
         return uuid.uuid4().hex.upper()
     
 
-# query shortcut
 Q = Query
-
-
-class Builder(Query):
-
-    '''appspace query'''
-
-    @property
-    def _manage_class(self):
-        return Appspace(Manager())
-
-    def branch(self, label):
-        '''
-        add or fetch branch appspace
-
-        @param label: label of appspace
-        '''
-        # fetch branch if exists...
-        try:
-            return Query.branch(self, label)
-        # create new branch
-        except NoAppError:
-            new_appspace = self._manage_class
-            self._manager.set(label, new_appspace)
-            self.appendleft(new_appspace)
-            return self
-        raise ConfigurationError('invalid branch configuration')
-    
-    def set(self, app, label, branch=False):
-        '''
-        add application to appspace
-
-        @param app: new application
-
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        # use branch manager
-        if branch:
-            manager = Query.branch(self, branch).one().manager
-        # use passed manager
-        else:
-            manager = self._manager
-        # add to appspace
-        manager.set(label, app)
-        self.appendleft(app)
-        return self
-
-    @staticmethod
-    def key(key, app):
-        '''
-        key an get
-
-        @param key: key to key get
-        @param get: get to key
-        '''
-        apped(app, key)
-        return app
-
-
-# builder shortcut
-B = Builder
-
-__all__ = ('B', 'Builder', 'Q', 'Query')
+__all__ = ['Q']

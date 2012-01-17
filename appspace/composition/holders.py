@@ -101,7 +101,7 @@ class Sync(object):
         self.cleaned = stuf()
 
     def __call__(self):
-        '''get cleaned data'''
+        # get cleaned data
         return self.cleaned
 
     def __contains__(self, key):

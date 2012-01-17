@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''extension hosts'''
+'''composition classes'''
 
 from __future__ import absolute_import
 

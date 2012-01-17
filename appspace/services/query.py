@@ -1,65 +1,22 @@
 # -*- coding: utf-8 -*-
 # pylint: disable-msg=e1001,e1002
-'''extension services management'''
+'''services query'''
 
 from __future__ import absolute_import
 
-from functools import partial, wraps
-
-from stuf.utils import get_or_default, setter
-
 from appspace.keys import appifies
+from appspace.registry import Registry
+
+from functools import partial
+
+from stuf.utils import get_or_default
+
+from appspace.query import B
 from appspace.error import NoAppError
 from appspace.builders import Appspace
-from appspace.registry import Registry
-from appspace.query.core import Builder, direct, factory
+
 
 from .keys import AServiceManager, AService, AServer
-
-
-def service(*metadata):
-    '''
-    marks method as service
-
-    @param *metadata: metadata to set on decorated method
-    '''
-    def wrapped(this):
-        this.metadata = metadata
-        S.key(AService, this)
-        @wraps(this) #@IgnorePep8
-        def wrapper(*args, **kw):
-            return this(*args, **kw)
-        return wrapper
-    return wrapped
-
-
-class ServiceMixin(object):
-
-    def __get__(self, this, that):
-        new_app = super(ServiceMixin, self).__get__(this, that)
-        S(new_app).scan(this, self.label)
-        return setter(that, self.label, new_app)
-
-
-@appifies(AServer)
-class forward(ServiceMixin, factory):
-
-    '''builds application in appspace and forwards host functionality to it'''
-
-
-class remote(ServiceMixin, direct):
-
-    '''makes remote functionality directly available to client'''
-
-
-class servicer(factory):
-
-    '''builds service and makes it available to clients'''
-
-    def __get__(self, this, that):
-        new_app = super(servicer, self).__get__(this, that)
-        S.key(AService, new_app)
-        return setter(that, self.label, new_app)
 
 
 @appifies(AServiceManager)
@@ -78,7 +35,7 @@ class ServiceManager(Registry):
         super(ServiceManager, self).__init__(AService, ns)
 
 
-class ServiceQuery(Builder):
+class ServiceQuery(B):
 
     '''service query'''
 
@@ -88,7 +45,7 @@ class ServiceQuery(Builder):
 
         @param appspace: appspace or appspace server
         '''
-        Builder.__init__(self, appspace, *args, **kw)
+        B.__init__(self, appspace, *args, **kw)
         # get existing service manager...
         self._appspace = self._manager.easy_lookup(
             AServiceManager, 'services',
@@ -105,16 +62,6 @@ class ServiceQuery(Builder):
     def _manage_class(self):
         return Appspace(ServiceManager())
 
-    def discover(self):
-        '''
-        register services
-
-        @param client: client needing services
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        return self(i for i in self.members(lambda x: self.keyed(AServer, x)))
-
     def fetch(self, label):
         '''
         fetch a service
@@ -123,8 +70,6 @@ class ServiceQuery(Builder):
         '''
         services = self._this._services
         # discover services
-        if not services:
-            self.discover()
         query = self.service
         # search services for application
         for serv in services:
@@ -136,6 +81,16 @@ class ServiceQuery(Builder):
                 pass
         else:
             raise AttributeError('{label} not found'.format(label=label))
+
+    @classmethod
+    def isserver(cls, key, value):
+        '''
+        detect service
+
+        @param key: Trait name
+        @param value: Trait value
+        '''
+        return all([cls.keyer(AServer, value), cls.iskey(key)])
 
     def scan(self, client, label):
         '''
@@ -181,5 +136,4 @@ class ServiceQuery(Builder):
 
 
 S = ServiceQuery
-
-__all__ = ('ServiceQuery', 'S', 'service')
+__all__ = ['S']

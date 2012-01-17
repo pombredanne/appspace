@@ -8,16 +8,27 @@ from operator import attrgetter
 from stuf.utils import lazy
 
 from appspace.keys import appifies
-from appspace.query.classes import ResetMixin
+from appspace.query import ResetMixin
 
+from .query import __
 from .holders import Sync
-from .keys import ASynched
+from .keys import AComposed, ASynched
+
+
+@appifies(AComposed)
+class Composed(ResetMixin):
+
+    '''composed object'''
+
+    @lazy
+    def _query(self):
+        return __(self)
 
 
 @appifies(ASynched)
 class Synced(ResetMixin):
 
-    '''class with synchronizing functionality'''
+    '''composed object with synchronizing functionality'''
 
     _element = attrgetter('element')
     _syncer = Sync
@@ -41,10 +52,13 @@ class Synced(ResetMixin):
     def __repr__(self):
         return str(dict(i for i in self._sync.public.iteritems()))
 
+    def _query(self):
+        return __(self)
+
     @lazy
     def _sync(self):
         # synchronizing handler
         return self._syncer(self._element(self), **self._attrs)
 
 
-__all__ = ['Synced']
+__all__ = ['Composed', 'Synced']

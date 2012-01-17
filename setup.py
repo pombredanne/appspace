@@ -13,7 +13,7 @@ except ImportError:
 
 install_requires = ['zope.interface>=3.8.0', 'stuf>=0.8.1']
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
-    install_requires.extend(['importlib', 'ordereddict', 'unittest2'])
+    install_requires.extend(['importlib'])
 
 setup(
     name='appspace',
@@ -24,8 +24,14 @@ setup(
     author_email='lcrees@gmail.com',
     license='MIT',
     url='https://bitbucket.org/lcrees/appspace',
-    packages=['appspace', 'appspace.tests', 'appspace.ext', 'appspace.traits'],
-    test_suite='appspace.test',
+    packages=[
+        'appspace',
+        'appspace.query',
+        'appspace.composer',
+        'appspace.services',
+        'appspace.traits'
+    ],
+    test_suite='appspace.tests',
     zip_safe=False,
     keywords='component injection aspect-oriented programming',
     classifiers=[

@@ -8,10 +8,10 @@ from appspace.query.keys import NoDefault
 from appspace.error import ConfigurationError
 from appspace.builders import Appspace, Patterns, patterns
 
-from .core import AppManager, AppPatterns
+from .core import AppManager, Composer
 
 
-class AppQuery(B):
+class Query(B):
 
     '''appspace query'''
 
@@ -46,7 +46,7 @@ class AppQuery(B):
             return cls(pattern.build(required, defaults))
         # from label and arguments...
         elif isinstance(pattern, basestring) and args:
-            return cls(AppPatterns.settings(
+            return cls(Composer.settings(
                 patterns(pattern, *args, **kw), required, defaults,
             ))
         raise ConfigurationError('patterns not found')
@@ -166,5 +166,5 @@ class AppQuery(B):
         return self
 
 
-__ = AppQuery
+__ = Query
 __all__ = ['__']

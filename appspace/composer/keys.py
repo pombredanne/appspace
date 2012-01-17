@@ -63,6 +63,11 @@ class AEventManager(AppspaceKey):
         @param event: event label
         @param priority: priority of event (default: 1)
         '''
+        
+
+class AComposed(AppspaceKey):
+    
+    '''host key'''
     
     
 class ASettings(AppspaceKey):

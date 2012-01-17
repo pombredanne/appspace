@@ -42,7 +42,7 @@ class AppManager(Manager):
         return self.ez_lookup(ASettings, self._settings)()
 
 
-class AppPatterns(Patterns):
+class Composer(Patterns):
 
     '''patterns for manager configured by class'''
 
@@ -56,7 +56,7 @@ class AppPatterns(Patterns):
         @param required: required settings
         @param defaults: default settings
         '''
-        appconf = super(AppPatterns, cls).build()
+        appconf = super(Composer, cls).build()
         if required is not None and defaults is not None:
             cls.settings(appconf, required, defaults)
         return appconf
@@ -74,4 +74,4 @@ class AppPatterns(Patterns):
         conf.defaults = defaults
 
 
-__all__ = ('AppManager', 'AppPatterns')
+__all__ = ('AppManager', 'Composer')

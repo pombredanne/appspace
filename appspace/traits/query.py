@@ -10,7 +10,7 @@ from inspect import getargspec, getmro, ismethod
 from stuf import stuf
 from stuf.utils import get_or_default, getcls
 
-from appspace.composition import __
+from appspace.composer import __
 
 from .keys import ATrait
 
@@ -88,7 +88,7 @@ class TraitQuery(__):
         settings.update(kw)
         self.appendleft(settings)
         return self
-    
+
     @staticmethod
     def traits(traits, **metadata):
         '''
@@ -160,6 +160,6 @@ class TraitQuery(__):
                         )
                 else:
                     raise TypeError('Trait callback must be callable')
-        
+
 
 T = TraitQuery

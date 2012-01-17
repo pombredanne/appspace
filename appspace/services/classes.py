@@ -12,7 +12,7 @@ from appspace.query import ResetMixin
 
 from .query import S
 from .keys import AClient, AServer
-from .decorators import forward, remote
+from .decorators import forward, remote, service, servicer
 
 
 class client(type):
@@ -56,16 +56,16 @@ class Client(ResetMixin):
         return S(self)
 
 
-#class server(type):
-#
-#    '''capture services and names'''
-#
-#    def __init__(cls, name, bases, classdict):
-#        items = (servicer, service)
-#        cls._services = set(
-#            k for k, v in classdict.iteritems() if isinstance(v, items)
-#        )
-#        super(server, cls).__init__(name, bases, classdict)
+class server(type):
+
+    '''capture services and names'''
+
+    def __init__(cls, name, bases, classdict):
+        test = lambda x: any([isinstance(x, servicer), x is service])
+        cls._services = set(
+            k for k, v in classdict.iteritems() if test(v)
+        )
+        super(server, cls).__init__(name, bases, classdict)
 
 
 @appifies(AServer)
@@ -73,7 +73,7 @@ class Server(ResetMixin):
 
     '''provides services for other instances'''
 
-#    __metaclass__ = server
+    __metaclass__ = server
 
 
 __all__ = ('Client', 'Server')

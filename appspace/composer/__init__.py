@@ -8,8 +8,8 @@ from inspect import ismodule
 from .query import __
 from .holders import Sync
 from .decorators import on
-from .classes import Synced
-from .core import AppPatterns
+from .core import Composer
+from .classes import Composed, Synced
 from .settings import DefaultSettings, RequiredSettings
 
 __all__ = sorted(name for name, obj in locals().iteritems() if not any([

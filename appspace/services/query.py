@@ -47,7 +47,7 @@ class Query(Q):
                     setattr(self._this, label, item)
                     self.appendleft(item)
                     return self
-            except AttributeError:
+            except KeyError:
                 pass
         else:
             raise AttributeError(label)

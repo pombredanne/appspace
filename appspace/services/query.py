@@ -39,15 +39,14 @@ class Query(Q):
         servers = this._servers
         serve = self._serve
         plucker = self.plucker(label, this)
-        this_dict = this.__dict__
         for server in servers:
             try:
-                item = serve(plucker(this_dict[server]))
+                item = serve(plucker(getattr(this, server)))
                 if item:
                     setattr(self._this, label, item)
                     self.appendleft(item)
                     return self
-            except KeyError:
+            except AttributeError:
                 pass
         else:
             raise AttributeError(label)

@@ -52,7 +52,9 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        self.appendleft(self._quikget(label, branch))
+        self.appendleft(
+            self._space[branch][label] if branch else self._space[label]
+        )
         return self
 
     def apply(self, label, branch=False, *args, **kw):

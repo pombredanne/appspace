@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-'''extension settings management'''
+'''settings management'''
 
 from __future__ import absolute_import
+
+from inspect import isclass
 
 from stuf import defaultstuf, frozenstuf, stuf
 from stuf.utils import deepget, lazy, lazy_set, setter
@@ -9,8 +11,23 @@ from stuf.utils import deepget, lazy, lazy_set, setter
 from appspace.keys import appifies
 from appspace.query.classes import ResetMixin
 
-from .utils import object_walk
 from .keys import ADefaultSettings, ARequiredSettings, ASettings
+
+
+def object_walk(this):
+    '''
+    transform classes within an object into stufs
+
+    @param this: object
+    '''
+    this_stuf = stuf()
+    for k, v in vars(this).iteritems():
+        if not k.startswith('_'):
+            if isclass(v):
+                this_stuf[k] = object_walk(v)
+            else:
+                this_stuf[k] = v
+    return this_stuf
 
 
 class lock_set(lazy_set):

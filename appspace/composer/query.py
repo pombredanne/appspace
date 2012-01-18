@@ -4,11 +4,10 @@
 from __future__ import absolute_import
 
 from appspace.query import B
+from appspace.ext import Manager, Composer
 from appspace.query.keys import NoDefault
 from appspace.error import ConfigurationError
 from appspace.builders import Appspace, Patterns, patterns
-
-from .core import AppManager, Composer
 
 
 class Query(B):
@@ -23,13 +22,13 @@ class Query(B):
         '''
         B.__init__(self, appspace, *args, **kw)
         # appspace settings
-        self._settings = self._appspace.manager.settings
-        self._events = self._appspace.manager.events
+        self._settings = self._space.manager.settings
+        self._events = self._space.manager.events
 
     @property
     def _manage_class(self):
         # manager class
-        return Appspace(AppManager())
+        return Appspace(Manager())
 
     @classmethod
     def appspace(cls, pattern, required=None, defaults=None, *args, **kw):
@@ -121,7 +120,7 @@ class Query(B):
         @param model: class to be model
         '''
         # attach manager
-        setattr(model, 'A', self._appspace)
+        setattr(model, 'A', self._space)
         # attach manager settings
         setattr(model, 'S', self._settings.final)
         self.appendleft(model)

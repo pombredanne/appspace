@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 from stuf.utils import lazy
 
-from appspace.managers import Manager
+from appspace.managers import Manager as BaseManager
 from appspace.builders import Patterns
 
 from .settings import Settings
@@ -14,7 +14,7 @@ from .events import EventManager
 from .keys import AEventManager, ASettings
 
 
-class AppManager(Manager):
+class Manager(BaseManager):
 
     '''state manager'''
 
@@ -27,7 +27,7 @@ class AppManager(Manager):
         @param label: label for application configuration object
         @param ns: label for internal namespace
         '''
-        super(AppManager, self).__init__(label, ns)
+        super(Manager, self).__init__(label, ns)
         self.ez_register(ASettings, 'default', Settings)
         self.ez_register(AEventManager, 'default', EventManager)
 
@@ -46,7 +46,7 @@ class Composer(Patterns):
 
     '''patterns for manager configured by class'''
 
-    _manager = AppManager
+    _manager = Manager
 
     @classmethod
     def build(cls, required=None, defaults=None):

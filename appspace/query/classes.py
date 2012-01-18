@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''query classes'''
 
-from stuf.utils import lazybase, getcls
+from stuf.utils import getcls, lazybase
 
 
 class ResetMixin(object):

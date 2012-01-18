@@ -7,8 +7,20 @@ from functools import wraps
 
 from appspace.query import direct, factory
 
-from .query import S
-from .keys import AService
+
+def service(*metadata):
+    '''
+    marks method as service
+
+    @param *metadata: metadata to set on decorated method
+    '''
+    def wrapped(this):
+        this.metadata = metadata
+        @wraps(this) #@IgnorePep8
+        def wrapper(*args, **kw):
+            return this(*args, **kw)
+        return wrapper
+    return wrapped
 
 
 class forward(factory):
@@ -19,22 +31,6 @@ class forward(factory):
 class remote(direct):
 
     '''makes remote functionality directly available to client'''
-
-
-def service(*metadata):
-    '''
-    marks method as service
-
-    @param *metadata: metadata to set on decorated method
-    '''
-    def wrapped(this):
-        this.metadata = metadata
-        S.key(AService, this)
-        @wraps(this) #@IgnorePep8
-        def wrapper(*args, **kw):
-            return this(*args, **kw)
-        return wrapper
-    return wrapped
 
 
 class servicer(factory):

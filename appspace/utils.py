@@ -85,4 +85,4 @@ class CheckName(object):
 
 
 checkname = CheckName()
-__all__ = ('checkname', 'lazy_import', 'lru_cache', 'object_walk')
+__all__ = ('checkname', 'lazy_import', 'lru_cache')

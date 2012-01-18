@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from collections import deque
 from operator import attrgetter, getitem
 
-from appspace.keys import appifies, get_apps, apped
+from appspace.keys import appifies, apped, get_apps
 
 from .keys import AEventManager, AEvent
 

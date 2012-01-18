@@ -4,6 +4,8 @@
 
 from __future__ import absolute_import
 
+import uuid
+
 from appspace.keys import apped
 from appspace.error import ConfigurationError, NoAppError
 
@@ -38,12 +40,22 @@ class Builder(Query):
             return self
         raise ConfigurationError('invalid branch configuration')
 
+    @staticmethod
+    def key(key, app):
+        '''
+        key an get
+
+        @param key: key to key get
+        @param get: get to key
+        '''
+        apped(app, key)
+        return app
+
     def set(self, app, label, branch=False):
         '''
         add application to appspace
 
         @param app: new application
-
         @param label: application label
         @param branch: branch label (default: False)
         '''
@@ -59,15 +71,9 @@ class Builder(Query):
         return self
 
     @staticmethod
-    def key(key, app):
-        '''
-        key an get
-
-        @param key: key to key get
-        @param get: get to key
-        '''
-        apped(app, key)
-        return app
+    def uuid():
+        '''universal unique identifier'''
+        return uuid.uuid4().hex.upper()
 
 
 B = Builder

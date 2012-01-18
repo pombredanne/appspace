@@ -103,6 +103,71 @@ class Container(Instance):
         return self.klass(validated)
 
 
+class Dict(Instance):
+
+    '''instance of a Python dictionary'''
+
+    def __init__(self, default_value=None, allow_none=True, **md):
+        '''
+        create a dict trait type from a dict
+
+        The default value is created by doing dict(default_value), which
+        creates a copy of the default_value.
+        '''
+        if default_value is None:
+            args = ((),)
+        elif isinstance(default_value, dict):
+            args = (default_value,)
+        elif isinstance(default_value, SequenceTypes):
+            args = (default_value,)
+        else:
+            raise TypeError('default value of Dict was %s' % default_value)
+        super(Dict, self).__init__(
+            klass=dict, args=args, allow_none=allow_none, **md
+        )
+
+
+class Enum(Trait):
+
+    '''enum whose value must be in a given sequence'''
+
+    def __init__(self, values, default_value=None, allow_none=True, **md):
+        self.values = values
+        self._allow_none = allow_none
+        super(Enum, self).__init__(default_value, **md)
+
+    def info(self):
+        ''' Returns a description of the trait.'''
+        result = 'any of ' + repr(self.values)
+        if self._allow_none:
+            return result + ' or None'
+        return result
+
+    def validate(self, this, value):
+        if value is None:
+            if self._allow_none:
+                return value
+        if value in self.values:
+            return value
+        self.error(this, value)
+
+
+class CaselessStrEnum(Enum):
+
+    '''enum of strings that are caseless in validate'''
+
+    def validate(self, this, value):
+        if value is None:
+            if self._allow_none:
+                return value
+        if not isinstance(value, basestring):
+            self.error(this, value)
+        for v in self.values:
+            if v.lower() == value.lower():
+                return v
+        self.error(this, value)
+
+
 class List(Container):
 
     '''instance of a Python list.'''
@@ -110,17 +175,17 @@ class List(Container):
     klass = list
 
     def __init__(
-        self, trait=None, 
-        default_value=None, 
-        minlen=0, 
+        self, trait=None,
+        default_value=None,
+        minlen=0,
         maxlen=sys.maxint,
-        allow_none=True, 
+        allow_none=True,
         **md
     ):
         '''
         create a List trait type from a list, set, or tuple.
 
-        @param trait: type for restricting the contents of the Container. If 
+        @param trait: type for restricting the contents of the Container. If
             unspecified, types are not checked.
         @param default_value: default value for Trait. Must be list/tuple/set
             and will be cast to the container type.
@@ -128,7 +193,7 @@ class List(Container):
         @param maxlen: maximum length of the input list
         @param allow_none: whether to allow the value to be None
         @param **md: any further keys for extensions to the Trait (e.g. config)
-        
+
         Default value is created by doing List(default_value), which creates a
         copy of the default_value.
 
@@ -174,13 +239,13 @@ class Tuple(Container):
     def __init__(self, *traits, **md):
         '''
         create tuple from a list, set, or tuple
-        
-        @param *traits: type for restricting the contents of the Tuple. If 
+
+        @param *traits: type for restricting the contents of the Tuple. If
             unspecified, types are not checked. If specified, then each
             positional argument corresponds to an element of the tuple. Tuples
             defined with traits are of fixed length.
         @param default_value: default value for the Tuple. Must be
-            list/tuple/set and will be cast to a tuple. If traits are 
+            list/tuple/set and will be cast to a tuple. If traits are
             specified, the default_value must conform to the shape and type
             they specify.
         @param allow_none: whether to allow the value to be None
@@ -250,68 +315,3 @@ class Tuple(Container):
             else:
                 validated.append(v)
         return tuple(validated)
-
-
-class Dict(Instance):
-
-    '''instance of a Python dictionary'''
-
-    def __init__(self, default_value=None, allow_none=True, **md):
-        '''
-        create a dict trait type from a dict
-
-        The default value is created by doing dict(default_value), which 
-        creates a copy of the default_value.
-        '''
-        if default_value is None:
-            args = ((),)
-        elif isinstance(default_value, dict):
-            args = (default_value,)
-        elif isinstance(default_value, SequenceTypes):
-            args = (default_value,)
-        else:
-            raise TypeError('default value of Dict was %s' % default_value)
-        super(Dict, self).__init__(
-            klass=dict, args=args, allow_none=allow_none, **md
-        )
-        
-        
-class Enum(Trait):
-
-    '''enum whose value must be in a given sequence'''
-
-    def __init__(self, values, default_value=None, allow_none=True, **md):
-        self.values = values
-        self._allow_none = allow_none
-        super(Enum, self).__init__(default_value, **md)
-
-    def info(self):
-        ''' Returns a description of the trait.'''
-        result = 'any of ' + repr(self.values)
-        if self._allow_none:
-            return result + ' or None'
-        return result
-
-    def validate(self, this, value):
-        if value is None:
-            if self._allow_none:
-                return value
-        if value in self.values:
-            return value
-        self.error(this, value)
-
-
-class CaselessStrEnum(Enum):
-
-    '''enum of strings that are caseless in validate'''
-
-    def validate(self, this, value):
-        if value is None:
-            if self._allow_none:
-                return value
-        if not isinstance(value, basestring):
-            self.error(this, value)
-        for v in self.values:
-            if v.lower() == value.lower():
-                return v
-        self.error(this, value)

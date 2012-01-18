@@ -3,12 +3,12 @@
 
 from __future__ import absolute_import
 
-import uuid
 from operator import attrgetter, itemgetter
 from collections import Mapping, Sequence, deque
 from itertools import groupby, ifilter, ifilterfalse, imap
 
 from stuf.utils import getcls
+
 from appspace.keys import AAppspace
 from appspace.error import NoAppError
 
@@ -25,27 +25,25 @@ class Query(deque):
         '''
         try:
             # fetch appspace from class
-            self._appspace = appspace.A
+            self._space = appspace.A
             # save the host class
             self._this = appspace
         except (AttributeError, NoAppError):
             # standalone appspace
             if AAppspace.providedBy(appspace):
-                self._appspace = appspace
+                self._space = appspace
                 self._this = kw.pop('this', None)
             else:
                 raise NoAppError('no appspace found')
         # appspace manager
-        self._manager = self._appspace.manager
+        self._manager = self._space.manager
         deque.__init__(self, *args)
 
     def __call__(self, *args):
-        return getcls(self)(self._appspace, *args, **dict(this=self._this))
+        return getcls(self)(self._space, *args, **dict(this=self._this))
 
     def _quikget(self, label, branch=False):
-        if branch:
-            return self._appspace[branch][label]
-        return self._appspace[label]
+        return self._space[branch][label] if branch else self._space[label]
 
     def get(self, label, branch=False):
         '''
@@ -54,12 +52,7 @@ class Query(deque):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        # return app from branch
-        if branch:
-            self.appendleft(self._appspace[branch][label])
-            return self
-        # return from primary appsapce
-        self.appendleft(self._appspace[label])
+        self.appendleft(self._quikget(label, branch))
         return self
 
     def apply(self, label, branch=False, *args, **kw):
@@ -79,7 +72,7 @@ class Query(deque):
         @param label: label of appspace
         '''
         # fetch branch if exists...
-        self.appendleft(self._appspace[label])
+        self.appendleft(self._space[label])
         return self
 
     def each(self, data, label, branch=False):
@@ -117,14 +110,7 @@ class Query(deque):
             self.appendleft(item)
             return self
 
-    def first(self):
-        '''fetch one result'''
-        try:
-            value = self.popleft()
-            # clear queue
-            return value
-        except IndexError:
-            return []
+    first = deque.popleft
 
     def groupby(self, data, label, branch=False):
         '''
@@ -196,12 +182,7 @@ class Query(deque):
             except (AttributeError, TypeError):
                 return False
 
-    def last(self):
-        '''fetch the last result'''
-        try:
-            return self.pop()
-        except IndexError:
-            return []
+    last = deque.pop
 
     def lastone(self):
         '''fetch the last result and clear the queue'''
@@ -273,13 +254,9 @@ class Query(deque):
         @param key: label of item
         @param data: data containing item
         '''
-        getit = itemgetter(key) if isinstance(
+        return itemgetter(key) if isinstance(
             data, (Mapping, Sequence)
         ) else attrgetter(key)
-        try:
-            return getit(data)
-        except (AttributeError, IndexError):
-            return None
 
     def pluck(self, key, data):
         '''
@@ -288,8 +265,9 @@ class Query(deque):
         @param key: key to search for
         @param data: data to process
         '''
+        plucker = self.plucker(key, data)
         return self(ifilter(
-            lambda x: x is not None, (self.plucker(key, i) for i in data),
+            lambda x: x is not None, (plucker(i) for i in data),
         ))
 
     def reduce(self, data, label, branch=False, initial=None):
@@ -339,12 +317,7 @@ class Query(deque):
         '''
         app = self._quikget(label, branch)
         return self(sorted(data, key=app))
-    
-    @staticmethod
-    def uuid():
-        '''universal unique identifier'''
-        return uuid.uuid4().hex.upper()
-    
+
 
 Q = Query
 __all__ = ['Q']

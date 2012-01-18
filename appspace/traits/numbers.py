@@ -30,74 +30,28 @@ class CBool(Bool):
             self.error(this, value)
 
 
-class Int(Trait):
+class Complex(Trait):
 
-    '''integer trait'''
+    '''trait for complex numbers'''
 
-    default_value = 0
-    info_text = 'an integer'
+    default_value = 0.0 + 0.0j
+    info_text = 'a complex number'
 
     def validate(self, this, value):
-        if isinstance(value, int):
+        if isinstance(value, complex):
             return value
+        if isinstance(value, (float, int)):
+            return complex(value)
         self.error(this, value)
 
 
-class CInt(Int):
+class CComplex(Complex):
 
-    '''casting version of the int trait'''
-
-    def validate(self, this, value):
-        try:
-            return int(value)
-        except:
-            self.error(this, value)
-
-
-class Integer(Trait):
-
-    '''
-    integer trait.
-
-    unnecessary longs that are <= sys.maxint are cast to ints.
-    '''
-
-    default_value = 0
-    info_text = 'an integer'
-
-    def validate(self, obj, value):
-        if isinstance(value, int):
-            return value
-        elif isinstance(value, long):
-            # downcast longs that fit in int:
-            # note that int(n > sys.maxint) returns a long, so
-            # we don't need a condition on this cast
-            return int(value)
-        self.error(obj, value)
-
-
-class Long(Trait):
-
-    '''long integer trait.'''
-
-    default_value = 0L
-    info_text = 'a long'
-
-    def validate(self, this, value):
-        if isinstance(value, long):
-            return value
-        if isinstance(value, int):
-            return long(value)
-        self.error(this, value)
-
-
-class CLong(Long):
-
-    '''casting version of long integer trait.'''
+    '''casting version of complex number trait'''
 
     def validate(self, this, value):
         try:
-            return long(value)
+            return complex(value)
         except:
             self.error(this, value)
 
@@ -128,27 +82,73 @@ class CFloat(Float):
             self.error(this, value)
 
 
-class Complex(Trait):
+class Int(Trait):
 
-    '''trait for complex numbers'''
+    '''integer trait'''
 
-    default_value = 0.0 + 0.0j
-    info_text = 'a complex number'
+    default_value = 0
+    info_text = 'an integer'
 
     def validate(self, this, value):
-        if isinstance(value, complex):
+        if isinstance(value, int):
             return value
-        if isinstance(value, (float, int)):
-            return complex(value)
         self.error(this, value)
 
 
-class CComplex(Complex):
+class Integer(Trait):
 
-    '''casting version of complex number trait'''
+    '''
+    integer trait.
+
+    unnecessary longs that are <= sys.maxint are cast to ints.
+    '''
+
+    default_value = 0
+    info_text = 'an integer'
+
+    def validate(self, obj, value):
+        if isinstance(value, int):
+            return value
+        elif isinstance(value, long):
+            # downcast longs that fit in int:
+            # note that int(n > sys.maxint) returns a long, so
+            # we don't need a condition on this cast
+            return int(value)
+        self.error(obj, value)
+
+
+class CInt(Int):
+
+    '''casting version of the int trait'''
 
     def validate(self, this, value):
         try:
-            return complex(value)
+            return int(value)
+        except:
+            self.error(this, value)
+
+
+class Long(Trait):
+
+    '''long integer trait.'''
+
+    default_value = 0L
+    info_text = 'a long'
+
+    def validate(self, this, value):
+        if isinstance(value, long):
+            return value
+        if isinstance(value, int):
+            return long(value)
+        self.error(this, value)
+
+
+class CLong(Long):
+
+    '''casting version of long integer trait.'''
+
+    def validate(self, this, value):
+        try:
+            return long(value)
         except:
             self.error(this, value)

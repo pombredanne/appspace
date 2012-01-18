@@ -22,6 +22,7 @@ class Composed(ResetMixin):
 
     @lazy
     def _query(self):
+        # query object
         return __(self)
 
 

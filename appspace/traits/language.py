@@ -39,73 +39,6 @@ class ClassBasedTraitType(Trait):
         raise TraitError(e)
 
 
-class Type(ClassBasedTraitType):
-
-    '''trait whose value must be a subclass of a specified class'''
-
-    def __init__(self, default_value=None, klass=None, allow_none=True, **md):
-        '''
-        trait specifying its values must be subclasses of a particular class
-
-        If only default_value is given, it is used for the klass as well.
-
-        @param default_value: default value must be a subclass of klass. If an
-            str, str must be a fully specified class name, like 'foo.bar.Bah'.
-            The string is resolved into real class, when the parent Traits
-            class is instantiated.
-        @param klass: values of this trait must be a subclass of klass. The
-            klass may be specified in a string like: 'foo.bar.MyClass'. The
-            string is resolved into real class, when the parent Traits class
-             is instantiated.
-        @param allow_none: indicates whether None is allowed as an assignable
-            value. Even if False, default value may be None.
-        '''
-        if default_value is None:
-            if klass is None:
-                klass = object
-        elif klass is None:
-            klass = default_value
-        if not (inspect.isclass(klass) or isinstance(klass, basestring)):
-            raise TraitError('A Type trait must specify a class.')
-        self.klass = klass
-        self._allow_none = allow_none
-        super(Type, self).__init__(default_value, **md)
-
-    def _resolve_classes(self):
-        if isinstance(self.klass, basestring):
-            self.klass = lazy_import(self.klass)
-        if isinstance(self.default_value, basestring):
-            self.default_value = lazy_import(self.default_value)
-
-    def get_default_value(self):
-        return self.default_value
-
-    def info(self):
-        '''Returns a description of the trait.'''
-        if isinstance(self.klass, basestring):
-            klass = self.klass
-        else:
-            klass = selfname(self.klass)
-        result = 'a subclass of ' + klass
-        if self._allow_none:
-            return result + ' or None'
-        return result
-
-    def instance_init(self, value):
-        self._resolve_classes()
-        super(Type, self).instance_init(value)
-
-    def validate(self, this, value):
-        '''Validates that the value is a valid object instance.'''
-        try:
-            if issubclass(value, self.klass):
-                return value
-        except:
-            if (value is None) and (self._allow_none):
-                return value
-        self.error(this, value)
-
-
 class DefaultValueGenerator(object):
 
     '''class for generating new default value instances.'''
@@ -214,31 +147,6 @@ class Instance(ClassBasedTraitType):
             self.error(this, value)
 
 
-class This(ClassBasedTraitType):
-
-    '''
-    trait for instances of the class containing this trait.
-
-    Because how how and when class bodies are executed, "This" trait can only
-    have a default value of None. This, and because we always validate
-    default values, allow_none is *always* true.
-    '''
-
-    info_text = 'an instance of the same type as the receiver or None'
-
-    def __init__(self, **md):
-        super(This, self).__init__(None, **md)
-
-    def validate(self, this, value):
-        # What if value is a superclass of this.__class__?  This is
-        # complicated if it was the superclass that defined the This
-        # trait.
-        if isinstance(value, self.this_class) or (value is None):
-            return value
-        else:
-            self.error(this, value)
-
-
 class ObjectName(Trait):
 
     '''
@@ -279,4 +187,96 @@ class DottedObjectName(ObjectName):
             self.isidentifier(x) for x in value.split('.')
         ):
             return value
+        self.error(this, value)
+
+
+class This(ClassBasedTraitType):
+
+    '''
+    trait for instances of the class containing this trait.
+
+    Because how how and when class bodies are executed, "This" trait can only
+    have a default value of None. This, and because we always validate
+    default values, allow_none is *always* true.
+    '''
+
+    info_text = 'an instance of the same type as the receiver or None'
+
+    def __init__(self, **md):
+        super(This, self).__init__(None, **md)
+
+    def validate(self, this, value):
+        # What if value is a superclass of this.__class__?  This is
+        # complicated if it was the superclass that defined the This
+        # trait.
+        if isinstance(value, self.this_class) or (value is None):
+            return value
+        else:
+            self.error(this, value)
+
+
+class Type(ClassBasedTraitType):
+
+    '''trait whose value must be a subclass of a specified class'''
+
+    def __init__(self, default_value=None, klass=None, allow_none=True, **md):
+        '''
+        trait specifying its values must be subclasses of a particular class
+
+        If only default_value is given, it is used for the klass as well.
+
+        @param default_value: default value must be a subclass of klass. If an
+            str, str must be a fully specified class name, like 'foo.bar.Bah'.
+            The string is resolved into real class, when the parent Traits
+            class is instantiated.
+        @param klass: values of this trait must be a subclass of klass. The
+            klass may be specified in a string like: 'foo.bar.MyClass'. The
+            string is resolved into real class, when the parent Traits class
+             is instantiated.
+        @param allow_none: indicates whether None is allowed as an assignable
+            value. Even if False, default value may be None.
+        '''
+        if default_value is None:
+            if klass is None:
+                klass = object
+        elif klass is None:
+            klass = default_value
+        if not (inspect.isclass(klass) or isinstance(klass, basestring)):
+            raise TraitError('A Type trait must specify a class.')
+        self.klass = klass
+        self._allow_none = allow_none
+        super(Type, self).__init__(default_value, **md)
+
+    def _resolve_classes(self):
+        if isinstance(self.klass, basestring):
+            self.klass = lazy_import(self.klass)
+        if isinstance(self.default_value, basestring):
+            self.default_value = lazy_import(self.default_value)
+
+    def get_default_value(self):
+        return self.default_value
+
+    def info(self):
+        '''Returns a description of the trait.'''
+        if isinstance(self.klass, basestring):
+            klass = self.klass
+        else:
+            klass = selfname(self.klass)
+        result = 'a subclass of ' + klass
+        if self._allow_none:
+            return result + ' or None'
+        return result
+
+    def instance_init(self, value):
+        self._resolve_classes()
+        super(Type, self).instance_init(value)
+
+    def validate(self, this, value):
+        '''Validates that the value is a valid object instance.'''
+        try:
+            if issubclass(value, self.klass):
+                return value
+        except:
+            if (value is None) and (self._allow_none):
+                return value
         self.error(this, value)

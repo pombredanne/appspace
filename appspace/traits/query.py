@@ -164,8 +164,7 @@ class TraitQuery(__):
                         )
                 else:
                     raise TypeError('Trait callback must be callable')
-                
-    @lazy
+
     def trait(self, app):
         '''
         attach traiter to another application

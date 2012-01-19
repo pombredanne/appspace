@@ -11,13 +11,19 @@ from appspace.keys import appifies
 from appspace.ext import ResetMixin
 
 from .holders import Sync
-from .keys import AComposed, ASynched
+from .keys import AComposed, AMaster, ASynched
 
 
 @appifies(AComposed)
 class Composed(ResetMixin):
 
     '''composed object'''
+
+
+@appifies(AMaster)
+class Master(ResetMixin):
+
+    '''master composer'''
 
 
 @appifies(ASynched)

@@ -33,7 +33,7 @@ class Client(ResetMixin):
         try:
             return super(Client, self).__getattr__(key)
         except AttributeError:
-            return self._S.resolve(key)
+            return self._S.resolve(key, self)
 
 
 @appifies(AServer)

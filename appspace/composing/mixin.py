@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from appspace.ext import Manager, Composer
 from appspace.error import ConfigurationError
 from appspace.spaces import Patterns, patterns
-from stuf.utils import lazy
 
 
 class ComposerMixin(object):
@@ -49,7 +48,6 @@ class ComposerMixin(object):
             ))
         raise ConfigurationError('patterns not found')
 
-    @lazy
     def compose(self, app):
         '''
         attach composer to another application

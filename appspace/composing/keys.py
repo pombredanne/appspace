@@ -13,6 +13,11 @@ class AComposed(AppspaceKey):
     '''host key'''
 
 
+class AMaster(AppspaceKey):
+
+    '''synced key'''
+
+
 class ASynched(AppspaceKey):
 
     '''synced key'''

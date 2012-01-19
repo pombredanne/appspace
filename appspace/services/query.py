@@ -15,12 +15,11 @@ class Query(Q):
 
     '''service query'''
 
-    def _serve(self, app):
+    def _serve(self, app, this):
         metadata = get_or_default(app, 'metadata', False)
         if metadata:
             kw = {}
             get = getattr
-            this = self._this
             for k in metadata:
                 try:
                     kw[k] = get(this, k)
@@ -30,20 +29,19 @@ class Query(Q):
                 app = partial(app, **kw)
         return app
 
-    def resolve(self, label):
+    def resolve(self, label, this):
         '''
         resolve service
 
         @param label: application label
         '''
-        this = self._this
         servers = this._servers
         serve = self._serve
         for server in servers:
             try:
-                item = serve(attrgetter(server + '.' + label)(this))
+                item = serve(attrgetter(server + '.' + label)(this), this)
                 if item:
-                    setattr(self._this, label, item)
+                    setattr(this, label, item)
                     return item
             except AttributeError:
                 pass

@@ -26,12 +26,12 @@ class Queue(Query, namedqueue):
         namedqueue.__init__(self, *args, **kw)
 
     def __call__(self, *args):
-        return getcls(self)(self._manager, *args, **dict(this=self._this))
+        return getcls(self)(self.manager, *args, **dict(this=self._this))
 
     @lazy
     def querier(self):
         '''query queue to attach to other apps'''
-        return Queue(self._manager)
+        return Queue(self.manager)
 
     _quikget = Query._q_get
 

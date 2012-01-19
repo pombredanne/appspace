@@ -27,14 +27,14 @@ class Build(QueryMixin, Q):
         # create new branch
         except NoAppError:
             new_appspace = self._manage_class
-            self._manager.set(label, new_appspace)
+            self.manager.set(label, new_appspace)
             return new_appspace
         raise ConfigurationError('invalid branch configuration')
 
     @lazy
     def builder(self):
         '''builder to attach to other apps'''
-        return Build(self._manager)
+        return Build(self.manager)
 
     def set(self, app, label, branch=False):
         '''
@@ -49,7 +49,7 @@ class Build(QueryMixin, Q):
             manager = self.branch(branch)
         # use passed manager
         else:
-            manager = self._manager
+            manager = self.manager
         # add to appspace
         manager.set(label, app)
         return app

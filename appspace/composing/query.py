@@ -18,7 +18,7 @@ class Composer(ComposerMixin, B):
     @lazy
     def composer(self):
         '''composer to attach to other apps'''
-        return Composer(self._manager)
+        return Composer(self.manager)
 
     def burst(self, label, queue):
         '''

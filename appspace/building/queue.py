@@ -27,7 +27,7 @@ class BuildQueue(QueryMixin, BaseQueue):
         # create new branch
         except NoAppError:
             new_appspace = self._manage_class
-            self._manager.set(label, new_appspace)
+            self.manager.set(label, new_appspace)
             self.appendleft(new_appspace)
             return self
         raise ConfigurationError('invalid branch configuration')
@@ -35,7 +35,7 @@ class BuildQueue(QueryMixin, BaseQueue):
     @lazy
     def builder(self):
         '''builder queue to attach to other apps'''
-        return BuildQueue(self._manager)
+        return BuildQueue(self.manager)
 
     def set(self, app, label, branch=False):
         '''
@@ -50,7 +50,7 @@ class BuildQueue(QueryMixin, BaseQueue):
             manager = self.branch(self, branch).one().manager
         # use passed manager
         else:
-            manager = self._manager
+            manager = self.manager
         # add to appspace
         manager.set(label, app)
         self.appendleft(app)

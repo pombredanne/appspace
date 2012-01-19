@@ -47,7 +47,7 @@ class TraitQuery(__):
     @lazy
     def traiter(self):
         '''trait query to attach to other apps'''
-        return TraitQuery(self._manager)
+        return TraitQuery(self.manager)
 
     @property
     def enabled(self):

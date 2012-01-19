@@ -21,8 +21,8 @@ class ComposerMixin(object):
         '''
         super(ComposerMixin, self).__init__(appspace, *args, **kw)
         # appspace settings
-        self._settings = self._manager.settings
-        self._events = self._manager.events
+        self._settings = self.manager.settings
+        self._events = self.manager.events
 
     @property
     def _manage_class(self):
@@ -82,7 +82,7 @@ class ComposerMixin(object):
         self.query(model)
         self.build(model)
         # attach manager
-        model.A = self._manager
+        model.A = self.manager
         # attach manager settings
         model.S = self._settings.final
         return self

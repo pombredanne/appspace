@@ -24,23 +24,23 @@ class Query(object):
         '''
         try:
             # fetch appspace from class
-            self._manager = appspace.A
+            self.manager = appspace.A
             # save the host class
             self._this = appspace
         except (AttributeError, NoAppError):
             # standalone appspace
             if AManager.providedBy(appspace):
-                self._manager = appspace
+                self.manager = appspace
                 self._this = kw.pop('this', None)
             else:
                 raise NoAppError('no appspace found')
         # appspace getter
-        self._getter = self._manager.get
+        self._getter = self.manager.get
 
     @lazy
     def querier(self):
         '''query to attach to other apps'''
-        return Query(self._manager)
+        return Query(self.manager)
 
     def apply(self, label, branch=False, *args, **kw):
         '''

@@ -28,7 +28,7 @@ class ComposerQueue(ComposerMixin, BuildQueue):
     @lazy
     def composer(self):
         '''composer queue to attach to other apps'''
-        return ComposerQueue(self._manager)
+        return ComposerQueue(self.manager)
 
     def defaults(self):
         '''default settings by their lonesome'''
@@ -44,10 +44,10 @@ class ComposerQueue(ComposerMixin, BuildQueue):
         '''
         # unregister event
         if not priority or not kw:
-            self._manager.unregister(label)
+            self.manager.unregister(label)
             return self
         # register event if priority and keywords passed
-        self.appendleft(self._manager.register(label, priority, **kw))
+        self.appendleft(self.manager.register(label, priority, **kw))
         return self
 
     def fire(self, label, *args, **kw):

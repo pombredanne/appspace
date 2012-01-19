@@ -6,8 +6,8 @@ from __future__ import absolute_import
 
 from stuf.utils import lazy
 
+from appspace.spaces import Patterns
 from appspace.managers import Manager as BaseManager
-from appspace.builders import Patterns
 
 from .settings import Settings
 from .events import EventManager
@@ -62,16 +62,15 @@ class Composer(Patterns):
         return appconf
 
     @classmethod
-    def settings(cls, appconf, required, defaults):
+    def settings(cls, manager, required, defaults):
         '''
         attach settings to class
 
         @param required: required settings
         @param defaults: default settings
         '''
-        conf = appconf.manager.settings
-        conf.required = required
-        conf.defaults = defaults
+        manager.settings.required = required
+        manager.settings.defaults = defaults
 
 
-__all__ = ('AppManager', 'Composer')
+__all__ = ('Manager', 'Composer')

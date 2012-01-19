@@ -40,17 +40,17 @@ class EventManager(object):
 
     __slots__ = ('appspace', '_enabled')
 
-    def __init__(self, appspace):
+    def __init__(self, manager):
         '''
         init
 
         @param appspace: appspace to store events in
         '''
-        self.appspace = appspace
+        self.manager = manager
         self._enabled = True
 
     def __repr__(self):
-        return str(self.appspace.manager.lookupAll([AEvent], AEvent))
+        return str(self.manager.lookupAll([AEvent], AEvent))
 
     def bind(self, label, app):
         '''
@@ -59,7 +59,7 @@ class EventManager(object):
         @param label: event label
         @param app: object to bind to event
         '''
-        self.appspace.subscribe(AEvent, self.appspace.get(label), app)
+        self.manager.subscribe(AEvent, self.appspace.get(label), app)
 
     def burst(self, label, queue):
         '''
@@ -90,7 +90,7 @@ class EventManager(object):
 
         @param event: event label
         '''
-        subs = self.appspace.react(event)
+        subs = self.react(event)
         spop = subs.pop
         results = []
         rappend = results.append
@@ -104,7 +104,7 @@ class EventManager(object):
 
         @param label: event label
         '''
-        app = self.appspace.ez_lookup(AEvent, label)
+        app = self.manager.ez_lookup(AEvent, label)
         if app is not None:
             return getitem(get_apps(app), 0)
         return None
@@ -116,7 +116,7 @@ class EventManager(object):
         @param label: event label
         '''
         subs = deque(i for i in sorted(
-            self.appspace.subscribers(AEvent, self.get(label)),
+            self.manager.subscribers(AEvent, self.get(label)),
             key=attrgetter('priority'),
         ))
         return subs
@@ -134,7 +134,7 @@ class EventManager(object):
             '''event'''
         new_event = NewEvent(priority, **kw)
         apped(NewEvent, ANewEvent)
-        self.appspace.ez_register(AEvent, label, new_event)
+        self.manager.ez_register(AEvent, label, new_event)
         return new_event
 
     def unbind(self, label, app):
@@ -144,7 +144,7 @@ class EventManager(object):
         @param label: event label
         @param app: object to unbind from event
         '''
-        self.appspace.unsubscribe(AEvent, self.appspace.get(label), app)
+        self.manager.unsubscribe(AEvent, self.manager.get(label), app)
 
     def unregister(self, label):
         '''
@@ -152,7 +152,7 @@ class EventManager(object):
 
         @param label: event label
         '''
-        self.appspace.ez_unregister(AEvent, label)
+        self.manager.ez_unregister(AEvent, label)
 
 
 __all__ = ('Event', 'EventManager')

@@ -79,7 +79,7 @@ class ComposerQueue(ComposerMixin, BuildQueue):
         @param model: class to be model
         '''
         # attach manager
-        setattr(model, 'A', self._space)
+        setattr(model, 'A', self._manager)
         # attach manager settings
         setattr(model, 'S', self._settings.final)
         self.appendleft(model)

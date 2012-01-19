@@ -65,7 +65,7 @@ class Patterns(object):
         return cls.patterns(selfname(cls), *tuple(cls._gather()))
 
     @classmethod
-    def factory(cls, *args, **kw):
+    def factory(cls, label, *args, **kw):
         '''
         factory for manager
 
@@ -77,6 +77,7 @@ class Patterns(object):
         apper = manager.set
         # add applications
         [apper(*arg) for arg in args]  # pylint: disable-msg=W0106
+        apper(label, manager)
         return manager
 
     @classmethod

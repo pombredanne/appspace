@@ -40,7 +40,7 @@ class Build(QueryMixin, Q):
         '''
         # use branch manager
         if branch:
-            manager = self.branch(self, branch).manager
+            manager = self.branch(branch)
         # use passed manager
         else:
             manager = self._manager

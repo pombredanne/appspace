@@ -86,8 +86,7 @@ class TraitQuery(__):
             ):
                 settings[k] = v
         settings.update(kw)
-        self.appendleft(settings)
-        return self
+        return settings
 
     @staticmethod
     def traits(traits, **metadata):

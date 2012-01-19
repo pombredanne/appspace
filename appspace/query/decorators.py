@@ -22,7 +22,7 @@ class direct(object):
         self.branch = branch
 
     def __get__(self, this, that):
-        return setter(Q(that).get(self.label, self.branch))
+        return setter(self, self.label, Q(that).get(self.label, self.branch))
 
     def __set__(self, this, value):
         raise AttributeError('attribute is read-only')

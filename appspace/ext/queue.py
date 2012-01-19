@@ -10,7 +10,7 @@ class namedqueue(deque):
     '''named queue'''
 
     def __init__(self, max_length=None, *args):
-        deque.__init__(*args, max_length=max_length)
+        deque.__init__(self, maxlen=max_length, *args)
 
     def __getitem__(self, key):
         try:

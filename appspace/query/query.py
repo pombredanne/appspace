@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from collections import Mapping, Sequence
 from operator import attrgetter, itemgetter
 
-from appspace.keys import AAppspace
+from appspace.keys import AManager
 from appspace.error import NoAppError
 
 
@@ -27,13 +27,13 @@ class Query(object):
             self._this = appspace
         except (AttributeError, NoAppError):
             # standalone appspace
-            if AAppspace.providedBy(appspace):
+            if AManager.providedBy(appspace):
                 self._manager = appspace
                 self._this = kw.pop('this', None)
             else:
                 raise NoAppError('no appspace found')
         # appspace getter
-        self._getter = self._space.manager.get
+        self._getter = self._manager.get
 
     def apply(self, label, branch=False, *args, **kw):
         '''
@@ -53,7 +53,9 @@ class Query(object):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        return self._getter(branch)[label] if branch else self._getter(label)
+        return self._getter(
+            branch
+        ).get(label) if branch else self._getter(label)
 
     _q_get = get
 

@@ -10,7 +10,7 @@ from inspect import getargspec, getmro, ismethod
 from stuf import stuf
 from stuf.utils import get_or_default, getcls
 
-from appspace.composer import __
+from appspace.composing import __
 
 from .keys import ATrait
 

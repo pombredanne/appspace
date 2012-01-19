@@ -9,7 +9,7 @@ from stuf import stuf
 from stuf.utils import both, clsname, getcls, lazy
 
 from appspace.keys import appifies
-from appspace.composer import Sync, Synced
+from appspace.composing import Sync, Synced
 
 from .query import T
 from .core import Trait

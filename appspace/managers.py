@@ -7,6 +7,7 @@ from __future__ import absolute_import
 from .utils import lazy_import
 from .registry import Registry
 
+from .error import AppLookupError
 from .keys import AApp, ALazyApp, AManager, appifies
 
 
@@ -15,7 +16,7 @@ class Manager(Registry):
 
     '''state manager'''
 
-    __slots__ = ('_key', '_label', '_settings')
+    __slots__ = ('_key', '_label', '_manager', '_settings')
 
     def __init__(self, label='appconf', ns='default'):
         '''
@@ -26,6 +27,15 @@ class Manager(Registry):
         '''
         super(Manager, self).__init__(AApp, ns)
         self._label = label
+        self._manager = None
+
+    @property
+    def manager(self):
+        return self._manager
+
+    @manager.setter
+    def manager(self, manager):
+        self.register([AManager], AManager, 'manager', manager)
 
     def get(self, label):
         '''
@@ -33,7 +43,10 @@ class Manager(Registry):
 
         @param label: get or branch label
         '''
-        app = super(Manager, self).get(label)
+        key = self._key
+        app = self.lookup1(key, key, label)
+        if app is None:
+            raise AppLookupError(app, label)
         if ALazyApp.providedBy(app):
             app = self.load(label, app.path)
         return app
@@ -51,7 +64,8 @@ class Manager(Registry):
         # register get
         else:
             app = lazy_import(module)
-        self.set(label, app)
+        key = self._key
+        self.register([key], key, label, app)
         return app
 
     def set(self, label, app):
@@ -63,7 +77,8 @@ class Manager(Registry):
         '''
         if isinstance(app, (basestring, tuple)):
             app = LazyApp(app)
-        super(Manager, self).set(label, app)
+        key = self._key
+        self.register([key], key, label, app)
 
 
 @appifies(ALazyApp)

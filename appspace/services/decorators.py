@@ -5,7 +5,8 @@ from __future__ import absolute_import
 
 from functools import wraps
 
-from appspace.query import direct, factory
+from appspace.query import direct
+from appspace.build import factory
 
 
 def service(*metadata):

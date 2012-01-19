@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''query classes'''
+'''queriable classes'''
 
 from __future__ import absolute_import
 
@@ -10,7 +10,7 @@ from stuf.utils import lazy
 from appspace.keys import appifies
 
 from .query import Q
-from .conveyor import C
+from .queue import Queue
 from .keys import AQueried, AQueued
 
 
@@ -20,7 +20,7 @@ class Queried(ResetMixin):
     '''class supporting queries'''
 
     @lazy
-    def _q(self):
+    def _Q(self):
         return Q(self)
 
 
@@ -28,7 +28,7 @@ class Queried(ResetMixin):
 class Queued(ResetMixin):
 
     @lazy
-    def _q(self):
-        return C(self)
+    def _Q(self):
+        return Queue(self)
 
 __all__ = ['Queued', 'Queried']

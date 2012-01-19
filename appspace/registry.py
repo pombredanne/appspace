@@ -64,7 +64,8 @@ class Registry(AppStore):
 
         @param label: app or branch label
         '''
-        app = self.ez_lookup(self._key, label)
+        key = self._key
+        app = self.lookup1(key, key, label)
         if app is None:
             raise AppLookupError(app, label)
         return app
@@ -76,7 +77,8 @@ class Registry(AppStore):
         @param label: appspace label
         @param app: app to add to appspace
         '''
-        self.register([self._key], self._key, label, app)
+        key = self._key
+        self.register([key], key, label, app)
 
 
 __all__ = ['Registry']

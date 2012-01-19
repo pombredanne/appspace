@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''conveyer'''
+'''queriable application queue'''
 
 from __future__ import absolute_import
 
@@ -12,9 +12,9 @@ from appspace.ext.queue import namedqueue
 from .query import Query
 
 
-class Conveyer(Query, namedqueue):
+class Queue(Query, namedqueue):
 
-    '''appspace query'''
+    '''queryable application queue'''
 
     def __init__(self, appspace, *args, **kw):
         '''
@@ -247,5 +247,4 @@ class Conveyer(Query, namedqueue):
         return self(sorted(data, key=app))
 
 
-C = Conveyer
-__all__ = ['C']
+__all__ = ['Queue']

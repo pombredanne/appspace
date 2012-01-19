@@ -6,9 +6,9 @@ from __future__ import absolute_import
 from stuf.utils import lazy
 
 from appspace.keys import appifies
-from appspace.query import ResetMixin
 
 from .query import S
+from appspace.query import Queried
 from .keys import AClient, AServer
 from .decorators import forward, remote
 
@@ -26,7 +26,7 @@ class client(type):
 
 
 @appifies(AClient)
-class Client(ResetMixin):
+class Client(Queried):
 
     '''consumes services from other instances'''
 
@@ -36,7 +36,7 @@ class Client(ResetMixin):
         try:
             return super(Client, self).__getattr__(key)
         except AttributeError:
-            return self._query.resolve(key).first()
+            return self._query.resolve(key)
 
     @lazy
     def _query(self):
@@ -44,7 +44,7 @@ class Client(ResetMixin):
 
 
 @appifies(AServer)
-class Server(ResetMixin):
+class Server(Queried):
 
     '''provides services for other instances'''
 

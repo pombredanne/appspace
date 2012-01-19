@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-'''appspace query'''
+'''extensions'''
 
 from __future__ import absolute_import
 
 from inspect import ismodule
 
-from .query import Q
-from .queue import Queue
-from .decorators import direct
-from .classes import Queried, Queued
+from .query import B
+from .queue import BuildQueue
+from .decorators import factory
+from .classes import Built, BuiltQueue
 
 __all__ = sorted(name for name, obj in locals().iteritems() if not any([
     name.startswith('_'), ismodule(obj),

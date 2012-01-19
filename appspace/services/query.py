@@ -4,6 +4,7 @@
 from __future__ import absolute_import
 
 from functools import partial
+from operator import attrgetter
 
 from stuf.utils import get_or_default
 
@@ -38,14 +39,12 @@ class Query(Q):
         this = self._this
         servers = this._servers
         serve = self._serve
-        plucker = self.plucker(label, this)
         for server in servers:
             try:
-                item = serve(plucker(getattr(this, server)))
+                item = serve(attrgetter(server + '.' + label)(this))
                 if item:
                     setattr(self._this, label, item)
-                    self.appendleft(item)
-                    return self
+                    return item
             except AttributeError:
                 pass
         else:

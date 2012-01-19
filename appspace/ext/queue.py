@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''query queues'''
+'''named queue'''
 
 from operator import getitem
 from collections import deque

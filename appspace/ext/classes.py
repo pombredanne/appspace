@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''query classes'''
+'''extension classes'''
 
 from stuf.utils import getcls, lazybase
 

@@ -1,54 +1,17 @@
 # -*- coding: utf-8 -*-
-'''composition query'''
+'''composing queue'''
 
 from __future__ import absolute_import
 
-from appspace.query import B
-from appspace.ext import Manager, Composer
+from appspace.build import BuildQueue
 from appspace.query.keys import NoDefault
-from appspace.error import ConfigurationError
-from appspace.builders import Appspace, Patterns, patterns
+
+from .mixin import ComposerMixin
 
 
-class Query(B):
+class ComposerQueue(ComposerMixin, BuildQueue):
 
-    '''appspace query'''
-
-    def __init__(self, appspace, *args, **kw):
-        '''
-        init
-
-        @param appspace: appspace or appspace server
-        '''
-        B.__init__(self, appspace, *args, **kw)
-        # appspace settings
-        self._settings = self._space.manager.settings
-        self._events = self._space.manager.events
-
-    @property
-    def _manage_class(self):
-        # manager class
-        return Appspace(Manager())
-
-    @classmethod
-    def appspace(cls, pattern, required=None, defaults=None, *args, **kw):
-        '''
-        build new appspace
-
-        @param pattern: pattern configuration class or appspace label
-        @param required: required settings (default: None)
-        @param defaults: default settings (default: None)
-        @param *args: tuple of module paths or inclusions
-        '''
-        # from appspace configuration class...
-        if issubclass(pattern, Patterns):
-            return cls(pattern.build(required, defaults))
-        # from label and arguments...
-        elif isinstance(pattern, basestring) and args:
-            return cls(Composer.settings(
-                patterns(pattern, *args, **kw), required, defaults,
-            ))
-        raise ConfigurationError('patterns not found')
+    '''composer with queue'''
 
     def bind(self, event, label, branch=False):
         '''
@@ -99,10 +62,6 @@ class Query(B):
         '''
         self.appendleft(self._events.fire(label, *args, **kw))
         return self
-
-    def lock(self):
-        '''lock settings so they are read only except locals'''
-        self._settings.lock()
 
     def react(self, label):
         '''
@@ -165,5 +124,4 @@ class Query(B):
         return self
 
 
-__ = Query
-__all__ = ['__']
+__all__ = ['ComposerQueue']

@@ -8,7 +8,7 @@ from types import FunctionType
 from inspect import getargspec, getmro, ismethod
 
 from stuf import stuf
-from stuf.utils import get_or_default, getcls
+from stuf.utils import get_or_default, getcls, lazy
 
 from appspace.composing import __
 
@@ -40,9 +40,14 @@ class TraitQuery(__):
         '''
         @param appspace: appspace or appspace server
         '''
-        __.__init__(self, appspace, *args, **kw)
+        super(TraitQuery, self).__init__(appspace, *args, **kw)
         # enable for traits
         self._enabled = True
+
+    @lazy
+    def traiter(self):
+        '''trait query to attach to other apps'''
+        return TraitQuery(self._manager)
 
     @property
     def enabled(self):
@@ -159,6 +164,16 @@ class TraitQuery(__):
                         )
                 else:
                     raise TypeError('Trait callback must be callable')
+                
+    @lazy
+    def trait(self, app):
+        '''
+        attach traiter to another application
+
+        @param app: an application
+        '''
+        app._T = self.traiter
+        
 
 
 T = TraitQuery

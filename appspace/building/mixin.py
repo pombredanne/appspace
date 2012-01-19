@@ -18,6 +18,14 @@ class QueryMixin(object):
         # manager class
         return Manager()
 
+    def build(self, app):
+        '''
+        add query to app
+
+        @param app: app to add query to
+        '''
+        app._B = self.builder
+
     @staticmethod
     def key(key, app):
         '''

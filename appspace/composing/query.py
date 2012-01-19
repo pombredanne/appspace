@@ -3,6 +3,8 @@
 
 from __future__ import absolute_import
 
+from stuf.utils import lazy
+
 from appspace.building import B
 
 from .keys import NoDefault
@@ -13,15 +15,10 @@ class Composer(ComposerMixin, B):
 
     '''application composing query'''
 
-    def bind(self, event, label, branch=False):
-        '''
-        bind app to event
-
-        @param event: event label
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        return self._events.bind(event, self.get(label, branch))
+    @lazy
+    def composer(self):
+        '''composer to attach to other apps'''
+        return Composer(self._manager)
 
     def burst(self, label, queue):
         '''
@@ -45,9 +42,9 @@ class Composer(ComposerMixin, B):
         '''
         # unregister event
         if not priority or not kw:
-            self._manager.unregister(label)
+            self._events.unregister(label)
         # register event if priority and keywords passed
-        self._manager.register(label, priority, **kw)
+        self._events.register(label, priority, **kw)
 
     def fire(self, label, *args, **kw):
         '''
@@ -64,17 +61,6 @@ class Composer(ComposerMixin, B):
         @param label: event label
         '''
         return self._events.react(label)
-
-    def register(self, model):
-        '''
-        register model in appspace
-
-        @param model: class to be model
-        '''
-        # attach manager
-        setattr(model, 'A', self._manager)
-        # attach manager settings
-        setattr(model, 'S', self._settings.final)
 
     def required(self):
         '''required settings by their lonesome'''
@@ -99,16 +85,6 @@ class Composer(ComposerMixin, B):
         @param label: event label
         '''
         return self._events.react(label)
-
-    def unbind(self, event, label, branch=False):
-        '''
-        unbind application from event
-
-        @param event: event label
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        self._events.unbind(event, self.get(label, branch))
 
 
 __ = Composer

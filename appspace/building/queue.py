@@ -6,6 +6,8 @@ from __future__ import absolute_import
 from appspace.query import Queue as BaseQueue
 from appspace.error import ConfigurationError, NoAppError
 
+from stuf.utils import lazy
+
 from .mixin import QueryMixin
 
 
@@ -29,6 +31,11 @@ class BuildQueue(QueryMixin, BaseQueue):
             self.appendleft(new_appspace)
             return self
         raise ConfigurationError('invalid branch configuration')
+
+    @lazy
+    def builder(self):
+        '''builder queue to attach to other apps'''
+        return BuildQueue(self._manager)
 
     def set(self, app, label, branch=False):
         '''

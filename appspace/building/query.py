@@ -3,9 +3,10 @@
 
 from __future__ import absolute_import
 
-from appspace.error import ConfigurationError, NoAppError
+from stuf.utils import lazy
 
 from appspace.query import Q
+from appspace.error import ConfigurationError, NoAppError
 
 from .mixin import QueryMixin
 
@@ -29,6 +30,11 @@ class Build(QueryMixin, Q):
             self._manager.set(label, new_appspace)
             return new_appspace
         raise ConfigurationError('invalid branch configuration')
+
+    @lazy
+    def builder(self):
+        '''builder to attach to other apps'''
+        return Build(self._manager)
 
     def set(self, app, label, branch=False):
         '''

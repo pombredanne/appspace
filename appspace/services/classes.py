@@ -3,12 +3,9 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import lazy
-
 from appspace.keys import appifies
 from appspace.ext.classes import ResetMixin
 
-from .query import S
 from .keys import AClient, AServer
 from .decorators import forward, remote
 
@@ -36,11 +33,7 @@ class Client(ResetMixin):
         try:
             return super(Client, self).__getattr__(key)
         except AttributeError:
-            return self._query.resolve(key)
-
-    @lazy
-    def _query(self):
-        return S(self)
+            return self._S.resolve(key)
 
 
 @appifies(AServer)

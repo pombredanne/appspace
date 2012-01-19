@@ -3,6 +3,8 @@
 
 from __future__ import absolute_import
 
+from stuf.utils import lazy
+
 from appspace.building import BuildQueue
 
 from .keys import NoDefault
@@ -13,17 +15,6 @@ class ComposerQueue(ComposerMixin, BuildQueue):
 
     '''application composing queue'''
 
-    def bind(self, event, label, branch=False):
-        '''
-        bind get to event
-
-        @param event: event label
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        self._events.bind(event, self.get(label, branch).first())
-        return self
-
     def burst(self, label, queue):
         '''
         process event subscribers on contents of queue
@@ -33,6 +24,11 @@ class ComposerQueue(ComposerMixin, BuildQueue):
         '''
         self.appendleft(self._events.burst(label, queue))
         return self
+
+    @lazy
+    def composer(self):
+        '''composer queue to attach to other apps'''
+        return ComposerQueue(self._manager)
 
     def defaults(self):
         '''default settings by their lonesome'''
@@ -72,19 +68,6 @@ class ComposerQueue(ComposerMixin, BuildQueue):
         self.appendleft(self._events.react(label))
         return self
 
-    def register(self, model):
-        '''
-        register model in appspace
-
-        @param model: class to be model
-        '''
-        # attach manager
-        setattr(model, 'A', self._manager)
-        # attach manager settings
-        setattr(model, 'S', self._settings.final)
-        self.appendleft(model)
-        return self
-
     def required(self):
         '''required settings by their lonesome'''
         self.appendleft(self._settings.required)
@@ -111,17 +94,6 @@ class ComposerQueue(ComposerMixin, BuildQueue):
         @param label: event label
         '''
         return self(self._events.react(label))
-
-    def unbind(self, event, label, branch=False):
-        '''
-        unbind application from event
-
-        @param event: event label
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        self._events.unbind(event, self.get(label, branch).first())
-        return self
 
 
 __all__ = ['ComposerQueue']

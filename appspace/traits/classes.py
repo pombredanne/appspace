@@ -109,10 +109,6 @@ class Traits(Synced):
         return inst
 
     @lazy
-    def _query(self):
-        return T(self)
-
-    @lazy
     def _sync(self):
         '''sync provider'''
         # initialize with any arguments
@@ -127,7 +123,7 @@ class Traits(Synced):
     @both
     def C(self):
         '''local settings'''
-        return T(self).localize().one()
+        return self._T.localize()
 
     @classmethod
     def class_members(cls, **metadata):
@@ -143,7 +139,7 @@ class Traits(Synced):
         metadata name exists but has any value. This is because get_metadata
         returns None if a metadata key doesn't exist.
         '''
-        return T.traits(cls._classtraits, **metadata)
+        return cls._T.traits(cls._classtraits, **metadata)
 
     @classmethod
     def class_names(cls, **metadata):
@@ -172,7 +168,7 @@ class Traits(Synced):
         metadata name exists but has any value. This is because get_metadata
         returns None if a metadata key doesn't exist.
         '''
-        return self._query.traits(self._sync.traits, **metadata)
+        return self._T.traits(self._sync.traits, **metadata)
 
     def metadata(self, label, key):
         '''
@@ -232,12 +228,12 @@ class Traits(Synced):
         '''
         setr = setattr
         if not notify:
-            T(self).enabled = False
+            self._T.enabled = False
             try:
                 for k, v in traits.iteritems():
                     setr(self, k, v)
             finally:
-                T(self).enabled = True
+                self._T.enabled = True
             return self
         for k, v in traits.iteritems():
             setr(self, k, v)

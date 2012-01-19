@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from appspace.ext import Manager, Composer
 from appspace.error import ConfigurationError
 from appspace.spaces import Patterns, patterns
+from stuf.utils import lazy
 
 
 class ComposerMixin(object):
@@ -48,6 +49,51 @@ class ComposerMixin(object):
             ))
         raise ConfigurationError('patterns not found')
 
+    @lazy
+    def compose(self, app):
+        '''
+        attach composer to another application
+
+        @param app: application to attach composer to
+        '''
+        app._C = self.composer
+
+    def bind(self, event, label, branch=False):
+        '''
+        bind get to event
+
+        @param event: event label
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        self._events.bind(event, self.get(label, branch).first())
+        return self
+
     def lock(self):
         '''lock settings so they are read only except locals'''
         self._settings.lock()
+
+    def register(self, model):
+        '''
+        register model in appspace
+
+        @param model: class to be model
+        '''
+        self.query(model)
+        self.build(model)
+        # attach manager
+        model.A = self._manager
+        # attach manager settings
+        model.S = self._settings.final
+        return self
+
+    def unbind(self, event, label, branch=False):
+        '''
+        unbind application from event
+
+        @param event: event label
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        self._events.unbind(event, self.get(label, branch).first())
+        return self

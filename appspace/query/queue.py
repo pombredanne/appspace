@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from itertools import groupby, ifilter, ifilterfalse, imap
 
-from stuf.utils import getcls
+from stuf.utils import getcls, lazy
 
 from appspace.ext.queue import namedqueue
 
@@ -27,6 +27,11 @@ class Queue(Query, namedqueue):
 
     def __call__(self, *args):
         return getcls(self)(self._manager, *args, **dict(this=self._this))
+
+    @lazy
+    def querier(self):
+        '''query queue to attach to other apps'''
+        return Queue(self._manager)
 
     _quikget = Query._q_get
 

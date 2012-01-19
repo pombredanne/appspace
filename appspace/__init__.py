@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 from inspect import ismodule
 
+from .error import NoAppError
 from .builders import patterns
 from .spaces import Branch, Namespace, Patterns, include
 

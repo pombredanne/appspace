@@ -37,3 +37,6 @@ def repr_type(this):
         # Old-style class.
         the_type = getcls(this)
     return '%r %r' % (this, the_type)
+
+
+__all__ = ['add_article', 'class_of', 'repr_type']

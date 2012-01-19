@@ -280,3 +280,8 @@ class Type(ClassBasedTraitType):
             if (value is None) and (self._allow_none):
                 return value
         self.error(this, value)
+
+
+__all__ = sorted(name for name, obj in locals().iteritems() if not any([
+    name.startswith('_'), inspect.ismodule(obj),
+]))

@@ -95,3 +95,6 @@ class ComposerMixin(object):
         '''
         self._events.unbind(event, self.get(label, branch).first())
         return self
+
+
+__all__ = ['ComposerMixin']

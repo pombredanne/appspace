@@ -4,6 +4,7 @@
 from __future__ import absolute_import
 
 import sys
+from inspect import ismodule
 from types import ListType, TupleType
 
 from stuf.utils import clsname
@@ -315,3 +316,10 @@ class Tuple(Container):
             else:
                 validated.append(v)
         return tuple(validated)
+
+
+__all__ = sorted(name for name, obj in locals().iteritems() if not any([
+    name.startswith('_'), ismodule(obj),
+]))
+
+del ismodule

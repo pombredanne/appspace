@@ -5,8 +5,6 @@
 
 from __future__ import absolute_import
 
-from inspect import ismodule
-
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
@@ -100,8 +98,7 @@ class ANamespace(AppspaceKey):
     '''namespace key'''
     
     
-__all__ = sorted(name for name, obj in locals().iteritems() if not any([
-    name.startswith('_'), ismodule(obj),
-]))
-
-del ismodule
+__all__ = (
+    'AApp', 'AAppspace', 'ABranch', 'ALazyApp', 'AManager', 'ANamespace',
+    'AppspaceKey', 'appifies', 'get_apps', 'apped', 'AppStore',
+)

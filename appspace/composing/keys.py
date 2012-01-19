@@ -3,8 +3,6 @@
 
 from __future__ import absolute_import
 
-from inspect import ismodule
-
 from appspace.keys import AppspaceKey
 
 
@@ -40,8 +38,4 @@ NoDefault = NoDefault()
 Undefined = Undefined()
 
 
-__all__ = sorted(name for name, obj in locals().iteritems() if not any([
-    name.startswith('_'), ismodule(obj),
-]))
-
-del ismodule
+__all__ = ('AComposed', 'AMaster', 'ASynched', 'NoDefault', 'Undefined')

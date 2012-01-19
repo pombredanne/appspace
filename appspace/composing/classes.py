@@ -59,4 +59,4 @@ class Synced(ResetMixin):
         return self._syncer(self._element(self), **self._attrs)
 
 
-__all__ = ('Composed', 'Synced')
+__all__ = ('Composed', 'Master', 'Synced')

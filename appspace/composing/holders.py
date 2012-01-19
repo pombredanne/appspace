@@ -225,4 +225,4 @@ class Sync(object):
         self.reset()
 
 
-__all__ = ('Sync', 'namedqueue')
+__all__ = ['Sync']

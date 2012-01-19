@@ -5,8 +5,6 @@
 
 from __future__ import absolute_import
 
-from inspect import ismodule
-
 from appspace.keys import AppspaceKey, Attribute
 
 
@@ -80,8 +78,7 @@ class ARequiredSettings(ASettings):
     '''required settings key'''
 
 
-__all__ = sorted(name for name, obj in locals().iteritems() if not any([
-    name.startswith('_'), ismodule(obj),
-]))
-
-del ismodule
+__all__ = (
+    'ADefaultSettings', 'AEvent', 'AEventManager', 'ARequiredSettings',
+    'ASettings',
+)

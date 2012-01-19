@@ -141,3 +141,6 @@ class namedqueue(deque):
             self.reverse()
             raise KeyError('{key} not found'.format(key=key))
         self.reverse()
+
+
+__all__ = ['namedqueue']

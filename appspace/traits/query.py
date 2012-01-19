@@ -174,5 +174,6 @@ class TraitQuery(__):
         app._T = self.traiter
         
 
-
 T = TraitQuery
+
+__all__ = ['T']

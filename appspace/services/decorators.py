@@ -17,7 +17,7 @@ def service(*metadata):
     '''
     def wrapped(this):
         this.metadata = metadata
-        @wraps(this) #@IgnorePep8
+        @wraps(this)  # @IgnorePep8
         def wrapper(*args, **kw):
             return this(*args, **kw)
         return wrapper

@@ -3,8 +3,6 @@
 
 from __future__ import absolute_import
 
-from inspect import ismodule
-
 from appspace.keys import AppspaceKey
 
 
@@ -18,8 +16,4 @@ class AServer(AppspaceKey):
     '''appspace server key'''
 
 
-__all__ = sorted(name for name, obj in locals().iteritems() if not any([
-    name.startswith('_'), ismodule(obj),
-]))
-
-del ismodule
+__all__ = ('AClient', 'AServer')

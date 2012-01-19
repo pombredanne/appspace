@@ -8,6 +8,8 @@ from appspace.ext.classes import ResetMixin
 
 from .keys import AClient, AServer
 from .decorators import forward, remote
+from stuf.utils import clsname
+from appspace.error import AppLookupError
 
 
 class client(type):
@@ -15,6 +17,7 @@ class client(type):
     '''capture server names'''
 
     def __init__(cls, name, bases, classdict):
+        # scan for servers
         items = (forward, remote)
         cls._servers = set(
             k for k, v in classdict.iteritems() if isinstance(v, items)
@@ -33,7 +36,12 @@ class Client(ResetMixin):
         try:
             return super(Client, self).__getattr__(key)
         except AttributeError:
-            return self._S.resolve(key, self)
+            # lookup service in appspace
+            try:
+                return self._Q.get(clsname(self) + '.' + key)
+            # try resolving service
+            except AppLookupError:
+                return self._S.resolve(key, self)
 
 
 @appifies(AServer)

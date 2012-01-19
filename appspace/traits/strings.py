@@ -12,6 +12,7 @@ from __future__ import absolute_import
 
 import re
 import sys
+from inspect import ismodule
 
 from .core import Trait
 
@@ -162,3 +163,10 @@ class CheckedUnicode(Unicode):
         except:
             pass
         self.error(name, value)
+
+
+__all__ = sorted(name for name, obj in locals().iteritems() if not any([
+    name.startswith('_'), ismodule(obj),
+]))
+
+del ismodule

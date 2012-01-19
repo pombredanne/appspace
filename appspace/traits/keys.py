@@ -172,3 +172,6 @@ class ATraits(AppspaceKey):
         @param trait: Trait name
         @param value: value to validate
         '''
+
+
+__all__ = ['ATrait', 'ATraits']

@@ -33,3 +33,6 @@ class ResetMixin(object):
         for key, value in classdict.iteritems():
             if all([key in instdict, isinstance(value, desc)]):
                 delattr(self, key)
+
+
+__all__ = ['ResetMixin']

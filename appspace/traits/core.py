@@ -146,3 +146,6 @@ class Trait(object):
         @param value: metadata value
         '''
         self._metadata[key] = value
+
+
+__all__ = ['Trait']

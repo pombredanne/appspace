@@ -41,3 +41,6 @@ class QueryMixin(object):
     def uuid():
         '''universal unique identifier'''
         return uuid.uuid4().hex.upper()
+
+
+__all__ = ['QueryMixin']

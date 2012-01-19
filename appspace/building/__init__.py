@@ -1,22 +1,13 @@
 # -*- coding: utf-8 -*-
-'''query keys'''
+'''application building'''
 
 from __future__ import absolute_import
 
 from inspect import ismodule
 
-from appspace.keys import AppspaceKey
-
-
-class ABuilt(AppspaceKey):
-
-    '''built query object key'''
-
-
-class ABuiltQueue(AppspaceKey):
-
-    '''built queued and queried object key'''
-
+from .query import B
+from .queue import BuildQueue
+from .decorators import factory
 
 __all__ = sorted(name for name, obj in locals().iteritems() if not any([
     name.startswith('_'), ismodule(obj),

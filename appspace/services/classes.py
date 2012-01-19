@@ -6,9 +6,9 @@ from __future__ import absolute_import
 from stuf.utils import lazy
 
 from appspace.keys import appifies
+from appspace.ext.classes import ResetMixin
 
 from .query import S
-from appspace.query import Queried
 from .keys import AClient, AServer
 from .decorators import forward, remote
 
@@ -26,7 +26,7 @@ class client(type):
 
 
 @appifies(AClient)
-class Client(Queried):
+class Client(ResetMixin):
 
     '''consumes services from other instances'''
 
@@ -44,7 +44,7 @@ class Client(Queried):
 
 
 @appifies(AServer)
-class Server(Queried):
+class Server(ResetMixin):
 
     '''provides services for other instances'''
 

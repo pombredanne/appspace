@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-'''build query mixins'''
+'''building mixins'''
 
 from __future__ import absolute_import
 
 import uuid
 
 from appspace.keys import apped
-
 from appspace.managers import Manager
 
 

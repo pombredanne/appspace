@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''composing mixin'''
+'''composing mixins'''
 
 from __future__ import absolute_import
 

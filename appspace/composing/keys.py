@@ -1,30 +1,23 @@
 # -*- coding: utf-8 -*-
-#@PydevCodeAnalysisIgnore
-# pylint: disable-msg=f0401,e0213,e0211
-'''extension keys'''
+'''composing keys'''
 
 from __future__ import absolute_import
 
 from inspect import ismodule
 
 from appspace.keys import AppspaceKey
-        
+
 
 class AComposed(AppspaceKey):
-    
-    '''host key'''
-    
 
-class AComposedQueue(AComposed):
-    
     '''host key'''
 
 
-class ASynched(AComposed):
-    
+class ASynched(AppspaceKey):
+
     '''synced key'''
-    
-    
+
+
 class NoDefault(object):
 
     '''no default'''

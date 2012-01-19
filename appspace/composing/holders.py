@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''extension holders'''
+'''composing holders'''
 
 import hashlib
 

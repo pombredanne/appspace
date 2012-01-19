@@ -3,18 +3,19 @@
 
 from __future__ import absolute_import
 
+from appspace.building import B
+
 from .keys import NoDefault
-from appspace.build import B
 from .mixin import ComposerMixin
 
 
 class Composer(ComposerMixin, B):
 
-    '''appspace composer'''
+    '''application composing query'''
 
     def bind(self, event, label, branch=False):
         '''
-        bind get to event
+        bind app to event
 
         @param event: event label
         @param label: application label
@@ -93,7 +94,7 @@ class Composer(ComposerMixin, B):
 
     def trigger(self, label):
         '''
-        get objects bound to an event
+        get applications bound to an event
 
         @param label: event label
         '''

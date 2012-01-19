@@ -12,7 +12,7 @@ from appspace.error import NoAppError
 
 class Query(object):
 
-    '''appspace query'''
+    '''application query'''
 
     def __init__(self, appspace, **kw):
         '''

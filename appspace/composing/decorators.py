@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''composition decorators'''
+'''composing decorators'''
 
 from __future__ import absolute_import
 

@@ -131,7 +131,7 @@ class TraitQuery(__):
         '''
         if self.enabled:
             # First dynamic ones
-            callables = self.react(label).one()
+            callables = self.react(label)
             # Call them all now
             for C in callables:
                 # Traits catches and logs errors here. I allow them to raise.

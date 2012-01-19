@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-'''extensions'''
+'''appspace extensions'''
 
 from __future__ import absolute_import
 
 from inspect import ismodule
 
+from .queue import namedqueue
 from .classes import ResetMixin
 from .core import Manager, Composer
 from .events import Event, EventManager

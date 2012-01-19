@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable-msg=e1001,e1002,w0221
-'''extensions core'''
+'''core'''
 
 from __future__ import absolute_import
 

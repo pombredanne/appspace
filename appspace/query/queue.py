@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''queriable application queue'''
+'''query queue'''
 
 from __future__ import absolute_import
 
@@ -14,7 +14,7 @@ from .query import Query
 
 class Queue(Query, namedqueue):
 
-    '''queryable application queue'''
+    '''query queue'''
 
     def __init__(self, appspace, *args, **kw):
         '''

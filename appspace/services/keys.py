@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=f0401
 '''extension keys'''
 
 from __future__ import absolute_import

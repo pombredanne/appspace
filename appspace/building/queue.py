@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
-'''extension core classes'''
+'''building queue'''
 
 from __future__ import absolute_import
 
+from appspace.query import Queue as BaseQueue
 from appspace.error import ConfigurationError, NoAppError
-
-from appspace.query import Q
 
 from .mixin import QueryMixin
 
 
-class Build(QueryMixin, Q):
+class BuildQueue(QueryMixin, BaseQueue):
 
-    '''appspace builder'''
+    '''appspace building queue'''
 
     def branch(self, label):
         '''
@@ -22,12 +21,13 @@ class Build(QueryMixin, Q):
         '''
         # fetch branch if exists...
         try:
-            return super(Build, self).branch(label)
+            return super(BuildQueue, self).branch(label)
         # create new branch
         except NoAppError:
             new_appspace = self._manage_class
             self._manager.set(label, new_appspace)
-            return new_appspace
+            self.appendleft(new_appspace)
+            return self
         raise ConfigurationError('invalid branch configuration')
 
     def set(self, app, label, branch=False):
@@ -40,14 +40,14 @@ class Build(QueryMixin, Q):
         '''
         # use branch manager
         if branch:
-            manager = self.branch(branch)
+            manager = self.branch(self, branch).one().manager
         # use passed manager
         else:
             manager = self._manager
         # add to appspace
         manager.set(label, app)
-        return app
+        self.appendleft(app)
+        return self
 
 
-B = Build
-__all__ = ['B']
+__all__ = ['BuildQueue']

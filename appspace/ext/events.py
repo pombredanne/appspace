@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''extension event handling'''
+'''event handling'''
 
 from __future__ import absolute_import
 

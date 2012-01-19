@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from appspace.build import BuildQueue
+from appspace.building import BuildQueue
 
 from .keys import NoDefault
 from .mixin import ComposerMixin
@@ -11,7 +11,7 @@ from .mixin import ComposerMixin
 
 class ComposerQueue(ComposerMixin, BuildQueue):
 
-    '''composer with queue'''
+    '''application composing queue'''
 
     def bind(self, event, label, branch=False):
         '''

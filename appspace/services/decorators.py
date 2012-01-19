@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-'''extension services management'''
+'''service decorators'''
 
 from __future__ import absolute_import
 
 from functools import wraps
 
 from appspace.query import direct
-from appspace.build import factory
+from appspace.building import factory
 
 
 def service(*metadata):

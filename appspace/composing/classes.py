@@ -8,39 +8,20 @@ from operator import attrgetter
 from stuf.utils import lazy
 
 from appspace.keys import appifies
-from appspace.build import Built, BuiltQueue
+from appspace.ext import ResetMixin
 
-from .query import __
 from .holders import Sync
-from .keys import ASynched
-from .queue import ComposerQueue
-from .keys import AComposed, AComposedQueue
+from .keys import AComposed, ASynched
 
 
 @appifies(AComposed)
-class Composed(Built):
+class Composed(ResetMixin):
 
     '''composed object'''
 
-    @lazy
-    def _query(self):
-        # query object
-        return __(self)
-
-
-@appifies(AComposedQueue)
-class ComposedQueue(BuiltQueue):
-
-    '''composed queue'''
-
-    @lazy
-    def _query(self):
-        # query object
-        return ComposerQueue(self)
-
 
 @appifies(ASynched)
-class SyncedMixin(object):
+class Synced(ResetMixin):
 
     '''composed object with synchronizing functionality'''
 
@@ -72,14 +53,4 @@ class SyncedMixin(object):
         return self._syncer(self._element(self), **self._attrs)
 
 
-class Synced(SyncedMixin, Composed):
-
-    '''composed object with synchronizing functionality'''
-
-
-class SyncedQueue(SyncedMixin, Composed):
-
-    '''composed queue with synchronizing functionality'''
-
-
-__all__ = ['Composed', 'ComposedQueue', 'Synced', 'SynchedQueue']
+__all__ = ('Composed', 'Synced')

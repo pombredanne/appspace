@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-'''query decorators'''
+'''building decorators'''
 
 from __future__ import absolute_import
 
 from inspect import isclass
 
-from .query import B
 from appspace.query import direct
 
 
@@ -29,7 +28,7 @@ class factory(direct):
         if isclass(new_app):
             attrs = [getattr(this, attr) for attr in self.attrs]
             new_app = new_app(*attrs, **self.extra)
-            B(that).set(new_app, self.label, self.branch)
+            that._B.set(new_app, self.label, self.branch)
         return new_app
 
 

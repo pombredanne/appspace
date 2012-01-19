@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-'''application query decorators'''
+'''query decorators'''
 
 from __future__ import absolute_import
 
-from .query import Q
 from stuf.utils import setter
 
 
@@ -22,7 +21,7 @@ class direct(object):
         self.branch = branch
 
     def __get__(self, this, that):
-        return setter(self, self.label, Q(that).get(self.label, self.branch))
+        return setter(self, self.label, that._Q.get(self.label, self.branch))
 
     def __set__(self, this, value):
         raise AttributeError('attribute is read-only')
@@ -31,4 +30,4 @@ class direct(object):
         raise AttributeError('attribute is read-only')
 
 
-__all__ = ('direct')
+__all__ = ['direct']

@@ -3,9 +3,9 @@
 
 from __future__ import absolute_import
 
+from .keys import NoDefault
 from appspace.build import B
-from appspace.query.keys import NoDefault
-from appspace.compose.mixin import ComposerMixin
+from .mixin import ComposerMixin
 
 
 class Composer(ComposerMixin, B):

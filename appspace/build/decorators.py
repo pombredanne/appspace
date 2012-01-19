@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from .builder import B
+from .query import B
 from appspace.query import direct
 
 

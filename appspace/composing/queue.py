@@ -4,8 +4,8 @@
 from __future__ import absolute_import
 
 from appspace.build import BuildQueue
-from appspace.query.keys import NoDefault
 
+from .keys import NoDefault
 from .mixin import ComposerMixin
 
 

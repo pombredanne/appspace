@@ -50,7 +50,7 @@ class Settings(ResetMixin):
     def __init__(self):
         super(Settings, self).__init__()
         # default settings
-        self._default = stuf()
+        self._generic = stuf()
         # final settings
         self._final = stuf()
         # factory settings
@@ -66,7 +66,7 @@ class Settings(ResetMixin):
     @lock_set
     def defaults(self):
         '''get default settings separately'''
-        return frozenstuf(self._default)
+        return frozenstuf(self._generic)
 
     @defaults.setter
     def defaults(self, value):
@@ -76,7 +76,7 @@ class Settings(ResetMixin):
         @param value: default settings
         '''
         if ADefaultSettings.implementedBy(value):
-            self._default.clear()
+            self._generic.clear()
             self.update_default(value)
         else:
             raise TypeError('invalid default settings')
@@ -84,7 +84,7 @@ class Settings(ResetMixin):
     @lock_set
     def final(self):
         '''finalized settings'''
-        final = self._default.copy()
+        final = self._generic.copy()
         final.update(self._final.copy())
         final.update(self._required.copy())
         return frozenstuf(final)
@@ -158,7 +158,7 @@ class Settings(ResetMixin):
         @param settings: new settings
         '''
         if ADefaultSettings.implementedBy(settings):
-            self._default.update(object_walk(settings))
+            self._generic.update(object_walk(settings))
         else:
             raise TypeError('invalid default settings')
 

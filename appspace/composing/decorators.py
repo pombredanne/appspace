@@ -32,7 +32,8 @@ class On(object):
         method = self.method
         for arg in self.events:
             ebind(arg, method)
-        return setattr(that, selfname(method), method)
+        setattr(that, selfname(method), method)
+        return method
 
 
 __all__ = ['on']

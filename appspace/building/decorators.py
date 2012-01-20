@@ -5,8 +5,6 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
-from stuf.utils import setter
-
 from appspace.query import direct
 
 
@@ -26,12 +24,16 @@ class factory(direct):
         self.extra = kw
 
     def __get__(self, this, that):
-        new_app = super(factory, self).__get__(this, that)
+        label = self.label
+        branch = self.branch
+        new_app = that._Q.get(label, branch)
         if isclass(new_app):
-            attrs = [getattr(this, attr) for attr in self.attrs]
-            new_app = new_app(*attrs, **self.extra)
-        that._B.set(new_app, self.label, self.branch)
-        return setter(this, new_app, self.label)
+            new_app = new_app(
+                *[getattr(this, attr) for attr in self.attrs], **self.extra
+            )
+            that._B.set(new_app, label, branch)
+        setattr(that, label, new_app)
+        return new_app
 
 
 __all__ = ['factory']

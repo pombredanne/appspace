@@ -5,8 +5,11 @@ from __future__ import absolute_import
 
 from functools import wraps
 
+from appspace.keys import apped
 from appspace.query import direct
 from appspace.building import factory
+
+from .keys import AService
 
 
 def service(*metadata):
@@ -17,9 +20,11 @@ def service(*metadata):
     '''
     def wrapped(this):
         this.metadata = metadata
-        @wraps(this)  # @IgnorePep8
+
+        @wraps(this)
         def wrapper(*args, **kw):
             return this(*args, **kw)
+        apped(wrapper, AService)
         return wrapper
     return wrapped
 
@@ -39,4 +44,4 @@ class servicer(factory):
     '''builds service and makes it available to clients'''
 
 
-__all__ = ('servicer', 'forward', 'remote', 'service')
+__all__ = ('forward', 'remote', 'service', 'servicer')

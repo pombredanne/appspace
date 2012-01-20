@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from functools import partial
 from operator import attrgetter
 
-from stuf.utils import get_or_default, clsname
+from stuf.utils import get_or_default  # , clsname
 
 from appspace.query import Q
 
@@ -15,7 +15,7 @@ class Query(Q):
 
     '''service query'''
 
-    def _serve(self, app, this):
+    def _serve(self, label, app, this):
         '''
         configure service
 
@@ -31,9 +31,10 @@ class Query(Q):
                     kw[k] = get(this, k)
                 except AttributeError:
                     pass
-            # build app with new partial version with any keywords
             if kw:
+                # build app with new partial version with any keywords
                 app = partial(app, **kw)
+        self.manager.set('.'.join([this._key, label]), app)
         return app
 
     def resolve(self, label, this):
@@ -43,20 +44,17 @@ class Query(Q):
         @param label: application label
         @param this: a client object
         '''
-        servers = this._servers
         serve = self._serve
-        for server in servers:
+        for server in this._servers:
             try:
-                item = serve(attrgetter(server + '.' + label)(this), this)
+                item = serve(
+                    label, attrgetter('.'.join([server, label]))(this), this,
+                )
                 if item:
-                    # cache service
                     setattr(this, label, item)
-                    self.manager.set(clsname(this) + '.' + label, item)
                     return item
             except AttributeError:
                 pass
-        else:
-            raise AttributeError(label)
 
 
 S = Query

@@ -3,13 +3,14 @@
 
 from __future__ import absolute_import
 
+from stuf.utils import clsname, lazy
+
 from appspace.keys import appifies
+from appspace import AppLookupError
 from appspace.ext.classes import ResetMixin
 
 from .keys import AClient, AServer
 from .decorators import forward, remote
-from stuf.utils import clsname
-from appspace.error import AppLookupError
 
 
 class client(type):
@@ -31,17 +32,26 @@ class Client(ResetMixin):
     '''consumes services from other instances'''
 
     __metaclass__ = client
+    _key_name = ''
 
     def __getattr__(self, key):
         try:
             return super(Client, self).__getattr__(key)
         except AttributeError:
             # lookup service in appspace
-            try:
-                return self._Q.get(clsname(self) + '.' + key)
-            # try resolving service
-            except AppLookupError:
-                return self._S.resolve(key, self)
+            if not key.startswith('__'):
+                try:
+                    return self._Q.get('.'.join([self._key, key]))
+                # try resolving service
+                except AppLookupError:
+                    return self._S.resolve(key, self)
+            else:
+                raise AttributeError(key)
+
+    @lazy
+    def _key(self):
+        # key
+        return self._key_name if self._key_name else clsname(self)
 
 
 @appifies(AServer)

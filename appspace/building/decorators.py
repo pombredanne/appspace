@@ -5,6 +5,8 @@ from __future__ import absolute_import
 
 from inspect import isclass
 
+from stuf.utils import setter
+
 from appspace.query import direct
 
 
@@ -28,8 +30,8 @@ class factory(direct):
         if isclass(new_app):
             attrs = [getattr(this, attr) for attr in self.attrs]
             new_app = new_app(*attrs, **self.extra)
-            that._B.set(new_app, self.label, self.branch)
-        return new_app
+        that._B.set(new_app, self.label, self.branch)
+        return setter(this, new_app, self.label)
 
 
 __all__ = ['factory']

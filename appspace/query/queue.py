@@ -329,8 +329,8 @@ class DoubleQueue(Query):
     def callchain(self):
         '''execute a series of partials in the queue'''
         ar = self.outgoing.append
-        pl = self.incoming.popleft()
-        al = self.incoming.append()
+        pl = self.incoming.popleft
+        al = self.incoming.append
         for i in xrange(len(self.incoming)):
             call = pl()
             ar(call())

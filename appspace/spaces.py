@@ -64,7 +64,7 @@ class Patterns(object):
         # build configuration
         return cls.patterns(selfname(cls), *tuple(cls._gather()))
 
-    @classmethod
+    @staticmethod
     def factory(label, manager, *args, **kw):
         '''
         factory for manager

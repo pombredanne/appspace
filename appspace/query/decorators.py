@@ -3,7 +3,27 @@
 
 from __future__ import absolute_import
 
+from functools import partial, update_wrapper
+
 from stuf.utils import setter
+
+
+class defer(object):
+
+    def __init__(self, method):
+        self.method = method
+        update_wrapper(self, method)
+
+    def __get__(self, this, that):
+        method = self.method
+
+        def function(this, *args, **kw):
+            args = (this, ) + args
+            that._Q2.chain(partial(method, *args, **kw))
+            return this
+        update_wrapper(function, method)
+        setattr(that, self.__name__, function)
+        return function
 
 
 class direct(object):

@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from stuf.utils import selfname
 
-from .query import __
+from .query import Composer
 
 
 def on(*events):
@@ -28,7 +28,7 @@ class On(object):
         self.metadata = metadata
 
     def __get__(self, this, that):
-        ebind = __(that).manager.events.bind
+        ebind = Composer(that).manager.events.bind
         method = self.method
         for arg in self.events:
             ebind(arg, method)

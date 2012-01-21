@@ -9,12 +9,12 @@ from itertools import ifilter
 from stuf import stuf
 from stuf.utils import get_or_default, getcls, lazy
 
-from appspace.composing import __
+from appspace.composing import Composer
 
 from .mixins import TraitsMixin
 
 
-class TraitQuery(TraitsMixin, __):
+class TraitQuery(TraitsMixin, Composer):
 
     '''trait query'''
 

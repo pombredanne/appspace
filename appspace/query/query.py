@@ -3,6 +3,7 @@
 
 from __future__ import absolute_import
 
+from threading import local
 from collections import Mapping, Sequence
 from operator import attrgetter, itemgetter
 
@@ -12,7 +13,7 @@ from appspace.keys import AManager
 from appspace.error import NoAppError
 
 
-class Query(object):
+class Query(local):
 
     '''application query'''
 
@@ -22,6 +23,7 @@ class Query(object):
 
         @param appspace: appspace or appspace server
         '''
+        super(Query, self).__init__()
         try:
             # fetch appspace from class
             self.manager = appspace.A
@@ -51,7 +53,7 @@ class Query(object):
         '''
         return self.get(label, branch)(*args, **kw)
 
-    _q_apply = apply
+    _quikapply = apply
 
     def get(self, label, branch=False):
         '''
@@ -64,7 +66,7 @@ class Query(object):
             branch
         ).get(label) if branch else self._getter(label)
 
-    _q_get = get
+    _quikget = get
 
     def branch(self, label):
         '''
@@ -75,7 +77,7 @@ class Query(object):
         # fetch branch if exists...
         return self._getter(label)
 
-    _q_branch = branch
+    _quickbranch = branch
 
     @staticmethod
     def iskey(key):
@@ -145,5 +147,4 @@ class Query(object):
         ) else attrgetter(key)
 
 
-Q = Query
-__all__ = ['Q']
+__all__ = ['Query']

@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 from inspect import ismodule
 
-from .query import S
+from .query import Services
 from .classes import Client, Server
 from .decorators import forward, remote, service, servicer
 

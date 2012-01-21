@@ -4,12 +4,13 @@
 from __future__ import absolute_import
 
 import uuid
+from threading import local
 
 from appspace.keys import apped
 from appspace.managers import Manager
 
 
-class QueryMixin(object):
+class QueryMixin(local):
 
     '''appspace builder'''
 

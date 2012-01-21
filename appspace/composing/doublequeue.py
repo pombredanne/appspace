@@ -1,24 +1,19 @@
 # -*- coding: utf-8 -*-
-'''composing query'''
+'''composing queue'''
 
 from __future__ import absolute_import
 
 from stuf.utils import lazy
 
-from appspace.building import Build
+from appspace.building import DoubleBuildQueue
 
 from .keys import NoDefault
 from .mixin import ComposerMixin
 
 
-class Composer(ComposerMixin, Build):
+class DoubleComposerQueue(ComposerMixin, DoubleBuildQueue):
 
-    '''application composing query'''
-
-    @lazy
-    def composer(self):
-        '''composer to attach to other apps'''
-        return Composer(self.manager)
+    '''application composing queue'''
 
     def burst(self, label, queue):
         '''
@@ -27,11 +22,18 @@ class Composer(ComposerMixin, Build):
         @param label: event label
         @param queue: queued arguments
         '''
-        return self._events.burst(label, queue)
+        self.outgoing.append(self._events.burst(label, queue))
+        return self
+
+    @lazy
+    def composer(self):
+        '''composer queue to attach to other apps'''
+        return DoubleComposerQueue(self.manager)
 
     def defaults(self):
         '''default settings by their lonesome'''
-        return self._settings.defaults
+        self.outgoing.append(self._settings.defaults)
+        return self
 
     def event(self, label, priority=False, **kw):
         '''
@@ -42,9 +44,11 @@ class Composer(ComposerMixin, Build):
         '''
         # unregister event
         if not priority or not kw:
-            self._events.unregister(label)
+            self.manager.unregister(label)
+            return self
         # register event if priority and keywords passed
-        self._events.register(label, priority, **kw)
+        self.outgoing.append(self.manager.register(label, priority, **kw))
+        return self
 
     def fire(self, label, *args, **kw):
         '''
@@ -52,7 +56,8 @@ class Composer(ComposerMixin, Build):
 
         @param label: event label
         '''
-        return self._events.fire(label, *args, **kw)
+        self.outgoing.append(self._events.fire(label, *args, **kw))
+        return self
 
     def react(self, label):
         '''
@@ -60,11 +65,13 @@ class Composer(ComposerMixin, Build):
 
         @param label: event label
         '''
-        return self._events.react(label)
+        self.outgoing.append(self._events.react(label))
+        return self
 
     def required(self):
         '''required settings by their lonesome'''
-        return self._settings.required
+        self.outgoing.append(self._settings.required)
+        return self
 
     def setting(self, label, value=NoDefault, default=None):
         '''
@@ -76,15 +83,18 @@ class Composer(ComposerMixin, Build):
         '''
         if value is not NoDefault:
             self._settings.set(label, value)
-        return self._settings.get(label, default)
+            return self
+        self.outgoing.append(self._settings.get(label, default))
+        return self
 
     def trigger(self, label):
         '''
-        get applications bound to an event
+        get objects bound to an event
 
         @param label: event label
         '''
-        return self._events.react(label)
+        self.outgoing.extend(self._events.react(label))
+        return self
 
 
-__all__ = ['Composer']
+__all__ = ['DoubleComposerQueue']

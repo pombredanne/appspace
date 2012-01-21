@@ -22,7 +22,7 @@ class ComposerQueue(ComposerMixin, BuildQueue):
         @param label: event label
         @param queue: queued arguments
         '''
-        self.appendleft(self._events.burst(label, queue))
+        self.append(self._events.burst(label, queue))
         return self
 
     @lazy
@@ -32,7 +32,7 @@ class ComposerQueue(ComposerMixin, BuildQueue):
 
     def defaults(self):
         '''default settings by their lonesome'''
-        self.appendleft(self._settings.defaults)
+        self.append(self._settings.defaults)
         return self
 
     def event(self, label, priority=False, **kw):
@@ -47,7 +47,7 @@ class ComposerQueue(ComposerMixin, BuildQueue):
             self.manager.unregister(label)
             return self
         # register event if priority and keywords passed
-        self.appendleft(self.manager.register(label, priority, **kw))
+        self.append(self.manager.register(label, priority, **kw))
         return self
 
     def fire(self, label, *args, **kw):
@@ -56,7 +56,7 @@ class ComposerQueue(ComposerMixin, BuildQueue):
 
         @param label: event label
         '''
-        self.appendleft(self._events.fire(label, *args, **kw))
+        self.append(self._events.fire(label, *args, **kw))
         return self
 
     def react(self, label):
@@ -65,12 +65,12 @@ class ComposerQueue(ComposerMixin, BuildQueue):
 
         @param label: event label
         '''
-        self.appendleft(self._events.react(label))
+        self.append(self._events.react(label))
         return self
 
     def required(self):
         '''required settings by their lonesome'''
-        self.appendleft(self._settings.required)
+        self.append(self._settings.required)
         return self
 
     def setting(self, label, value=NoDefault, default=None):
@@ -84,7 +84,7 @@ class ComposerQueue(ComposerMixin, BuildQueue):
         if value is not NoDefault:
             self._settings.set(label, value)
             return self
-        self.appendleft(self._settings.get(label, default))
+        self.append(self._settings.get(label, default))
         return self
 
     def trigger(self, label):
@@ -93,7 +93,8 @@ class ComposerQueue(ComposerMixin, BuildQueue):
 
         @param label: event label
         '''
-        return self(self._events.react(label))
+        self.extend(self._events.react(label))
+        return self
 
 
 __all__ = ['ComposerQueue']

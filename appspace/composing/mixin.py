@@ -3,12 +3,14 @@
 
 from __future__ import absolute_import
 
+from threading import local
+
 from appspace.ext import Manager, Composer
 from appspace.error import ConfigurationError
 from appspace.spaces import Patterns, patterns
 
 
-class ComposerMixin(object):
+class ComposerMixin(local):
 
     '''composer mixin'''
 

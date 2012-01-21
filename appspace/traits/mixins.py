@@ -3,6 +3,8 @@
 
 from __future__ import absolute_import
 
+from threading import local
+
 from inspect import getargspec, ismethod
 
 from .keys import ATrait
@@ -26,7 +28,7 @@ class _SimpleTest:
         return self.__repr__()
 
 
-class TraitsMixin(object):
+class TraitsMixin(local):
 
     '''traits mixin'''
 

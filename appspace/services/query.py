@@ -6,12 +6,12 @@ from __future__ import absolute_import
 from functools import partial
 from operator import attrgetter
 
-from stuf.utils import get_or_default  # , clsname
+from stuf.utils import get_or_default
 
-from appspace.query import Q
+from appspace.query import Query
 
 
-class Query(Q):
+class Services(Query):
 
     '''service query'''
 
@@ -57,5 +57,4 @@ class Query(Q):
                 pass
 
 
-S = Query
-__all__ = ['S']
+__all__ = ['Services']

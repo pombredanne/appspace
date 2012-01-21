@@ -23,12 +23,13 @@ class BuildQueue(QueryMixin, BaseQueue):
         '''
         # fetch branch if exists...
         try:
-            return super(BuildQueue, self).branch(label)
+            self.append(super(BuildQueue, self).branch(label))
+            return self
         # create new branch
         except NoAppError:
             new_appspace = self._manage_class
             self.manager.set(label, new_appspace)
-            self.appendleft(new_appspace)
+            self.append(new_appspace)
             return self
         raise ConfigurationError('invalid branch configuration')
 
@@ -53,7 +54,7 @@ class BuildQueue(QueryMixin, BaseQueue):
             manager = self.manager
         # add to appspace
         manager.set(label, app)
-        self.appendleft(app)
+        self.append(app)
         return self
 
 

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 '''classes'''
 
+from threading import local
+
 from stuf.utils import getcls, lazybase
 
 
-class ResetMixin(object):
+class ResetMixin(local):
 
     '''
     mixin to add a ".reset()" method to methods decorated with "lazybase"

@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-'''building query'''
+'''building double queue'''
 
 from __future__ import absolute_import
 
-from stuf.utils import lazy
-
-from appspace.query import Query
+from appspace.query import DoubleQueue as BaseQueue
 from appspace.error import ConfigurationError, NoAppError
+
+from stuf.utils import lazy
 
 from .mixin import QueryMixin
 
 
-class Build(QueryMixin, Query):
+class DoubleBuildQueue(QueryMixin, BaseQueue):
 
-    '''appspace building query'''
+    '''appspace building queue'''
 
     def branch(self, label):
         '''
@@ -23,18 +23,20 @@ class Build(QueryMixin, Query):
         '''
         # fetch branch if exists...
         try:
-            return super(Build, self).branch(label)
+            self.outgoing.append(super(DoubleBuildQueue, self).branch(label))
+            return self
         # create new branch
         except NoAppError:
             new_appspace = self._manage_class
             self.manager.set(label, new_appspace)
-            return new_appspace
+            self.outgoing.append(new_appspace)
+            return self
         raise ConfigurationError('invalid branch configuration')
 
     @lazy
     def builder(self):
-        '''builder to attach to other apps'''
-        return Build(self.manager)
+        '''builder queue to attach to other apps'''
+        return DoubleBuildQueue(self.manager)
 
     def set(self, app, label, branch=False):
         '''
@@ -46,13 +48,14 @@ class Build(QueryMixin, Query):
         '''
         # use branch manager
         if branch:
-            manager = self.branch(branch)
+            manager = self.branch(self, branch).firstone().manager
         # use passed manager
         else:
             manager = self.manager
         # add to appspace
         manager.set(label, app)
-        return app
+        self.outgoing.append(app)
+        return self
 
 
-__all__ = ['Build']
+__all__ = ['BuildQueue']

@@ -9,19 +9,19 @@ from itertools import ifilter
 from stuf import stuf
 from stuf.utils import get_or_default, getcls, lazy
 
-from appspace.composing import ComposerQueue
+from appspace.composing import DoubleComposerQueue
 
 from .mixins import TraitsMixin
 
 
-class TraitQueue(TraitsMixin, ComposerQueue):
+class DoubleTraitQueue(TraitsMixin, DoubleComposerQueue):
 
-    '''trait queue'''
+    '''double trait queue'''
 
     @lazy
     def traiter(self):
         '''trait query to attach to other apps'''
-        return TraitQueue(self.manager)
+        return DoubleTraitQueue(self.manager)
 
     def localize(self, **kw):
         '''
@@ -41,8 +41,8 @@ class TraitQueue(TraitsMixin, ComposerQueue):
             ):
                 settings[k] = v
         settings.update(kw)
-        self.append(settings)
+        self.outgoing.append(settings)
         return self
         
 
-__all__ = ['TraitQueue']
+__all__ = ['DoubleTraitQueue']

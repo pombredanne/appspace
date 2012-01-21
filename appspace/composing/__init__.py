@@ -9,7 +9,6 @@ from .holders import Sync
 from .decorators import on
 from .query import Composer
 from .queue import ComposerQueue
-from .doublequeue import DoubleComposerQueue
 from .classes import Composed, Master, Synced
 
 __all__ = sorted(name for name, obj in locals().iteritems() if not any([

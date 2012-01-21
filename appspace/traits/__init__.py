@@ -59,7 +59,6 @@ from inspect import ismodule
 from .query import TraitQuery
 from .queue import TraitQueue
 from .classes import Traits, TraitSync
-from .doublequeue import DoubleTraitQueue
 from .core import NoDefault, Trait, Undefined
 from .holders import (
     Any, CaselessStrEnum, Container, Dict, Enum, List, Tuple,

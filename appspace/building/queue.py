@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from appspace.query import Queue as BaseQueue
+from appspace.query import Queue
 from appspace.error import ConfigurationError, NoAppError
 
 from stuf.utils import lazy
@@ -11,7 +11,7 @@ from stuf.utils import lazy
 from .mixin import QueryMixin
 
 
-class BuildQueue(QueryMixin, BaseQueue):
+class BuildQueue(QueryMixin, Queue):
 
     '''appspace building queue'''
 
@@ -23,13 +23,13 @@ class BuildQueue(QueryMixin, BaseQueue):
         '''
         # fetch branch if exists...
         try:
-            self.append(super(BuildQueue, self).branch(label))
+            self.outgoing.append(super(BuildQueue, self).branch(label))
             return self
         # create new branch
         except NoAppError:
             new_appspace = self._manage_class
             self.manager.set(label, new_appspace)
-            self.append(new_appspace)
+            self.outgoing.append(new_appspace)
             return self
         raise ConfigurationError('invalid branch configuration')
 
@@ -48,13 +48,13 @@ class BuildQueue(QueryMixin, BaseQueue):
         '''
         # use branch manager
         if branch:
-            manager = self.branch(self, branch).one().manager
+            manager = self.branch(self, branch).firstone().manager
         # use passed manager
         else:
             manager = self.manager
         # add to appspace
         manager.set(label, app)
-        self.append(app)
+        self.outgoing.append(app)
         return self
 
 

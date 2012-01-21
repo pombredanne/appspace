@@ -3,16 +3,18 @@
 
 from __future__ import absolute_import
 
+from functools import partial
+from operator import itemgetter
 from itertools import groupby, ifilter, ifilterfalse, imap
 
-from stuf.utils import getcls, lazy
+from stuf.utils import lazy, getcls
 
 from appspace.ext.queue import namedqueue
 
 from .query import Query
 
 
-class Queue(Query, namedqueue):
+class Queue(Query):
 
     '''query queue'''
 
@@ -22,10 +24,18 @@ class Queue(Query, namedqueue):
 
         @param appspace: appspace or appspace server
         '''
-        Query.__init__(self, appspace, **kw)
-        namedqueue.__init__(self, *args, **kw)
-        self.last = self.pop
-        self.first = self.popleft
+        super(Queue, self).__init__(appspace, **kw)
+        self.incoming = namedqueue(*args, **kw)
+        self.outgoing = namedqueue(**kw)
+        self.__iter__ = self.outgoing.__iter__
+        self.append = self.incoming.append
+        self.appendleft = self.incoming.appendleft
+        self.clear_incoming = self.incoming.clear
+        self.clear_outgoing = self.outgoing.clear
+        self.extend = self.incoming.extend
+        self.extendleft = self.incoming.extendleft
+        self.popleft = self.first = self.outgoing.popleft
+        self.pop = self.last = self.outgoing.pop
 
     def __call__(self, *args):
         return getcls(self)(self.manager, *args, **dict(this=self._this))
@@ -42,7 +52,7 @@ class Queue(Query, namedqueue):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        self.append(self._quikget(label, branch)(*args, **kw))
+        self.outgoing.append(self._quikget(label, branch)(*args, **kw))
         return self
 
     def branch(self, label):
@@ -52,117 +62,128 @@ class Queue(Query, namedqueue):
         @param label: label of appspace
         '''
         # fetch branch if exists...
-        self.append(self._getter(label))
+        self.outgoing.append(self._getter(label))
         return self
 
-    def each(self, data, label, branch=False):
+    def callchain(self):
+        '''execute a series of partials in the queue'''
+        ar = self.append
+        pl = self.incoming.popleft
+        al = self.incoming.append
+        for i in xrange(len(self.incoming)):
+            call = pl()
+            ar(call())
+            al(call)
+        return self
+
+    def chain(self, func, *args, **kw):
+        '''
+        partialize a function with argumetns and keywords and add to
+        application queue
+
+        @param func: function or method
+        '''
+        self.append(partial(func, *args, **kw))
+        return self
+
+    def clear(self):
+        '''clear all queues'''
+        self.clear_incoming()
+        self.clear_outgoing()
+
+    def each(self, label, branch=False):
         '''
         run app in appsoace on each item in data
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
         app = self._quikget(label, branch)
-        self.extend(app(i) for i in data)
+        self.outgoing.extend(app(i) for i in self.incoming)
         return self
 
-    def filter(self, data, label, branch=False):
+    def filter(self, label, branch=False):
         '''
         get items from data for which app in appspace is true
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
         app = self._quikget(label, branch)
-        self.extend(ifilter(app, data))
+        self.outgoing.extend(ifilter(app, self.incoming))
         return self
 
-    def find(self, data, label, branch=False):
+    def find(self, label, branch=False):
         '''
         get first item in data for which app in appspace is true
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
         app = self._quikget(label, branch)
-        for item in ifilter(app, data):
-            self.append(item)
+        for item in ifilter(app, self.incoming):
+            self.outgoing.append(item)
             return self
 
     def firstone(self):
         '''fetch the first result and clear the queue'''
         value = self.first()
-        self.clear()
+        self.outgoing.clear()
         return value
 
-    def get(self, label, branch=False):
-        '''
-        get application from appspace
-
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        self.append(
-            self._getter(branch)[label] if branch else self._getter(label)
-        )
-        return self
-
-    def groupby(self, data, label, branch=False):
+    def groupby(self, label, branch=False):
         '''
         group items from data by criteria of app in appspace
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
         app = self._quikget(label, branch)
-        self.extend(groupby(data, app))
+        self.outgoing.extend(groupby(self.incoming, app))
         return self
 
-    def invoke(self, data, label, branch=False, *args, **kw):
+    def invoke(self, label, branch=False, *args, **kw):
         '''
         run app in appsoace on each item in data plus arbitrary args and
         keywords
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
         app = self._quikget(label, branch)
-        self.extend(app(i, *args, **kw) for i in data)
+        self.outgoing.extend(app(i, *args, **kw) for i in self.incoming)
         return self
+
+    def iterincoming(self):
+        '''iterate over incoming queue'''
+        return self.incoming.__iter__()
 
     def lastone(self):
         '''fetch the last result and clear the queue'''
-        value = self.last()
-        self.clear()
+        value = self.pop()
+        self.outgoing.clear()
         return value
 
-    def map(self, data, label, branch=False):
+    def map(self, label, branch=False):
         '''
         apply app in appspace to each item in data
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
         app = self._quikget(label, branch)
-        self.extend(imap(app, data))
+        self.outgoing.extend(imap(app, self.incoming))
         return self
 
-    def max(self, data, label, branch=False):
+    def max(self, label, branch=False):
         '''
         find maximum by key function in appspace
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
         app = self._quikget(label, branch)
-        self.append(max(data, key=app))
+        self.outgoing.append(max(self.incoming, key=app))
         return self
 
     def members(self, test):
@@ -171,81 +192,86 @@ class Queue(Query, namedqueue):
 
         @param tester: test to filter by (default: False)
         '''
-        self.extend(ifilter(test, self.itermembers(self._this)))
+        self.outgoing.extend(
+            ifilter(test, self.itermembers(self._this))
+        )
         return self
 
-    def min(self, data, label, branch=False):
+    def min(self, label, branch=False):
         '''
         find minimum value by key function in appspace
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
         app = self._quikget(label, branch)
-        self.append(min(data, key=app))
+        self.outgoing.appendleft(min(self.incoming, key=app))
         return self
 
-    def pluck(self, key, data):
+    def one(self):
+        '''fetch one result'''
+        value = self.outgoing.popleft()
+        # clear queue
+        self.outgoing.clear()
+        return value
+
+    def pluck(self, key):
         '''
         get items from data by key
 
         @param key: key to search for
         @param data: data to process
         '''
-        plucker = self.plucker(key, data)
-        self.extend(ifilter(
-            lambda x: x is not None, (plucker(i) for i in data),
+        plucker = itemgetter(key)
+        self.outgoing.extend(ifilter(
+            lambda x: x is not None, (plucker(i) for i in self.incoming),
         ))
         return self
 
-    def reduce(self, data, label, branch=False, initial=None):
+    def reduce(self, label, branch=False, initial=None):
         '''
         reduce data to single value with app in appspace
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         @param initial: initial value (default: None)
         '''
         app = self._quikget(label, branch)
-        self.append(reduce(app, data, initial))
+        self.outgoing.append(reduce(app, self.incoming, initial))
         return self
 
-    def reject(self, data, label, branch=False):
+    def reject(self, label, branch=False):
         '''
-        fetch items from data for which app in appspace is false
+        fetch items from data for which app in appspace is False
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
         app = self._quikget(label, branch)
-        self.extend(ifilterfalse(app, data))
+        self.outgoing.extend(ifilterfalse(app, self.incoming))
         return self
 
-    def right(self, data, label, branch=False, initial=None):
+    def right(self, label, branch=False, initial=None):
         '''
         reduce data to single value with app in appspace from right side
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         @param initial: initial value (default: None)
         '''
         app = lambda x, y: self._quikget(label, branch)(y, x)
-        self.appendleft(reduce(app, reversed(data), initial))
+        self.outgoing.append(reduce(app, reversed(self.incoming), initial))
         return self
 
-    def sorted(self, data, label, branch=False):
+    def sorted(self, label, branch=False):
         '''
         sort by key app in appspace
 
-        @param data: data to process
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        self.extend(sorted(data, key=self._quikget(label, branch)))
+        app = self._quikget(label, branch)
+        self.outgoing.extend(sorted(self.incoming, key=app))
         return self
 
 

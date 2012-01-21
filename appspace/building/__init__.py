@@ -8,7 +8,6 @@ from inspect import ismodule
 from .query import Build
 from .queue import BuildQueue
 from .decorators import factory
-from .doublequeue import DoubleBuildQueue
 
 __all__ = sorted(name for name, obj in locals().iteritems() if not any([
     name.startswith('_'), ismodule(obj),

@@ -16,7 +16,7 @@ from .mixins import TraitsMixin
 
 class TraitQueue(TraitsMixin, ComposerQueue):
 
-    '''trait queue'''
+    '''double trait queue'''
 
     @lazy
     def traiter(self):
@@ -41,7 +41,7 @@ class TraitQueue(TraitsMixin, ComposerQueue):
             ):
                 settings[k] = v
         settings.update(kw)
-        self.append(settings)
+        self.outgoing.append(settings)
         return self
         
 

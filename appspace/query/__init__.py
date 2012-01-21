@@ -7,7 +7,6 @@ from inspect import ismodule
 
 from .query import Query
 from .queue import Queue
-from .doublequeue import DoubleQueue
 from .decorators import class_defer, direct, defer
 
 __all__ = sorted(name for name, obj in locals().iteritems() if not any([

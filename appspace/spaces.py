@@ -65,14 +65,14 @@ class Patterns(object):
         return cls.patterns(selfname(cls), *tuple(cls._gather()))
 
     @classmethod
-    def factory(cls, label, *args, **kw):
+    def factory(label, manager, *args, **kw):
         '''
         factory for manager
 
         @param label: label for manager
         '''
         # build manager
-        manager = cls._manager(kw.get('module', 'appconf'))
+        manager = manager(kw.get('module', 'appconf'))
         # register apps in manager
         apper = manager.set
         # add applications
@@ -88,7 +88,7 @@ class Patterns(object):
         @param label: name of branch appspace
         @param *args: tuple of module paths or component inclusions
         '''
-        return cls.factory(label, *args, **kw)
+        return cls.factory(label, cls._manager, *args, **kw)
 
 
 @appifies(ABranch)
@@ -144,6 +144,7 @@ class Namespace(object):
         return this
 
 
+factory = Patterns.factory
 include = Branch.include
 patterns = Patterns.patterns
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')

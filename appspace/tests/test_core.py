@@ -217,7 +217,6 @@ class TestAppconf(unittest.TestCase):
         patterns(
             'helpers', 
             ('misc', include('appspace.tests.apps')), 
-            use_global=True,
         )
 
     def test_attr_multiple(self):

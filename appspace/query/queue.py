@@ -35,18 +35,6 @@ class Queue(Query, namedqueue):
 
     _quikget = Query._q_get
 
-    def get(self, label, branch=False):
-        '''
-        get application from appspace
-
-        @param label: application label
-        @param branch: branch label (default: False)
-        '''
-        self.appendleft(
-            self._getter(branch)[label] if branch else self._getter(label)
-        )
-        return self
-
     def apply(self, label, branch=False, *args, **kw):
         '''
         call application from appspace
@@ -65,6 +53,13 @@ class Queue(Query, namedqueue):
         '''
         # fetch branch if exists...
         self.appendleft(self._getter(label))
+        return self
+
+    def callchain(self):
+        al = self.appendleft
+        pl = self.popleft()
+        for i in xrange(len(self)):
+            al(pl()())
         return self
 
     def each(self, data, label, branch=False):
@@ -103,6 +98,18 @@ class Queue(Query, namedqueue):
             return self
 
     first = namedqueue.popleft
+
+    def get(self, label, branch=False):
+        '''
+        get application from appspace
+
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        self.appendleft(
+            self._getter(branch)[label] if branch else self._getter(label)
+        )
+        return self
 
     def groupby(self, data, label, branch=False):
         '''

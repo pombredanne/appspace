@@ -15,7 +15,7 @@ def lazy_import(path, attribute=None):
     @param path: something to load
     @param attribute: attribute on loaded module to return
     '''
-    if isinstance(path, str):
+    if isinstance(path, basestring):
         try:
             dot = path.rindex('.')
             # import module

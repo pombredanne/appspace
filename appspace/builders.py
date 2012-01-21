@@ -5,9 +5,8 @@ from __future__ import absolute_import
 
 from operator import getitem, contains
 
-from .keys import AAppspace
-from .managers import appifies
-from .spaces import patterns as factory
+from .keys import AAppspace, appifies
+from .spaces import patterns as apatterns
 from .error import AppLookupError, NoAppError
 
 
@@ -36,7 +35,7 @@ class Appspace(object):
         try:
             return self.manager.get(label)
         except AppLookupError:
-            raise NoAppError('%s' % label)
+            raise NoAppError(label)
 
     def __call__(self, label, *args, **kw):
         result = getitem(self, label)
@@ -58,10 +57,10 @@ def patterns(label, *args, **kw):
 
     @param label: label for manager
     '''
-    manager = factory(label, *args, **kw)
+    manager = apatterns(label, *args, **kw)
     space = Appspace(manager)
     manager.set(label, space)
     return space
 
 
-__all__ = ['patterns']
+__all__ = ['patterns', 'app']

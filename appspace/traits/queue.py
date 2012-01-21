@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''traits query'''
+'''traits queue'''
 
 from __future__ import absolute_import
 
@@ -9,19 +9,19 @@ from itertools import ifilter
 from stuf import stuf
 from stuf.utils import get_or_default, getcls, lazy
 
-from appspace.composing import __
+from appspace.composing import ComposerQueue
 
 from .mixins import TraitsMixin
 
 
-class TraitQuery(TraitsMixin, __):
+class TraitQueue(TraitsMixin, ComposerQueue):
 
-    '''trait query'''
+    '''trait queue'''
 
     @lazy
     def traiter(self):
         '''trait query to attach to other apps'''
-        return TraitQuery(self.manager)
+        return TraitQueue(self.manager)
 
     def localize(self, **kw):
         '''
@@ -41,8 +41,9 @@ class TraitQuery(TraitsMixin, __):
             ):
                 settings[k] = v
         settings.update(kw)
-        return settings
+        self.appendleft(settings)
+        return self
         
 
-T = TraitQuery
-__all__ = ['T']
+T = TraitQueue
+__all__ = ['TraitQueue']

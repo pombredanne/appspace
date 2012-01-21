@@ -19,7 +19,7 @@ class class_defer(object):
 
         def function(*args, **kw):
             args = (that,) + args
-            that._Q2.chain(partial(method, *args, **kw))
+            that._U.chain(partial(method, *args, **kw))
             return that
         update_wrapper(function, method)
         return function
@@ -36,7 +36,7 @@ class defer(object):
 
         def function(*args, **kw):
             args = (this,) + args
-            that._Q2.chain(partial(method, *args, **kw))
+            that._U.chain(partial(method, *args, **kw))
             return this
         update_wrapper(function, method)
         return function

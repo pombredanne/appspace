@@ -227,6 +227,14 @@ class Queue(Query):
             lambda x: x is not None, (plucker(i) for i in self.incoming),
         ))
         return self
+    
+    def queue(self, app):
+        '''
+        add query to app
+
+        @param app: app to add query to
+        '''
+        app._U = self.querier
 
     def reduce(self, label, branch=False, initial=None):
         '''

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''application builder'''
+'''appspace spaces'''
 
 from __future__ import absolute_import
 

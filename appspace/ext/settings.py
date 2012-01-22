@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''settings management'''
+'''extensions settings management'''
 
 from __future__ import absolute_import
 

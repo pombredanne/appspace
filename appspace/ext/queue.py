@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-'''named queue'''
+'''extensions named queue'''
 
-from operator import getitem
 from collections import deque
 
 
@@ -67,7 +66,7 @@ class namedqueue(deque):
         @param default: default value (default: None)
         '''
         try:
-            return getitem(self, key)
+            return self[key]
         except KeyError:
             return default
 
@@ -80,7 +79,7 @@ class namedqueue(deque):
         '''
         self.reverse()
         try:
-            value = getitem(self, key)
+            value = self[key]
         except KeyError:
             value = default
         self.reverse()
@@ -99,7 +98,7 @@ class namedqueue(deque):
 
         @param key: key in queue
         '''
-        value = getitem(self, key)
+        value = self[key]
         self.remove(value)
 
     def remove_right(self, key):
@@ -109,7 +108,7 @@ class namedqueue(deque):
         @param key: key in queue
         '''
         self.reverse()
-        value = getitem(self, key)
+        value = self[key]
         self.remove(value)
         self.reverse()
 

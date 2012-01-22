@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''extension keys'''
+'''services keys'''
 
 from __future__ import absolute_import
 

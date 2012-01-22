@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from inspect import ismodule
 
 from .query import Services
+from .queue import ServicesQueue
 from .classes import Client, Server
 from .decorators import forward, remote, service, servicer
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''service classes'''
+'''services classes'''
 
 from __future__ import absolute_import
 

@@ -3,9 +3,11 @@
 
 from __future__ import absolute_import
 
+from functools import update_wrapper, wraps
+
 from stuf.utils import selfname
 
-from .query import Composer
+from appspace.query.decorators import readonly
 
 
 def on(*events):
@@ -14,22 +16,25 @@ def on(*events):
 
     @param *events: list of properties
     '''
-    def wrapped(func):
-        return On(func, *events)
+    @wraps
+    def wrapped(this):
+        return On(this, *events)
     return wrapped
 
 
-class On(object):
+class On(readonly):
 
     '''attach events to method'''
 
-    def __init__(self, method, *metadata):
+    def __init__(self, method, *events):
+        super(On, self).__init__()
         self.method = method
-        self.metadata = metadata
+        self.events = events
+        update_wrapper(self, method)
 
     def __get__(self, this, that):
-        ebind = Composer(that).manager.events.bind
         method = self.method
+        ebind = that._C.manager.events.bind
         for arg in self.events:
             ebind(arg, method)
         setattr(that, selfname(method), method)

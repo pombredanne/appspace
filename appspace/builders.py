@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-'''application builder'''
+'''appspace builder'''
 
 from __future__ import absolute_import
 
-from operator import getitem, contains
+from operator import contains
 
 from .keys import AAppspace, appifies
 from .spaces import patterns as apatterns
@@ -38,8 +38,8 @@ class Appspace(object):
             raise NoAppError(label)
 
     def __call__(self, label, *args, **kw):
-        result = getitem(self, label)
         try:
+            result = self.__getitem__(label)
             return result(*args, **kw)
         except TypeError:
             return result

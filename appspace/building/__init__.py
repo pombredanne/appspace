@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''application building'''
+'''appspace building'''
 
 from __future__ import absolute_import
 

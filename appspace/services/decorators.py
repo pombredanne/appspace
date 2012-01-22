@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''service decorators'''
+'''services decorators'''
 
 from __future__ import absolute_import
 

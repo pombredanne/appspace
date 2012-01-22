@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #@PydevCodeAnalysisIgnore
 # pylint: disable-msg=e0213,e0211
-'''extension keys'''
+'''extensions keys'''
 
 from __future__ import absolute_import
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''classes'''
+'''extensions classes'''
 
 from threading import local
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''extension context managers'''
+'''extensions context managers'''
 
 from contextlib import GeneratorContextManager
 

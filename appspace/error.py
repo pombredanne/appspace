@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''exceptions'''
+'''appspace exceptions'''
 
 from __future__ import absolute_import
 

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-'''event handling'''
+'''extensions event handling'''
 
 from __future__ import absolute_import
 
 from collections import deque
-from operator import attrgetter, getitem
+from operator import attrgetter
 
 from appspace.keys import appifies, apped, get_apps
 
@@ -106,7 +106,7 @@ class EventManager(object):
         '''
         app = self._manager.ez_lookup(AEvent, label)
         if app is not None:
-            return getitem(get_apps(app), 0)
+            return get_apps(app)[0]
         return None
 
     def react(self, label):

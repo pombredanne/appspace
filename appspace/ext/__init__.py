@@ -7,7 +7,7 @@ from inspect import ismodule
 
 from .queue import namedqueue
 from .classes import ResetMixin
-from .core import Manager, Composer
+from .builders import Manager, Composer
 from .events import Event, EventManager
 from .settings import DefaultSettings, RequiredSettings
 

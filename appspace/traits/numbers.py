@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''traits number types'''
+'''number traits'''
 
 from __future__ import absolute_import
 

@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from functools import partial
 from operator import itemgetter
 from contextlib import contextmanager
-from itertools import groupby, ifilter, ifilterfalse, imap
+from itertools import count, groupby, ifilter, ifilterfalse, imap
 
 from stuf.utils import lazy
 
@@ -77,7 +77,7 @@ class Queue(QueryMixin):
 
         @param func: function or method
         '''
-        self.calls.append(partial(self._qget(label, branch), *args, **kw))
+        self.calls.append(partial(self._qapply, label, branch, *args, **kw))
         return self
 
     def branch(self, label):
@@ -95,8 +95,15 @@ class Queue(QueryMixin):
         '''execute a series of partials in the queue'''
         with self.sync():
             append = self.outappend
-            for call in self.calls:
+            length = len(self.calls)
+            popleft = self.calls.popleft
+            appendright = self.calls.append
+            for cnt in count(1):
+                call = popleft()
                 append(call())
+                appendright(call)
+                if length == cnt:
+                    break
         return self
 
     def chain(self, func, *args, **kw):

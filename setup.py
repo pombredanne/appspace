@@ -11,7 +11,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-install_requires = ['zope.interface>=3.8.0', 'stuf>=0.8.1', 'transaction']
+install_requires = ['zope.interface>=3.8.0', 'stuf>=0.8.1']
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
     install_requires.extend(['importlib'])
 

@@ -29,19 +29,22 @@ class TraitQueue(TraitsMixin, ComposerQueue):
 
         **kw: settings to add to local settings
         '''
-        this = self._this
-        metas = [b.Meta for b in getmro(getcls(this)) if hasattr(b, 'Meta')]
-        meta = get_or_default(this, 'Meta')
-        if meta:
-            metas.append(meta)
-        settings = stuf()
-        for m in metas:
-            for k, v in ifilter(
-                lambda x: not x[0].startswith('_'), self.itermembers(m),
-            ):
-                settings[k] = v
-        settings.update(kw)
-        self.outgoing.append(settings)
+        with self.sync():
+            this = self._this
+            metas = [
+                b.Meta for b in getmro(getcls(this)) if hasattr(b, 'Meta')
+            ]
+            meta = get_or_default(this, 'Meta')
+            if meta:
+                metas.append(meta)
+            settings = stuf()
+            for m in metas:
+                for k, v in ifilter(
+                    lambda x: not x[0].startswith('_'), self.itermembers(m),
+                ):
+                    settings[k] = v
+            settings.update(kw)
+            self.outgoing.append(settings)
         return self
         
 

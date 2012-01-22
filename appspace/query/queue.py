@@ -5,16 +5,18 @@ from __future__ import absolute_import
 
 from functools import partial
 from operator import itemgetter
+from contextlib import contextmanager
 from itertools import groupby, ifilter, ifilterfalse, imap
 
-from stuf.utils import lazy, getcls
+from stuf.utils import lazy
 
-from appspace.ext.queue import namedqueue
+from appspace.ext import namedqueue
 
-from .query import Query
+from .query import QueryMixin
+from .context import AppContext
 
 
-class Queue(Query):
+class Queue(QueryMixin):
 
     '''query queue'''
 
@@ -25,25 +27,37 @@ class Queue(Query):
         @param appspace: appspace or appspace server
         '''
         super(Queue, self).__init__(appspace, **kw)
+        self.max_length = kw.pop('max_length', None)
         self.incoming = namedqueue(*args, **kw)
         self.outgoing = namedqueue(**kw)
+        self.calls = namedqueue(**kw)
         self.__iter__ = self.outgoing.__iter__
         self.append = self.incoming.append
         self.appendleft = self.incoming.appendleft
+        self.clear_calls = self.calls.clear
         self.clear_incoming = self.incoming.clear
         self.clear_outgoing = self.outgoing.clear
         self.extend = self.incoming.extend
         self.extendleft = self.incoming.extendleft
-        self.popleft = self.first = self.outgoing.popleft
+        self.iterincoming = self.incoming.__iter__
+        self.outappend = self.outgoing.append
+        self.outextend = self.outgoing.extend
         self.pop = self.last = self.outgoing.pop
-
-    def __call__(self, *args):
-        return getcls(self)(self.manager, *args, **dict(this=self._this))
+        self.popleft = self.first = self.outgoing.popleft
 
     @lazy
-    def querier(self):
+    def queuer(self):
         '''query queue to attach to other apps'''
         return Queue(self.manager)
+
+    def app(self, label, branch=False):
+        '''
+        wrap app in context manager
+
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        return AppContext(self, label, branch)
 
     def apply(self, label, branch=False, *args, **kw):
         '''
@@ -52,7 +66,18 @@ class Queue(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        self.outgoing.append(self._quikget(label, branch)(*args, **kw))
+        with self.sync():
+            self.outappend(self._qget(label, branch)(*args, **kw))
+        return self
+
+    def applychain(self, label, branch=False, *args, **kw):
+        '''
+        partialize a callable from appspace with arguments and keywords
+        and add to application queue
+
+        @param func: function or method
+        '''
+        self.calls.append(partial(self._qget(label, branch), *args, **kw))
         return self
 
     def branch(self, label):
@@ -62,18 +87,16 @@ class Queue(Query):
         @param label: label of appspace
         '''
         # fetch branch if exists...
-        self.outgoing.append(self._getter(label))
+        with self.sync():
+            self.outappend(self._getter(label))
         return self
 
     def callchain(self):
         '''execute a series of partials in the queue'''
-        ar = self.append
-        pl = self.incoming.popleft
-        al = self.incoming.append
-        for i in xrange(len(self.incoming)):
-            call = pl()
-            ar(call())
-            al(call)
+        with self.sync():
+            append = self.outappend
+            for call in self.calls:
+                append(call())
         return self
 
     def chain(self, func, *args, **kw):
@@ -83,23 +106,24 @@ class Queue(Query):
 
         @param func: function or method
         '''
-        self.append(partial(func, *args, **kw))
+        self.calls.append(partial(func, *args, **kw))
         return self
 
     def clear(self):
         '''clear all queues'''
         self.clear_incoming()
         self.clear_outgoing()
+        self.clear_calls()
 
     def each(self, label, branch=False):
         '''
-        run app in appsoace on each item in data
+        run app in appspace on each item in data
 
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._quikget(label, branch)
-        self.outgoing.extend(app(i) for i in self.incoming)
+        with self.app(label, branch) as app:
+            self.outextend(app(i) for i in self.incoming)
         return self
 
     def filter(self, label, branch=False):
@@ -109,8 +133,8 @@ class Queue(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._quikget(label, branch)
-        self.outgoing.extend(ifilter(app, self.incoming))
+        with self.app(label, branch) as app:
+            self.outgoing.extend(ifilter(app, self.incoming))
         return self
 
     def find(self, label, branch=False):
@@ -120,15 +144,16 @@ class Queue(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._quikget(label, branch)
-        for item in ifilter(app, self.incoming):
-            self.outgoing.append(item)
-            return self
+        with self.app(label, branch) as app:
+            for item in ifilter(app, self.incoming):
+                self.outappend(item)
+                self.sync()
+                return self
 
     def firstone(self):
         '''fetch the first result and clear the queue'''
         value = self.first()
-        self.outgoing.clear()
+        self.clear_outgoing()
         return value
 
     def groupby(self, label, branch=False):
@@ -138,8 +163,8 @@ class Queue(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._quikget(label, branch)
-        self.outgoing.extend(groupby(self.incoming, app))
+        with self.app(label, branch) as app:
+            self.outextend(groupby(self.incoming, app))
         return self
 
     def invoke(self, label, branch=False, *args, **kw):
@@ -150,18 +175,14 @@ class Queue(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._quikget(label, branch)
-        self.outgoing.extend(app(i, *args, **kw) for i in self.incoming)
+        with self.app(label, branch) as app:
+            self.outextend(app(i, *args, **kw) for i in self.incoming)
         return self
-
-    def iterincoming(self):
-        '''iterate over incoming queue'''
-        return self.incoming.__iter__()
 
     def lastone(self):
         '''fetch the last result and clear the queue'''
-        value = self.pop()
-        self.outgoing.clear()
+        value = self.last()
+        self.clear_outgoing()
         return value
 
     def map(self, label, branch=False):
@@ -171,8 +192,8 @@ class Queue(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._quikget(label, branch)
-        self.outgoing.extend(imap(app, self.incoming))
+        with self.app(label, branch) as app:
+            self.outextend(imap(app, self.incoming))
         return self
 
     def max(self, label, branch=False):
@@ -182,8 +203,8 @@ class Queue(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._quikget(label, branch)
-        self.outgoing.append(max(self.incoming, key=app))
+        with self.app(label, branch) as app:
+            self.outappend(max(self.incoming, key=app))
         return self
 
     def members(self, test):
@@ -192,9 +213,8 @@ class Queue(Query):
 
         @param tester: test to filter by (default: False)
         '''
-        self.outgoing.extend(
-            ifilter(test, self.itermembers(self._this))
-        )
+        with self.sync():
+            self.outextend(ifilter(test, self.itermembers(self._this)))
         return self
 
     def min(self, label, branch=False):
@@ -204,15 +224,15 @@ class Queue(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._quikget(label, branch)
-        self.outgoing.appendleft(min(self.incoming, key=app))
+        with self.app(label, branch) as app:
+            self.outappend(min(self.incoming, key=app))
         return self
 
     def one(self):
         '''fetch one result'''
-        value = self.outgoing.popleft()
+        value = self.first()
         # clear queue
-        self.outgoing.clear()
+        self.clear_outgoing()
         return value
 
     def pluck(self, key):
@@ -222,10 +242,11 @@ class Queue(Query):
         @param key: key to search for
         @param data: data to process
         '''
-        plucker = itemgetter(key)
-        self.outgoing.extend(ifilter(
-            lambda x: x is not None, (plucker(i) for i in self.incoming),
-        ))
+        with self.sync():
+            plucker = itemgetter(key)
+            self.outextend(ifilter(
+                lambda x: x is not None, (plucker(i) for i in self.incoming),
+            ))
         return self
     
     def queue(self, app):
@@ -234,7 +255,7 @@ class Queue(Query):
 
         @param app: app to add query to
         '''
-        app._U = self.querier
+        app._U = self.queuer
 
     def reduce(self, label, branch=False, initial=None):
         '''
@@ -244,8 +265,8 @@ class Queue(Query):
         @param branch: branch label (default: False)
         @param initial: initial value (default: None)
         '''
-        app = self._quikget(label, branch)
-        self.outgoing.append(reduce(app, self.incoming, initial))
+        with self.app(label, branch) as app:
+            self.outappend(reduce(app, self.incoming, initial))
         return self
 
     def reject(self, label, branch=False):
@@ -255,8 +276,8 @@ class Queue(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._quikget(label, branch)
-        self.outgoing.extend(ifilterfalse(app, self.incoming))
+        with self.app(label, branch) as app:
+            self.outextend(ifilterfalse(app, self.incoming))
         return self
 
     def right(self, label, branch=False, initial=None):
@@ -267,8 +288,9 @@ class Queue(Query):
         @param branch: branch label (default: False)
         @param initial: initial value (default: None)
         '''
-        app = lambda x, y: self._quikget(label, branch)(y, x)
-        self.outgoing.append(reduce(app, reversed(self.incoming), initial))
+        with self.app(label, branch) as app:
+            app = lambda x, y: app(y, x)
+            self.outappend(reduce(app, reversed(self.incoming), initial))
         return self
 
     def sorted(self, label, branch=False):
@@ -278,9 +300,20 @@ class Queue(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        app = self._quikget(label, branch)
-        self.outgoing.extend(sorted(self.incoming, key=app))
+        with self.app(label, branch) as app:
+            self.outextend(sorted(self.incoming, key=app))
         return self
+    
+    @contextmanager
+    def sync(self):
+        '''sync incoming queue with outgoing queue'''
+        try:
+            yield
+            self.clear_incoming()
+            self.extend(self.outgoing)
+        except:
+            self.clear_outgoing()
+            raise
 
 
 __all__ = ['Queue']

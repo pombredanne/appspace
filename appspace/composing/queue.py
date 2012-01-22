@@ -15,6 +15,11 @@ class ComposerQueue(ComposerMixin, BuildQueue):
 
     '''application composing queue'''
 
+    @lazy
+    def composer(self):
+        '''composer queue to attach to other apps'''
+        return ComposerQueue(self.manager)
+
     def burst(self, label, queue):
         '''
         process event subscribers on contents of queue
@@ -22,17 +27,14 @@ class ComposerQueue(ComposerMixin, BuildQueue):
         @param label: event label
         @param queue: queued arguments
         '''
-        self.outgoing.append(self._events.burst(label, queue))
+        with self.sync():
+            self.outgoing.append(self._events.burst(label, queue))
         return self
-
-    @lazy
-    def composer(self):
-        '''composer queue to attach to other apps'''
-        return ComposerQueue(self.manager)
 
     def defaults(self):
         '''default settings by their lonesome'''
-        self.outgoing.append(self._settings.defaults)
+        with self.sync():
+            self.outgoing.append(self._settings.defaults)
         return self
 
     def event(self, label, priority=False, **kw):
@@ -46,8 +48,9 @@ class ComposerQueue(ComposerMixin, BuildQueue):
         if not priority or not kw:
             self.manager.unregister(label)
             return self
-        # register event if priority and keywords passed
-        self.outgoing.append(self.manager.register(label, priority, **kw))
+        with self.sync():
+            # register event if priority and keywords passed
+            self.outgoing.append(self.manager.register(label, priority, **kw))
         return self
 
     def fire(self, label, *args, **kw):
@@ -56,7 +59,8 @@ class ComposerQueue(ComposerMixin, BuildQueue):
 
         @param label: event label
         '''
-        self.outgoing.append(self._events.fire(label, *args, **kw))
+        with self.sync():
+            self.outgoing.append(self._events.fire(label, *args, **kw))
         return self
 
     def react(self, label):
@@ -65,12 +69,14 @@ class ComposerQueue(ComposerMixin, BuildQueue):
 
         @param label: event label
         '''
-        self.outgoing.append(self._events.react(label))
+        with self.sync():
+            self.outgoing.append(self._events.react(label))
         return self
 
     def required(self):
         '''required settings by their lonesome'''
-        self.outgoing.append(self._settings.required)
+        with self.sync():
+            self.outgoing.append(self._settings.required)
         return self
 
     def setting(self, label, value=NoDefault, default=None):
@@ -84,7 +90,8 @@ class ComposerQueue(ComposerMixin, BuildQueue):
         if value is not NoDefault:
             self._settings.set(label, value)
             return self
-        self.outgoing.append(self._settings.get(label, default))
+        with self.sync():
+            self.outgoing.append(self._settings.get(label, default))
         return self
 
     def trigger(self, label):
@@ -93,7 +100,8 @@ class ComposerQueue(ComposerMixin, BuildQueue):
 
         @param label: event label
         '''
-        self.outgoing.extend(self._events.react(label))
+        with self.sync():
+            self.outgoing.extend(self._events.react(label))
         return self
 
 

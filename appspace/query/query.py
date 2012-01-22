@@ -7,7 +7,7 @@ from threading import local
 from collections import Mapping, Sequence
 from operator import attrgetter, itemgetter
 
-from stuf.utils import lazy
+from stuf.utils import lazy, getcls
 
 from appspace.keys import AManager
 from appspace.error import NoAppError
@@ -53,7 +53,7 @@ class Query(local):
         '''
         return self.get(label, branch)(*args, **kw)
 
-    _quikapply = apply
+    _qapply = apply
 
     def get(self, label, branch=False):
         '''
@@ -66,7 +66,7 @@ class Query(local):
             branch
         ).get(label) if branch else self._getter(label)
 
-    _quikget = get
+    _qget = get
 
     def branch(self, label):
         '''
@@ -77,7 +77,7 @@ class Query(local):
         # fetch branch if exists...
         return self._getter(label)
 
-    _quickbranch = branch
+    _qbranch = branch
 
     @staticmethod
     def iskey(key):
@@ -134,6 +134,8 @@ class Query(local):
         '''
         app._Q = self.querier
 
+    _qquery = query
+
     @staticmethod
     def plucker(key, data):
         '''
@@ -145,6 +147,18 @@ class Query(local):
         return itemgetter(key) if isinstance(
             data, (Mapping, Sequence)
         ) else attrgetter(key)
+
+
+class QueryMixin(Query):
+
+    '''query mixin'''
+
+    def __call__(self, *args):
+        return getcls(self)(
+            self.manager,
+            *args,
+            **dict(this=self._this, max_length=self.max_length)
+        )
 
 
 __all__ = ['Query']

@@ -8,41 +8,54 @@ from functools import partial, update_wrapper
 from stuf.utils import setter
 
 
-class class_defer(object):
+class readonly(object):
+
+    '''read-only descriptor'''
+
+    def __set__(self, this, value):
+        raise AttributeError('attribute is read-only')
+
+    def __delete__(self, this):
+        raise AttributeError('attribute is read-only')
+
+
+class deferrable(readonly):
+
+    '''deferred base class'''
 
     def __init__(self, method):
+        super(deferrable, self).__init__()
         self.method = method
         update_wrapper(self, method)
 
-    def __get__(self, this, that):
-        method = self.method
-
-        def function(*args, **kw):
-            args = (that,) + args
-            that._U.chain(partial(method, *args, **kw))
-            return that
-        update_wrapper(function, method)
-        return function
-
-
-class defer(object):
-
-    def __init__(self, method):
-        self.method = method
-        update_wrapper(self, method)
-
-    def __get__(self, this, that):
+    def _factory(self, this):
         method = self.method
 
         def function(*args, **kw):
             args = (this,) + args
-            that._U.chain(partial(method, *args, **kw))
+            this._U.chain(partial(method, *args, **kw))
             return this
         update_wrapper(function, method)
         return function
 
 
-class direct(object):
+class class_defer(deferrable):
+
+    '''defer class method'''
+
+    def __get__(self, this, that):
+        return self._factory(that)
+
+
+class defer(deferrable):
+
+    '''defer object method'''
+
+    def __get__(self, this, that):
+        return self._factory(this)
+
+
+class direct(readonly):
 
     '''passes application from appspace directly to host'''
 
@@ -53,17 +66,12 @@ class direct(object):
         @param label: application label
         @param branch: branch label (default: False)
         '''
+        super(direct, self).__init__()
         self.label = label
         self.branch = branch
 
     def __get__(self, this, that):
         return setter(that, self.label, that._Q.get(self.label, self.branch))
 
-    def __set__(self, this, value):
-        raise AttributeError('attribute is read-only')
 
-    def __delete__(self, this):
-        raise AttributeError('attribute is read-only')
-
-
-__all__ = ['direct']
+__all__ = ['class_defer', 'defer', 'direct']

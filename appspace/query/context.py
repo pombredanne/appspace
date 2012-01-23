@@ -25,6 +25,7 @@ class AppContext(ContextManager):
         return self.app(*args, **kw)
 
     def __enter__(self):
+        self._clear_tmp()
         self.app = self._qget(self.label, self.branch)
 
     def __exit__(self, type_, value, traceback):
@@ -32,5 +33,7 @@ class AppContext(ContextManager):
             super(AppContext, self).__exit__(type_, value, traceback)
         except:
             raise
+        finally:
+            self._clear_tmp()
         self.queue.clear_incoming()
         self.queue.incoming.extend(self.queue.outgoing)

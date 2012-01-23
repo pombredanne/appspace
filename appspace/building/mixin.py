@@ -25,7 +25,7 @@ class QueryMixin(local):
 
         @param app: app to add query to
         '''
-        app._B = self.builder
+        app._BQ = self.builder
 
     @staticmethod
     def key(key, app):

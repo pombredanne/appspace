@@ -5,29 +5,44 @@ from __future__ import absolute_import
 
 from operator import attrgetter
 
-from stuf.utils import lazy
+from stuf.utils import lazy, lazy_class
 
 from appspace.keys import appifies
-from appspace.ext import ResetMixin
+from appspace.building import Building
 
 from .holders import Sync
+from .query import ComposerQuery
+from .queue import ComposerQueue
 from .keys import AComposed, AMaster, ASynched
 
 
+class ComposerMixin(Building):
+
+    @lazy_class
+    def _CQ(self):
+        '''querier'''
+        return ComposerQuery(self.A)
+
+    @lazy_class
+    def _CU(self):
+        '''queuer'''
+        return ComposerQueue(self.A)
+
+
 @appifies(AComposed)
-class Composed(ResetMixin):
+class Composed(ComposerMixin):
 
     '''composed object'''
 
 
 @appifies(AMaster)
-class Master(ResetMixin):
+class Master(ComposerMixin):
 
     '''master composer'''
 
 
 @appifies(ASynched)
-class Synced(ResetMixin):
+class Synced(ComposerMixin):
 
     '''composed object with synchronizing functionality'''
 

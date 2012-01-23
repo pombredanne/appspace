@@ -34,7 +34,7 @@ class On(readonly):
 
     def __get__(self, this, that):
         method = self.method
-        ebind = that._C.manager.events.bind
+        ebind = that._CQ.manager.events.bind
         for arg in self.events:
             ebind(arg, method)
         setattr(that, selfname(method), method)

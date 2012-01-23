@@ -11,7 +11,7 @@ from appspace.error import ConfigurationError, NoAppError
 from .mixin import QueryMixin
 
 
-class Build(QueryMixin, Query):
+class BuildQuery(QueryMixin, Query):
 
     '''appspace building query'''
 
@@ -23,7 +23,7 @@ class Build(QueryMixin, Query):
         '''
         # fetch branch if exists...
         try:
-            return super(Build, self).branch(label)
+            return super(BuildQuery, self).branch(label)
         # create new branch
         except NoAppError:
             new_appspace = self._manage_class
@@ -34,7 +34,7 @@ class Build(QueryMixin, Query):
     @lazy
     def builder(self):
         '''builder to attach to other apps'''
-        return Build(self.manager)
+        return BuildQuery(self.manager)
 
     def set(self, app, label, branch=False):
         '''
@@ -55,4 +55,4 @@ class Build(QueryMixin, Query):
         return app
 
 
-__all__ = ['Build']
+__all__ = ['BuildQuery']

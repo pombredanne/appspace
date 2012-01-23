@@ -7,7 +7,7 @@ from inspect import ismodule
 
 from .holders import Sync
 from .decorators import on
-from .query import Composer
+from .query import ComposerQuery
 from .queue import ComposerQueue
 from .classes import Composed, Master, Synced
 

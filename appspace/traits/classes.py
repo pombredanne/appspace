@@ -6,15 +6,17 @@ from __future__ import absolute_import
 from inspect import isclass
 
 from stuf import stuf
-from stuf.utils import both, clsname, getcls, lazy
+from stuf.utils import both, clsname, getcls, lazy, lazy_class
 
+from appspace.query import defer
 from appspace.keys import appifies
 from appspace.composing import Sync, Synced
 
-from .query import T
 from .core import Trait
 from .keys import ATraits
 from .error import TraitError
+from .query import TraitQuery
+from .queue import TraitQueue
 
 
 class TraitSync(Sync):
@@ -57,7 +59,7 @@ class MetaTraits(type):
 
         instantiate Traits in classdict, setting their name attribute
         '''
-        istrait = T.istrait
+        istrait = cls._TQ.istrait
         for k, v in classdict.iteritems():
             if istrait(k, v):
                 if isclass(v):
@@ -75,7 +77,7 @@ class MetaTraits(type):
         Sets this_class attribute of each Trait in the classdict to a newly
         created class.
         '''
-        istrait = T.istrait
+        istrait = cls._TQ.istrait
         cls._classtraits = classtraits = {}
         for k, v in classdict.iteritems():
             if istrait(k, v):
@@ -108,6 +110,16 @@ class Traits(Synced):
             v.instance_init(inst)
         return inst
 
+    @lazy_class
+    def _TQ(self):
+        '''trait query'''
+        return TraitQuery(self.A)
+
+    @lazy_class
+    def _TU(self):
+        '''trait queue'''
+        return TraitQueue(self.A)
+
     @lazy
     def _sync(self):
         '''sync provider'''
@@ -123,7 +135,7 @@ class Traits(Synced):
     @both
     def C(self):
         '''local settings'''
-        return self._T.localize()
+        return self._TQ.localize()
 
     @classmethod
     def class_members(cls, **metadata):
@@ -139,7 +151,7 @@ class Traits(Synced):
         metadata name exists but has any value. This is because get_metadata
         returns None if a metadata key doesn't exist.
         '''
-        return cls._T.traits(cls._classtraits, **metadata)
+        return cls._TQ.traits(cls._classtraits, **metadata)
 
     @classmethod
     def class_names(cls, **metadata):
@@ -168,7 +180,7 @@ class Traits(Synced):
         metadata name exists but has any value. This is because get_metadata
         returns None if a metadata key doesn't exist.
         '''
-        return self._T.traits(self._sync.traits, **metadata)
+        return self._TQ.traits(self._sync.traits, **metadata)
 
     def metadata(self, label, key):
         '''
@@ -228,17 +240,18 @@ class Traits(Synced):
         '''
         setr = setattr
         if not notify:
-            self._T.enabled = False
+            self._TQ.enabled = False
             try:
                 for k, v in traits.iteritems():
                     setr(self, k, v)
             finally:
-                self._T.enabled = True
+                self._TQ.enabled = True
             return self
         for k, v in traits.iteritems():
             setr(self, k, v)
         return self
 
+    @defer
     def update(self, **kw):
         '''update Traits with new values'''
         self._sync.update_traits(kw)

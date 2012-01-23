@@ -11,7 +11,7 @@ from stuf.utils import get_or_default
 from appspace.query import Query
 
 
-class Services(Query):
+class ServiceQuery(Query):
 
     '''service query'''
 
@@ -57,4 +57,4 @@ class Services(Query):
                 pass
 
 
-__all__ = ['Services']
+__all__ = ['ServiceQuery']

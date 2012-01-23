@@ -11,7 +11,7 @@ from stuf.utils import get_or_default
 from appspace.query import Queue
 
 
-class ServicesQueue(Queue):
+class ServiceQueue(Queue):
 
     '''service query'''
 

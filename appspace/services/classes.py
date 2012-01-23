@@ -3,12 +3,14 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import clsname, lazy
+from stuf.utils import clsname, lazy, lazy_class
 
+from appspace.query import Queried
 from appspace.keys import appifies
 from appspace import AppLookupError
-from appspace.ext.classes import ResetMixin
 
+from .queue import ServiceQueue
+from .query import ServiceQuery
 from .keys import AClient, AServer
 from .decorators import forward, remote
 
@@ -27,11 +29,12 @@ class client(type):
 
 
 @appifies(AClient)
-class Client(ResetMixin):
+class Client(Queried):
 
     '''consumes services from other instances'''
 
     __metaclass__ = client
+    # key name
     _key_name = ''
 
     def __getattr__(self, key):
@@ -44,9 +47,19 @@ class Client(ResetMixin):
                     return self._Q.get('.'.join([self._key, key]))
                 # try resolving service
                 except AppLookupError:
-                    return self._S.resolve(key, self)
+                    return self._SQ.resolve(key, self)
             else:
                 raise AttributeError(key)
+
+    @lazy_class
+    def _SQ(self):
+        # service query
+        return ServiceQuery(self.A)
+
+    @lazy_class
+    def _SU(self):
+        # service queue
+        return ServiceQueue(self.A)
 
     @lazy
     def _key(self):
@@ -55,7 +68,7 @@ class Client(ResetMixin):
 
 
 @appifies(AServer)
-class Server(ResetMixin):
+class Server(Queried):
 
     '''provides services for other instances'''
 

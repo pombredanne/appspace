@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from functools import partial
 from operator import itemgetter
 from contextlib import contextmanager
-from itertools import count, groupby, ifilter, ifilterfalse, imap
+from itertools import groupby, ifilter, ifilterfalse, imap
 
 from stuf.utils import lazy
 
@@ -28,12 +28,16 @@ class Queue(QueryMixin):
         '''
         super(Queue, self).__init__(appspace, **kw)
         self.max_length = kw.pop('max_length', None)
-        self.incoming = namedqueue(*args, **kw)
-        self.outgoing = namedqueue(**kw)
-        self.calls = namedqueue(**kw)
+        self.incoming = namedqueue(self.max_length, *args)
+        self.outgoing = namedqueue(self.max_length)
+        self.calls = namedqueue(self.max_length)
+        self._tmp = namedqueue(self.max_length)
         self.__iter__ = self.outgoing.__iter__
         self.append = self.incoming.append
         self.appendleft = self.incoming.appendleft
+        self._clear_tmp = self._tmp.clear
+        self._tmpappend = self._tmp.append
+        self._tmpappendleft = self._tmp.appendleft
         self.clear_calls = self.calls.clear
         self.clear_incoming = self.incoming.clear
         self.clear_outgoing = self.outgoing.clear
@@ -94,16 +98,15 @@ class Queue(QueryMixin):
     def callchain(self):
         '''execute a series of partials in the queue'''
         with self.sync():
-            append = self.outappend
-            length = len(self.calls)
-            popleft = self.calls.popleft
-            appendright = self.calls.append
-            for cnt in count(1):
-                call = popleft()
-                append(call())
-                appendright(call)
-                if length == cnt:
-                    break
+            calls = self.calls
+            outappend = self.outappend
+            callpopleft = self.calls.popleft
+            tmpappend = self._tmpappend
+            while calls:
+                call = callpopleft()
+                outappend(call())
+                tmpappend(call)
+            calls.extend(self._tmp)
         return self
 
     def chain(self, func, *args, **kw):
@@ -118,6 +121,7 @@ class Queue(QueryMixin):
 
     def clear(self):
         '''clear all queues'''
+        self._clear_tmp()
         self.clear_incoming()
         self.clear_outgoing()
         self.clear_calls()
@@ -314,6 +318,7 @@ class Queue(QueryMixin):
     @contextmanager
     def sync(self):
         '''sync incoming queue with outgoing queue'''
+        self._clear_tmp()
         try:
             yield
             self.clear_incoming()
@@ -321,6 +326,8 @@ class Queue(QueryMixin):
         except:
             self.clear_outgoing()
             raise
+        finally:
+            self._clear_tmp()
 
 
 __all__ = ['Queue']

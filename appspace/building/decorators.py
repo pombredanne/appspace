@@ -31,7 +31,7 @@ class factory(direct):
             new_app = new_app(
                 *[getattr(this, attr) for attr in self.attrs], **self.extra
             )
-            that._B.set(new_app, label, branch)
+            that._BQ.set(new_app, label, branch)
         setattr(that, label, new_app)
         return new_app
 

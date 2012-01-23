@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from appspace.keys import appifies
 from appspace.composing.keys import NoDefault, Undefined
 
-from .query import T
 from .keys import ATrait
 from .error import TraitError
 from .utils import class_of, repr_type
@@ -61,8 +60,8 @@ class Trait(object):
         # if changed...
         if old_value != new_value:
             name = self.name
-            this._sync.update_traits({name: new_value})
-            T(this).fire(name, old_value, new_value)
+            this._update({name: new_value})
+            this._TQ.fire(name, old_value, new_value)
 
     def _validate(self, this, value):
         # valideate value for "this"

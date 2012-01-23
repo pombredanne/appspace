@@ -14,7 +14,7 @@ from .queue import BuildQueue
 
 
 @appifies(ABuilding)
-class Building(Queried):
+class Built(Queried):
 
     '''building object'''
 
@@ -29,4 +29,4 @@ class Building(Queried):
         return BuildQueue(self.A)
 
 
-__all__ = ['Building']
+__all__ = ['Built']

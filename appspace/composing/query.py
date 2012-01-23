@@ -3,8 +3,6 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import lazy
-
 from appspace.building import BuildQuery
 
 from .keys import NoDefault
@@ -14,11 +12,6 @@ from .mixin import ComposerMixin
 class ComposerQuery(ComposerMixin, BuildQuery):
 
     '''application composing query'''
-
-    @lazy
-    def composer(self):
-        '''composer to attach to other apps'''
-        return ComposerQuery(self.manager)
 
     def burst(self, label, queue):
         '''

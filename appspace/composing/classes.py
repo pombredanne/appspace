@@ -20,12 +20,12 @@ class ComposerMixin(Built):
 
     @lazy_class
     def _CQ(self):
-        '''querier'''
+        '''composer query'''
         return ComposerQuery(self.A)
 
     @lazy_class
     def _CU(self):
-        '''queuer'''
+        '''composer queue'''
         return ComposerQueue(self.A)
 
 
@@ -38,7 +38,7 @@ class Composed(ComposerMixin):
 @appifies(AMaster)
 class Master(ComposerMixin):
 
-    '''master composer object'''
+    '''master composed object'''
 
     def finalize(self, updated):
         '''
@@ -48,7 +48,7 @@ class Master(ComposerMixin):
         '''
         setting = self._CQ.setting
         # update settings
-        for k, v in updated:
+        for k, v in updated.iteritems():
             setting(k, v)
         # lock settings
         self._CQ.lock()

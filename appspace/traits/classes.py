@@ -59,7 +59,7 @@ class MetaTraits(type):
 
         instantiate Traits in classdict, setting their name attribute
         '''
-        istrait = cls._TQ.istrait
+        istrait = TraitQuery.istrait
         for k, v in classdict.iteritems():
             if istrait(k, v):
                 if isclass(v):
@@ -77,7 +77,7 @@ class MetaTraits(type):
         Sets this_class attribute of each Trait in the classdict to a newly
         created class.
         '''
-        istrait = cls._TQ.istrait
+        istrait = TraitQuery.istrait
         cls._classtraits = classtraits = {}
         for k, v in classdict.iteritems():
             if istrait(k, v):

@@ -45,4 +45,4 @@ class TraitQuery(TraitsMixin, ComposerQuery):
         
 
 T = TraitQuery
-__all__ = ['T']
+__all__ = ['TraitQuery']

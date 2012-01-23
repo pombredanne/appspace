@@ -16,16 +16,16 @@ from .keys import AQueried
 @appifies(AQueried)
 class Queried(ResetMixin):
 
-    '''queriable object'''
+    '''queried object'''
 
     @lazy_class
     def _Q(self):
-        '''querier'''
+        '''query'''
         return Query(self.A)
 
     @lazy_class
     def _U(self):
-        '''queuer'''
+        '''queue'''
         return Queue(self.A)
 
 

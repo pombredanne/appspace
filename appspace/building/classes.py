@@ -20,12 +20,12 @@ class Built(Queried):
 
     @lazy_class
     def _BQ(self):
-        '''querier'''
+        '''building query'''
         return BuildQuery(self.A)
 
     @lazy_class
     def _BU(self):
-        '''queuer'''
+        '''building queue'''
         return BuildQueue(self.A)
 
 

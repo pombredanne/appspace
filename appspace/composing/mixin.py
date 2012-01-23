@@ -50,14 +50,6 @@ class ComposerMixin(local):
             ))
         raise ConfigurationError('patterns not found')
 
-    def compose(self, app):
-        '''
-        attach composer to another application
-
-        @param app: application to attach composer to
-        '''
-        app._C = self.composer
-
     def bind(self, event, label, branch=False):
         '''
         bind get to event

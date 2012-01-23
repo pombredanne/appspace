@@ -16,7 +16,7 @@ class QueryMixin(local):
 
     @property
     def _manage_class(self):
-        # manager class
+        '''manager class'''
         return Manager()
 
     def build(self, app):

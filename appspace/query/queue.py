@@ -8,8 +8,6 @@ from operator import itemgetter
 from contextlib import contextmanager
 from itertools import groupby, ifilter, ifilterfalse, imap
 
-from stuf.utils import lazy
-
 from appspace.ext import namedqueue
 
 from .query import QueryMixin
@@ -48,11 +46,6 @@ class Queue(QueryMixin):
         self.outextend = self.outgoing.extend
         self.pop = self.last = self.outgoing.pop
         self.popleft = self.first = self.outgoing.popleft
-
-    @lazy
-    def queuer(self):
-        '''query queue to attach to other apps'''
-        return Queue(self.manager)
 
     def app(self, label, branch=False):
         '''
@@ -259,14 +252,6 @@ class Queue(QueryMixin):
                 lambda x: x is not None, (plucker(i) for i in self.incoming),
             ))
         return self
-    
-    def queue(self, app):
-        '''
-        add query to app
-
-        @param app: app to add query to
-        '''
-        app._U = self.queuer
 
     def reduce(self, label, branch=False, initial=None):
         '''
@@ -318,7 +303,8 @@ class Queue(QueryMixin):
     @contextmanager
     def sync(self):
         '''sync incoming queue with outgoing queue'''
-        self._clear_tmp()
+        tmpclear = self._clear_tmp
+        tmpclear()
         try:
             yield
             self.clear_incoming()
@@ -327,7 +313,7 @@ class Queue(QueryMixin):
             self.clear_outgoing()
             raise
         finally:
-            self._clear_tmp()
+            tmpclear()
 
 
 __all__ = ['Queue']

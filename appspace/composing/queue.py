@@ -3,8 +3,6 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import lazy
-
 from appspace.building import BuildQueue
 
 from .keys import NoDefault
@@ -14,11 +12,6 @@ from .mixin import ComposerMixin
 class ComposerQueue(ComposerMixin, BuildQueue):
 
     '''application composing queue'''
-
-    @lazy
-    def composer(self):
-        '''composer queue to attach to other apps'''
-        return ComposerQueue(self.manager)
 
     def burst(self, label, queue):
         '''

@@ -26,6 +26,7 @@ class ServiceQuery(Query):
         if metadata:
             kw = {}
             get = getattr
+            # add any metadata
             for k in metadata:
                 try:
                     kw[k] = get(this, k)
@@ -34,6 +35,7 @@ class ServiceQuery(Query):
             if kw:
                 # build app with new partial version with any keywords
                 app = partial(app, **kw)
+        # add back into appspace
         self.manager.set('.'.join([this._key, label]), app)
         return app
 
@@ -47,9 +49,13 @@ class ServiceQuery(Query):
         serve = self._serve
         for server in this._servers:
             try:
+                # try getting server
                 item = serve(
-                    label, attrgetter('.'.join([server, label]))(this), this,
+                    label,
+                    attrgetter('.'.join([server, label]))(this),
+                    this,
                 )
+                # add if present
                 if item:
                     setattr(this, label, item)
                     return item

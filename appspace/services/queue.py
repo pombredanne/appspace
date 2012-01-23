@@ -48,7 +48,9 @@ class ServiceQueue(Queue):
         for server in this._servers:
             try:
                 item = serve(
-                    label, attrgetter('.'.join([server, label]))(this), this,
+                    label,
+                    attrgetter('.'.join([server, label]))(this),
+                    this,
                 )
                 if item:
                     with self.sync():

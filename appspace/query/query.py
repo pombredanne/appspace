@@ -7,7 +7,7 @@ from threading import local
 from collections import Mapping, Sequence
 from operator import attrgetter, itemgetter
 
-from stuf.utils import lazy, getcls
+from stuf.utils import getcls
 
 from appspace.keys import AManager
 from appspace.error import NoAppError
@@ -38,11 +38,6 @@ class Query(local):
                 raise NoAppError('no appspace found')
         # appspace getter
         self._getter = self.manager.get
-
-    @lazy
-    def querier(self):
-        '''query to attach to other apps'''
-        return Query(self.manager)
 
     def apply(self, label, branch=False, *args, **kw):
         '''
@@ -125,16 +120,6 @@ class Query(local):
                 return key.implementedBy(this)
             except (AttributeError, TypeError):
                 return False
-
-    def query(self, app):
-        '''
-        add query to app
-
-        @param app: app to add query to
-        '''
-        app._Q = self.querier
-
-    _qquery = query
 
     @staticmethod
     def plucker(key, data):

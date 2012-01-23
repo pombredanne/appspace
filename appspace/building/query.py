@@ -3,8 +3,6 @@
 
 from __future__ import absolute_import
 
-from stuf.utils import lazy
-
 from appspace.query import Query
 from appspace.error import ConfigurationError, NoAppError
 
@@ -24,17 +22,12 @@ class BuildQuery(QueryMixin, Query):
         # fetch branch if exists...
         try:
             return super(BuildQuery, self).branch(label)
-        # create new branch
+        # ...or create new branch
         except NoAppError:
             new_appspace = self._manage_class
             self.manager.set(label, new_appspace)
             return new_appspace
         raise ConfigurationError('invalid branch configuration')
-
-    @lazy
-    def builder(self):
-        '''builder to attach to other apps'''
-        return BuildQuery(self.manager)
 
     def set(self, app, label, branch=False):
         '''

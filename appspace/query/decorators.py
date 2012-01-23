@@ -5,8 +5,6 @@ from __future__ import absolute_import
 
 from functools import partial, update_wrapper
 
-from stuf.utils import setter
-
 
 class readonly(object):
 
@@ -24,15 +22,25 @@ class deferrable(readonly):
     '''deferred base class'''
 
     def __init__(self, method):
+        '''
+        defer method call
+
+        @param method: method to defer
+        '''
         super(deferrable, self).__init__()
         self.method = method
-        update_wrapper(self, method)
 
     def _factory(self, this):
-        method = self.method
+        '''
+        manufacture function
 
-        def function(*args, **kw):
+        @param this: this object
+        '''
+        method = self.method
+        def function(*args, **kw): #@IgnorePep8
+            # pack object reference into arguments
             args = (this,) + args
+            # make partial
             this._U.chain(partial(method, *args, **kw))
             return this
         update_wrapper(function, method)
@@ -44,6 +52,7 @@ class class_defer(deferrable):
     '''defer class method'''
 
     def __get__(self, this, that):
+        # attach to class
         return self._factory(that)
 
 
@@ -52,6 +61,7 @@ class defer(deferrable):
     '''defer object method'''
 
     def __get__(self, this, that):
+        # attach to objects
         return self._factory(this)
 
 
@@ -71,7 +81,9 @@ class direct(readonly):
         self.branch = branch
 
     def __get__(self, this, that):
-        return setter(that, self.label, that._Q.get(self.label, self.branch))
+        app = that._Q.get(self.label, self.branch)
+        setattr(that, self.label, app)
+        return app
 
 
 __all__ = ['class_defer', 'defer', 'direct']

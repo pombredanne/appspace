@@ -6,8 +6,6 @@ from __future__ import absolute_import
 from appspace.query import Queue
 from appspace.error import NoAppError
 
-from stuf.utils import lazy
-
 from .mixin import QueryMixin
 
 
@@ -25,17 +23,12 @@ class BuildQueue(QueryMixin, Queue):
             # fetch branch if exists...
             try:
                 self.outgoing.append(self._qbranch(label))
-            # create new branch
+            # ...or create new branch
             except NoAppError:
                 new_appspace = self._manage_class
                 self.manager.set(label, new_appspace)
                 self.outgoing.append(new_appspace)
         return self
-
-    @lazy
-    def builder(self):
-        '''builder queue to attach to other apps'''
-        return BuildQueue(self.manager)
 
     def set(self, app, label, branch=False):
         '''

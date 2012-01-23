@@ -31,7 +31,7 @@ class client(type):
 @appifies(AClient)
 class Client(Queried):
 
-    '''consumes services from other instances'''
+    '''consumes services from other objects'''
 
     __metaclass__ = client
     # key name
@@ -53,24 +53,24 @@ class Client(Queried):
 
     @lazy_class
     def _SQ(self):
-        # service query
+        '''service query'''
         return ServiceQuery(self.A)
 
     @lazy_class
     def _SU(self):
-        # service queue
+        '''service queue'''
         return ServiceQueue(self.A)
 
     @lazy
     def _key(self):
-        # key
+        '''service key'''
         return self._key_name if self._key_name else clsname(self)
 
 
 @appifies(AServer)
 class Server(Queried):
 
-    '''provides services for other instances'''
+    '''provides services for other objects'''
 
 
 __all__ = ('Client', 'Server')

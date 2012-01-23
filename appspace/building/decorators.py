@@ -20,17 +20,22 @@ class factory(direct):
         @param branch: branch label (default: False)
         '''
         super(factory, self).__init__(label, branch)
+        # method attributes
         self.attrs = args
+        # method keywords
         self.extra = kw
 
     def __get__(self, this, that):
         label = self.label
         branch = self.branch
+        # get app
         new_app = that._Q.get(label, branch)
         if isclass(new_app):
+            # build application
             new_app = new_app(
                 *[getattr(this, attr) for attr in self.attrs], **self.extra
             )
+            # set app
             that._BQ.set(new_app, label, branch)
         setattr(that, label, new_app)
         return new_app

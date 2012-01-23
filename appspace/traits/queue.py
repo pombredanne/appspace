@@ -16,7 +16,7 @@ from .mixins import TraitsMixin
 
 class TraitQueue(TraitsMixin, ComposerQueue):
 
-    '''double trait queue'''
+    '''trait queue'''
 
     @lazy
     def traiter(self):

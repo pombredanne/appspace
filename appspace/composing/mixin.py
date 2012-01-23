@@ -79,8 +79,6 @@ class ComposerMixin(local):
 
         @param model: class to be model
         '''
-        self.query(model)
-        self.build(model)
         # attach manager
         model.A = self.manager
         # attach manager settings

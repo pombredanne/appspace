@@ -5,8 +5,7 @@ from __future__ import absolute_import
 
 from functools import wraps
 
-from appspace.query import direct
-from appspace.building import factory
+from appspace.compose import direct, factory
 
 
 def service(*metadata):
@@ -17,6 +16,7 @@ def service(*metadata):
     '''
     def wrapped(this):
         this.metadata = metadata
+        this.service = True
         @wraps(this) #@IgnorePep8
         def wrapper(*args, **kw):
             return this(*args, **kw)

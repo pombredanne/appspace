@@ -1,9 +1,24 @@
 # -*- coding: utf-8 -*-
-'''query decorators'''
+'''composing decorators'''
 
 from __future__ import absolute_import
 
-from functools import partial, update_wrapper
+from inspect import isclass
+from functools import partial, update_wrapper, wraps
+
+from stuf.utils import selfname
+
+
+def on(*events):
+    '''
+    marks method as being a lazy instance
+
+    @param *events: list of properties
+    '''
+    @wraps
+    def wrapped(this):
+        return On(this, *events)
+    return wrapped
 
 
 class readonly(object):
@@ -86,4 +101,58 @@ class direct(readonly):
         return app
 
 
-__all__ = ['class_defer', 'defer', 'direct']
+class factory(direct):
+
+    '''
+    builds application from factory stored in appspace and passes it to host
+    '''
+
+    def __init__(self, label, branch=False, *args, **kw):
+        '''
+        init
+
+        @param label: application label
+        @param branch: branch label (default: False)
+        '''
+        super(factory, self).__init__(label, branch)
+        # method attributes
+        self.attrs = args
+        # method keywords
+        self.extra = kw
+
+    def __get__(self, this, that):
+        label = self.label
+        branch = self.branch
+        # get app
+        new_app = that._Q.get(label, branch)
+        if isclass(new_app):
+            # if factory build application
+            new_app = new_app(
+                *[getattr(this, attr) for attr in self.attrs], **self.extra
+            )
+            # set app
+            that._BQ.set(new_app, label, branch)
+        setattr(that, label, new_app)
+        return new_app
+
+
+class On(readonly):
+
+    '''attach events to method'''
+
+    def __init__(self, method, *events):
+        super(On, self).__init__()
+        self.method = method
+        self.events = events
+        update_wrapper(self, method)
+
+    def __get__(self, this, that):
+        method = self.method
+        ebind = that._CQ.manager.events.bind
+        for arg in self.events:
+            ebind(arg, method)
+        setattr(that, selfname(method), method)
+        return method
+
+
+__all__ = ['class_defer', 'defer', 'direct', 'factory', 'on']

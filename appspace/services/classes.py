@@ -5,11 +5,10 @@ from __future__ import absolute_import
 
 from stuf.utils import clsname, lazy, lazy_class
 
-from appspace.query import Queried
 from appspace.keys import appifies
 from appspace import AppLookupError
+from appspace.compose import Composed
 
-from .queue import ServiceQueue
 from .query import ServiceQuery
 from .keys import AClient, AServer
 from .decorators import forward, remote
@@ -29,7 +28,7 @@ class client(type):
 
 
 @appifies(AClient)
-class Client(Queried):
+class Client(Composed):
 
     '''consumes services from other objects'''
 
@@ -56,11 +55,6 @@ class Client(Queried):
         '''service query'''
         return ServiceQuery(self.A)
 
-    @lazy_class
-    def _SU(self):
-        '''service queue'''
-        return ServiceQueue(self.A)
-
     @lazy
     def _key(self):
         '''service key'''
@@ -68,7 +62,7 @@ class Client(Queried):
 
 
 @appifies(AServer)
-class Server(Queried):
+class Server(Composed):
 
     '''provides services for other objects'''
 

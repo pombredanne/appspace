@@ -4,7 +4,7 @@
 from __future__ import absolute_import
 
 from appspace.keys import appifies
-from appspace.composing.keys import NoDefault, Undefined
+from appspace.compose.keys import NoDefault, Undefined
 
 from .keys import ATrait
 from .error import TraitError

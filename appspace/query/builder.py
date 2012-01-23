@@ -3,15 +3,22 @@
 
 from __future__ import absolute_import
 
+import uuid
+
 from appspace.query import Query
+from appspace.keys import apped
+from appspace.managers import Manager
 from appspace.error import ConfigurationError, NoAppError
 
-from .mixin import QueryMixin
 
-
-class BuildQuery(QueryMixin, Query):
+class Builder(Query):
 
     '''appspace building query'''
+
+    @property
+    def _manage_class(self):
+        '''manager class'''
+        return Manager()
 
     def branch(self, label):
         '''
@@ -21,13 +28,32 @@ class BuildQuery(QueryMixin, Query):
         '''
         # fetch branch if exists...
         try:
-            return super(BuildQuery, self).branch(label)
+            return super(Builder, self).branch(label)
         # ...or create new branch
         except NoAppError:
             new_appspace = self._manage_class
             self.manager.set(label, new_appspace)
             return new_appspace
         raise ConfigurationError('invalid branch configuration')
+
+    def build(self, app):
+        '''
+        add query to app
+
+        @param app: app to add query to
+        '''
+        app._BQ = self.builder
+
+    @staticmethod
+    def key(key, app):
+        '''
+        key an get
+
+        @param key: key to key get
+        @param get: get to key
+        '''
+        apped(app, key)
+        return app
 
     def set(self, app, label, branch=False):
         '''
@@ -46,6 +72,11 @@ class BuildQuery(QueryMixin, Query):
         # add to appspace
         manager.set(label, app)
         return app
+
+    @staticmethod
+    def uuid():
+        '''universal unique identifier'''
+        return uuid.uuid4().hex.upper()
 
 
 __all__ = ['BuildQuery']

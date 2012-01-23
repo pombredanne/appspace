@@ -7,8 +7,10 @@ from operator import attrgetter
 
 from stuf.utils import lazy, lazy_class
 
+from appspace.query import Builder
 from appspace.keys import appifies
-from appspace.building import Built
+from appspace.ext import ResetMixin
+
 
 from .holders import Sync
 from .query import ComposerQuery
@@ -16,7 +18,11 @@ from .queue import ComposerQueue
 from .keys import AComposed, AMaster, ASynched
 
 
-class ComposerMixin(Built):
+class ComposerMixin(ResetMixin):
+
+    @lazy_class
+    def _B(self):
+        return Builder(self.A)
 
     @lazy_class
     def _CQ(self):

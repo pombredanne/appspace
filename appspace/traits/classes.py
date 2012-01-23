@@ -8,15 +8,13 @@ from inspect import isclass
 from stuf import stuf
 from stuf.utils import both, clsname, getcls, lazy, lazy_class
 
-from appspace.query import defer
 from appspace.keys import appifies
-from appspace.composing import Sync, Synced
+from appspace.compose import Sync, Synced, defer
 
 from .core import Trait
 from .keys import ATraits
 from .error import TraitError
 from .query import TraitQuery
-from .queue import TraitQueue
 
 
 class TraitSync(Sync):
@@ -114,11 +112,6 @@ class Traits(Synced):
     def _TQ(self):
         '''trait query'''
         return TraitQuery(self.A)
-
-    @lazy_class
-    def _TU(self):
-        '''trait queue'''
-        return TraitQueue(self.A)
 
     @lazy
     def _sync(self):
@@ -238,17 +231,16 @@ class Traits(Synced):
         need to be set on an object or a Trait's value needs to be set with a
         lambda function.
         '''
-        setr = setattr
         if not notify:
-            self._TQ.enabled = False
+            self._Q.enabled = False
             try:
                 for k, v in traits.iteritems():
-                    setr(self, k, v)
+                    setattr(self, k, v)
             finally:
-                self._TQ.enabled = True
+                self._Q.enabled = True
             return self
         for k, v in traits.iteritems():
-            setr(self, k, v)
+            setattr(self, k, v)
         return self
 
     @defer
@@ -259,9 +251,10 @@ class Traits(Synced):
     def validate_many(self):
         '''validate all Trait values'''
         validate_one = self.validate_one
-        validations = list()
+        validations = []
+        vappend = validations.append
         for k, v in self._sync.traits.iteritems():
-            validations.append(validate_one(k, v))
+            vappend(validate_one(k, v))
         return all(validations)
 
     def validate_one(self, trait, value):

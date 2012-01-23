@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
-'''composing query'''
+'''composing queue'''
 
 from __future__ import absolute_import
 
-from appspace.building import BuildQuery
-
 from .keys import NoDefault
 from .mixin import ComposerMixin
+from appspace.query import Queue
 
 
-class ComposerQuery(ComposerMixin, BuildQuery):
+class ComposerQueue(ComposerMixin, Queue):
 
-    '''application composing query'''
+    '''application composing queue'''
 
     def burst(self, label, queue):
         '''
@@ -20,11 +19,15 @@ class ComposerQuery(ComposerMixin, BuildQuery):
         @param label: event label
         @param queue: queued arguments
         '''
-        return self._events.burst(label, queue)
+        with self.sync():
+            self.outgoing.append(self._events.burst(label, queue))
+        return self
 
     def defaults(self):
         '''default settings by their lonesome'''
-        return self._settings.defaults
+        with self.sync():
+            self.outgoing.append(self._settings.defaults)
+        return self
 
     def event(self, label, priority=False, **kw):
         '''
@@ -35,9 +38,12 @@ class ComposerQuery(ComposerMixin, BuildQuery):
         '''
         # unregister event
         if not priority or not kw:
-            self._events.unregister(label)
-        # register event if priority and keywords passed
-        self._events.register(label, priority, **kw)
+            self.manager.unregister(label)
+            return self
+        with self.sync():
+            # register event if priority and keywords passed
+            self.outgoing.append(self.manager.register(label, priority, **kw))
+        return self
 
     def fire(self, label, *args, **kw):
         '''
@@ -45,7 +51,9 @@ class ComposerQuery(ComposerMixin, BuildQuery):
 
         @param label: event label
         '''
-        return self._events.fire(label, *args, **kw)
+        with self.sync():
+            self.outgoing.append(self._events.fire(label, *args, **kw))
+        return self
 
     def react(self, label):
         '''
@@ -53,11 +61,15 @@ class ComposerQuery(ComposerMixin, BuildQuery):
 
         @param label: event label
         '''
-        return self._events.react(label)
+        with self.sync():
+            self.outgoing.append(self._events.react(label))
+        return self
 
     def required(self):
         '''required settings by their lonesome'''
-        return self._settings.required
+        with self.sync():
+            self.outgoing.append(self._settings.required)
+        return self
 
     def setting(self, label, value=NoDefault, default=None):
         '''
@@ -69,15 +81,20 @@ class ComposerQuery(ComposerMixin, BuildQuery):
         '''
         if value is not NoDefault:
             self._settings.set(label, value)
-        return self._settings.get(label, default)
+            return self
+        with self.sync():
+            self.outgoing.append(self._settings.get(label, default))
+        return self
 
     def trigger(self, label):
         '''
-        get applications bound to an event
+        get objects bound to an event
 
         @param label: event label
         '''
-        return self._events.react(label)
+        with self.sync():
+            self.outgoing.extend(self._events.react(label))
+        return self
 
 
-__all__ = ['ComposerQuery']
+__all__ = ['ComposerQueue']

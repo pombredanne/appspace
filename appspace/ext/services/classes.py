@@ -7,7 +7,7 @@ from stuf.utils import clsname, lazy, lazy_class
 
 from appspace.keys import appifies
 from appspace import AppLookupError
-from appspace.compose import Composed
+from appspace.ext.compose.classes import Composed
 
 from .query import ServiceQuery
 from .keys import AClient, AServer

@@ -8,7 +8,7 @@ from operator import attrgetter
 
 from stuf.utils import get_or_default
 
-from appspace.query import Builder
+from appspace.ext.query.builder import Builder
 
 
 class ServiceQuery(Builder):

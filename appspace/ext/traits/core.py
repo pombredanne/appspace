@@ -4,7 +4,7 @@
 from __future__ import absolute_import
 
 from appspace.keys import appifies
-from appspace.compose.keys import NoDefault, Undefined
+from appspace.ext.compose.keys import NoDefault, Undefined
 
 from .keys import ATrait
 from .error import TraitError
@@ -61,7 +61,7 @@ class Trait(object):
         if old_value != new_value:
             name = self.name
             this._update({name: new_value})
-            this._TQ.fire(name, old_value, new_value)
+            this._T.fire(name, old_value, new_value)
 
     def _validate(self, this, value):
         # valideate value for "this"

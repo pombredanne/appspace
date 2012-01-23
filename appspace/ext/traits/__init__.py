@@ -56,9 +56,6 @@ from __future__ import absolute_import
 
 from inspect import ismodule
 
-from .query import TraitQuery
-from .classes import Traits, TraitSync
-from .core import NoDefault, Trait, Undefined
 from .holders import (
     Any, CaselessStrEnum, Container, Dict, Enum, List, Tuple,
 )

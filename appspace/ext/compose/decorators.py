@@ -17,11 +17,11 @@ def on(*events):
     '''
     @wraps
     def wrapped(this):
-        return On(this, *events)
+        return _On(this, *events)
     return wrapped
 
 
-class readonly(object):
+class _readonly(object):
 
     '''read-only descriptor'''
 
@@ -32,7 +32,7 @@ class readonly(object):
         raise AttributeError('attribute is read-only')
 
 
-class deferrable(readonly):
+class _deferrable(_readonly):
 
     '''deferred base class'''
 
@@ -42,7 +42,7 @@ class deferrable(readonly):
 
         @param method: method to defer
         '''
-        super(deferrable, self).__init__()
+        super(_deferrable, self).__init__()
         self.method = method
 
     def _factory(self, this):
@@ -62,7 +62,7 @@ class deferrable(readonly):
         return function
 
 
-class class_defer(deferrable):
+class class_defer(_deferrable):
 
     '''defer class method'''
 
@@ -71,7 +71,7 @@ class class_defer(deferrable):
         return self._factory(that)
 
 
-class defer(deferrable):
+class defer(_deferrable):
 
     '''defer object method'''
 
@@ -80,7 +80,7 @@ class defer(deferrable):
         return self._factory(this)
 
 
-class direct(readonly):
+class direct(_readonly):
 
     '''passes application from appspace directly to host'''
 
@@ -131,24 +131,24 @@ class factory(direct):
                 *[getattr(this, attr) for attr in self.attrs], **self.extra
             )
             # set app
-            that._BQ.set(new_app, label, branch)
+            that._B.set(new_app, label, branch)
         setattr(that, label, new_app)
         return new_app
 
 
-class On(readonly):
+class _On(_readonly):
 
     '''attach events to method'''
 
     def __init__(self, method, *events):
-        super(On, self).__init__()
+        super(_On, self).__init__()
         self.method = method
         self.events = events
         update_wrapper(self, method)
 
     def __get__(self, this, that):
         method = self.method
-        ebind = that._CQ.manager.events.bind
+        ebind = that._C.manager.events.bind
         for arg in self.events:
             ebind(arg, method)
         setattr(that, selfname(method), method)

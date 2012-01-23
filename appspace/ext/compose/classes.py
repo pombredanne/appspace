@@ -7,14 +7,13 @@ from operator import attrgetter
 
 from stuf.utils import lazy, lazy_class
 
-from appspace.query import Builder
 from appspace.keys import appifies
-from appspace.ext import ResetMixin
-
+from appspace.ext.query.query import Query
+from appspace.ext.query.builder import Builder
+from appspace.ext.core.classes import ResetMixin
 
 from .holders import Sync
 from .query import ComposerQuery
-from .queue import ComposerQueue
 from .keys import AComposed, AMaster, ASynched
 
 
@@ -25,14 +24,13 @@ class ComposerMixin(ResetMixin):
         return Builder(self.A)
 
     @lazy_class
-    def _CQ(self):
+    def _C(self):
         '''composer query'''
         return ComposerQuery(self.A)
 
     @lazy_class
-    def _CU(self):
-        '''composer queue'''
-        return ComposerQueue(self.A)
+    def _Q(self):
+        return Query(self.A)
 
 
 @appifies(AComposed)
@@ -52,12 +50,12 @@ class Master(ComposerMixin):
 
         @param updated: updated settings
         '''
-        setting = self._CQ.setting
+        setting = self._C.setting
         # update settings
         for k, v in updated.iteritems():
             setting(k, v)
         # lock settings
-        self._CQ.lock()
+        self._C.lock()
 
 
 @appifies(ASynched)

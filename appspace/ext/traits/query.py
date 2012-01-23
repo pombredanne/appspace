@@ -9,7 +9,7 @@ from itertools import ifilter
 from stuf import stuf
 from stuf.utils import get_or_default, getcls, lazy
 
-from appspace.compose import ComposerQuery
+from appspace.ext.compose.query import ComposerQuery
 
 from .mixins import TraitsMixin
 

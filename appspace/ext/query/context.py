@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 '''query context managers'''
-from appspace.ext.context import ContextManager
+
+from appspace.ext.core.context import ContextManager
 
 
 class AppContext(ContextManager):

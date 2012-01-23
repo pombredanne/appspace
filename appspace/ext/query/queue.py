@@ -8,7 +8,7 @@ from operator import itemgetter
 from contextlib import contextmanager
 from itertools import groupby, ifilter, ifilterfalse, imap
 
-from appspace.ext import namedqueue
+from appspace.ext.core.queue import namedqueue
 
 from .query import QueryMixin
 from .context import AppContext

@@ -9,7 +9,9 @@ from stuf import stuf
 from stuf.utils import both, clsname, getcls, lazy, lazy_class
 
 from appspace.keys import appifies
-from appspace.compose import Sync, Synced, defer
+from appspace.ext.compose.holders import Sync
+from appspace.ext.compose.classes import Synced
+from appspace.ext.compose.decorators import defer
 
 from .core import Trait
 from .keys import ATraits
@@ -109,7 +111,7 @@ class Traits(Synced):
         return inst
 
     @lazy_class
-    def _TQ(self):
+    def _T(self):
         '''trait query'''
         return TraitQuery(self.A)
 
@@ -128,7 +130,7 @@ class Traits(Synced):
     @both
     def C(self):
         '''local settings'''
-        return self._TQ.localize()
+        return self._T.localize()
 
     @classmethod
     def class_members(cls, **metadata):
@@ -144,7 +146,7 @@ class Traits(Synced):
         metadata name exists but has any value. This is because get_metadata
         returns None if a metadata key doesn't exist.
         '''
-        return cls._TQ.traits(cls._classtraits, **metadata)
+        return cls._T.traits(cls._classtraits, **metadata)
 
     @classmethod
     def class_names(cls, **metadata):
@@ -173,7 +175,7 @@ class Traits(Synced):
         metadata name exists but has any value. This is because get_metadata
         returns None if a metadata key doesn't exist.
         '''
-        return self._TQ.traits(self._sync.traits, **metadata)
+        return self._T.traits(self._sync.traits, **metadata)
 
     def metadata(self, label, key):
         '''

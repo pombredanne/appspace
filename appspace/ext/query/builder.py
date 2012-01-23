@@ -5,9 +5,9 @@ from __future__ import absolute_import
 
 import uuid
 
-from appspace.query import Query
 from appspace.keys import apped
 from appspace.managers import Manager
+from appspace.ext.query.query import Query
 from appspace.error import ConfigurationError, NoAppError
 
 
@@ -36,14 +36,6 @@ class Builder(Query):
             return new_appspace
         raise ConfigurationError('invalid branch configuration')
 
-    def build(self, app):
-        '''
-        add query to app
-
-        @param app: app to add query to
-        '''
-        app._BQ = self.builder
-
     @staticmethod
     def key(key, app):
         '''
@@ -63,12 +55,7 @@ class Builder(Query):
         @param label: application label
         @param branch: branch label (default: False)
         '''
-        # use branch manager
-        if branch:
-            manager = self.branch(branch)
-        # use passed manager
-        else:
-            manager = self.manager
+        manager = self.branch(branch) if branch else self.manager
         # add to appspace
         manager.set(label, app)
         return app

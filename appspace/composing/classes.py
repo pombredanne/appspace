@@ -38,7 +38,20 @@ class Composed(ComposerMixin):
 @appifies(AMaster)
 class Master(ComposerMixin):
 
-    '''master composer'''
+    '''master composer object'''
+
+    def finalize(self, updated):
+        '''
+        finalize settings
+
+        @param updated: updated settings
+        '''
+        setting = self._CQ.setting
+        # update settings
+        for k, v in updated:
+            setting(k, v)
+        # lock settings
+        self._CQ.lock()
 
 
 @appifies(ASynched)

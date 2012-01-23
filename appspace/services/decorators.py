@@ -34,9 +34,4 @@ class remote(direct):
     '''makes remote functionality directly available to client'''
 
 
-class servicer(factory):
-
-    '''builds service and makes it available to clients'''
-
-
-__all__ = ('forward', 'remote', 'service', 'servicer')
+__all__ = ('forward', 'remote', 'service')

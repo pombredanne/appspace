@@ -16,7 +16,7 @@ class Manager(Registry):
 
     '''state manager'''
 
-    __slots__ = ('_key', '_label', '_manager', '_settings')
+    __slots__ = ('_key', '_label', '_manager', '_ns')
 
     def __init__(self, label='appconf', ns='default'):
         '''
@@ -28,6 +28,7 @@ class Manager(Registry):
         super(Manager, self).__init__(AApp, ns)
         self._label = label
         self._manager = None
+        self._ns = ns
 
     @property
     def manager(self):

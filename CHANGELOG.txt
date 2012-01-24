@@ -41,3 +41,8 @@ module when passed to 'include' e.g. 'module.path.apps' instead of 'module.path'
 
 - refine utility functions
 - update documentation and self-documentation of methods
+
+0.5.0 
+
+- add class based configuration support
+- remove lru_cache, global appspace

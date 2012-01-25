@@ -4,19 +4,20 @@
 
 from __future__ import absolute_import
 
-from .utils import lazy_import
-from .registry import Registry
+from operator import contains
 
+from .keys import AppStore
+from .utils import lazy_import
 from .error import AppLookupError
 from .keys import AApp, ALazyApp, AManager, appifies
 
 
 @appifies(AManager)
-class Manager(Registry):
+class Manager(AppStore):
 
     '''state manager'''
 
-    __slots__ = ('_key', '_label', '_manager', '_ns')
+    __slots__ = ('_key', '_label', '_ns')
 
     def __init__(self, label='appconf', ns='default'):
         '''
@@ -25,18 +26,44 @@ class Manager(Registry):
         @param label: label for application configuration object
         @param ns: label for internal namespace
         '''
-        super(Manager, self).__init__(AApp, ns)
+        super(Manager, self).__init__()
         self._label = label
-        self._manager = None
         self._ns = ns
+        self._key = AApp
 
-    @property
-    def manager(self):
-        return self._manager
+    def __contains__(self, label):
+        return contains(self.names([self._key], self._key), label)
 
-    @manager.setter
-    def manager(self, manager):
-        self.register([AManager], AManager, 'manager', manager)
+    def __repr__(self):
+        return str(self.lookupAll([self._key], self._key))
+
+    def ez_lookup(self, key, label):
+        '''
+        streamlined get lookup
+
+        @param key: key to lookup
+        @param label: label to lookup
+        '''
+        return self.lookup1(key, key, label)
+
+    def ez_register(self, key, label, app):
+        '''
+        streamlined get registration
+
+        @param key: key to register
+        @param label: label to register
+        @param app: app to register
+        '''
+        self.register([key], key, label, app)
+
+    def ez_unregister(self, key, label):
+        '''
+        streamlined get unregistration
+
+        @param key: key to lookup
+        @param label: label to lookup
+        '''
+        self.unregister([key], key, label, self.ez_lookup(key, label))
 
     def get(self, label):
         '''

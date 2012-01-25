@@ -3,10 +3,12 @@
 
 from __future__ import absolute_import
 
+from collections import deque
+
 from stuf.utils import selfname
 
-from .managers import Manager, appifies
 from .keys import ABranch, ANamespace
+from .managers import Manager, appifies
 
 
 class Patterns(object):
@@ -20,7 +22,7 @@ class Patterns(object):
 
     @classmethod
     def _gather(cls):
-        this = list()
+        this = deque()
         tappend = this.append
         textend = this.extend
         # filters
@@ -43,7 +45,7 @@ class Patterns(object):
     @classmethod
     def build(cls):
         '''build manager configuration from class'''
-        this = list()
+        this = deque()
         tappend = this.append
         textend = this.extend
         # filters
@@ -128,7 +130,7 @@ class Namespace(object):
     @classmethod
     def build(cls):
         '''gather namespace configuration'''
-        this = list()
+        this = deque()
         tappend = this.append
         textend = this.extend
         # filters

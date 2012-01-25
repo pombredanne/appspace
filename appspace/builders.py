@@ -63,4 +63,4 @@ def patterns(label, *args, **kw):
     return space
 
 
-__all__ = ['patterns', 'app']
+__all__ = ['patterns']

@@ -80,6 +80,7 @@ class Manager(Registry):
             app = LazyApp(app)
         key = self._key
         self.register([key], key, label, app)
+        return app
 
 
 @appifies(ALazyApp)

@@ -79,6 +79,7 @@ class Registry(AppStore):
         '''
         key = self._key
         self.register([key], key, label, app)
+        return app
 
 
 __all__ = ['Registry']

@@ -57,7 +57,7 @@ class TestDouble(unittest.TestCase):
     def test_attr_multiple2(self):
         plug = self._make_multiple()
         self.assertRaises(
-            NoAppError, 
+            NoAppError,
             lambda x: x == getattr(plug, 'make', ''),
             plug['helpers']['get'],
         )
@@ -148,8 +148,8 @@ class TestAppconf(unittest.TestCase):
     def _make_multiple():
         from appspace import patterns, include
         app = patterns(
-            'helpers', 
-            ('misc', include('appspace.tests.apps')), 
+            'helpers',
+            ('misc', include('appspace.tests.apps')),
         )
         return app
 
@@ -206,8 +206,8 @@ class TestAppconf(unittest.TestCase):
         self.assertEqual(plug.helpers.misc.lower, lowercase)
         self.assertEqual(plug.helpers.misc.upper, uppercase)
         self.assertEqual(plug.helpers.misc.store, UD)
-        
-        
+
+
 class TestPatterns(unittest.TestCase):
 
     @staticmethod
@@ -218,7 +218,7 @@ class TestPatterns(unittest.TestCase):
         class helpers(Patterns):
             square = 'math.sqrt'
             fabulous = fabs
-            formit ='re.match'
+            formit = 're.match'
             lower = 'string.lowercase'
             upper = 'string.uppercase'
             store = 'UserDict.UserDict'

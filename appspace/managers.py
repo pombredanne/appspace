@@ -4,14 +4,32 @@
 
 from __future__ import absolute_import
 
+from inspect import isclass
 from operator import contains
 
 from .keys import AppStore
 from .utils import lazy_import
-from .error import AppLookupError
-from .keys import AApp, ALazyApp, AManager, appifies
+from .error import AppLookupError, DoesNotApp
+from .keys import (
+    AApp, ALazyApp, AManager, appifies, verify_class, verify_object,
+)
 
 __all__ = ('LazyApp', 'Manager')
+
+
+def iskeyed(key, this):
+    '''
+    check if item has an app key
+
+    @param label: app key
+    @param this: object to check
+    '''
+    try:
+        if isclass(this):
+            return verify_class(key, this)
+        return verify_object(key, this)
+    except DoesNotApp:
+        return False
 
 
 @appifies(AManager)

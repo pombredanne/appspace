@@ -5,8 +5,12 @@
 
 from __future__ import absolute_import
 
+
+
 from zope.interface.adapter import AdapterRegistry
+from zope.interface.exceptions import DoesNotImplement
 from zope.interface.interfaces import ComponentLookupError
+from zope.interface.verify import verifyClass, verifyObject
 from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implementer, directlyProvides, providedBy
 
@@ -18,6 +22,10 @@ get_apps = providedBy
 AppspaceKey = InterfaceClass('AppspaceKey')
 # app lookup exception
 AppLookupError = ComponentLookupError
+DoesNotApp = DoesNotImplement
+
+verify_class = verifyClass
+verify_object = verifyObject
 
 __all__ = (
     'AApp', 'AAppspace', 'ABranch', 'ALazyApp', 'AManager', 'ANamespace',

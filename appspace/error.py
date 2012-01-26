@@ -3,7 +3,7 @@
 
 from __future__ import absolute_import
 
-from .keys import AppLookupError
+from .keys import AppLookupError, DoesNotApp
 
 __all__ = (
     'AppLookupError', 'ConfigurationError', 'NoAppspaceError', 'NoAppError',
@@ -26,3 +26,4 @@ class NoAppError(Exception):
 
 
 AppLookupError = AppLookupError
+DoesNotApp = DoesNotApp

@@ -19,6 +19,11 @@ AppspaceKey = InterfaceClass('AppspaceKey')
 # app lookup exception
 AppLookupError = ComponentLookupError
 
+__all__ = (
+    'AApp', 'AAppspace', 'ABranch', 'ALazyApp', 'AManager', 'ANamespace',
+    'AppspaceKey', 'appifies', 'get_apps', 'apped', 'AppStore',
+)
+
 
 class AApp(AppspaceKey):
 
@@ -96,9 +101,3 @@ class AManager(AppspaceKey):
 class ANamespace(AppspaceKey):
 
     '''namespace key'''
-    
-    
-__all__ = (
-    'AApp', 'AAppspace', 'ABranch', 'ALazyApp', 'AManager', 'ANamespace',
-    'AppspaceKey', 'appifies', 'get_apps', 'apped', 'AppStore',
-)

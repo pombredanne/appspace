@@ -7,6 +7,8 @@ from keyword import iskeyword
 
 from importlib import import_module
 
+__all__ = ('checkname', 'lazy_import')
+
 
 def lazy_import(path, attribute=None):
     '''
@@ -21,7 +23,7 @@ def lazy_import(path, attribute=None):
             # import module
             path = getattr(import_module(path[:dot]), path[dot + 1:])
         # If nothing but module name, import the module
-        except AttributeError:
+        except (AttributeError, ValueError):
             path = import_module(path)
         if attribute:
             path = getattr(path, attribute)
@@ -51,4 +53,3 @@ class CheckName(object):
 
 
 checkname = CheckName()
-__all__ = ('checkname', 'lazy_import')

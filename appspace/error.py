@@ -5,7 +5,9 @@ from __future__ import absolute_import
 
 from .keys import AppLookupError
 
-AppLookupError = AppLookupError
+__all__ = (
+    'AppLookupError', 'ConfigurationError', 'NoAppspaceError', 'NoAppError',
+)
 
 
 class ConfigurationError(Exception):
@@ -23,6 +25,4 @@ class NoAppError(Exception):
     '''mo application found exception'''
 
 
-__all__ = (
-    'AppLookupError', 'ConfigurationError', 'NoAppspaceError', 'NoAppError',
-)
+AppLookupError = AppLookupError

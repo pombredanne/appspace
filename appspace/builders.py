@@ -9,6 +9,8 @@ from .keys import AAppspace, appifies
 from .spaces import patterns as apatterns
 from .error import AppLookupError, NoAppError
 
+__all__ = ['patterns']
+
 
 @appifies(AAppspace)
 class Appspace(object):
@@ -61,6 +63,3 @@ def patterns(label, *args, **kw):
     space = Appspace(manager)
     manager.set(label, space)
     return space
-
-
-__all__ = ['patterns']

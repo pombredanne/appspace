@@ -11,6 +11,8 @@ from .utils import lazy_import
 from .error import AppLookupError
 from .keys import AApp, ALazyApp, AManager, appifies
 
+__all__ = ('LazyApp', 'Manager')
+
 
 @appifies(AManager)
 class Manager(AppStore):
@@ -127,6 +129,3 @@ class LazyApp(object):
 
     def __repr__(self):
         return 'app@{path}'.format(path=self.path)
-
-
-__all__ = ('Manager', 'LazyApp')

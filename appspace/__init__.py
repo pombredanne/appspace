@@ -5,9 +5,9 @@ from __future__ import absolute_import
 
 from inspect import ismodule
 
-from .builders import patterns
-from .error import NoAppError, AppLookupError
-from .spaces import Branch, Namespace, Patterns, include
+from appspace.builders import patterns
+from appspace.keys import NoAppError, AppLookupError
+from appspace.spaces import Branch, Namespace, Patterns, include
 
 __version__ = (0, 5, 0)
 

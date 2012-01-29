@@ -7,7 +7,7 @@ try:
 except ImportError:
     import unittest
 
-from appspace.error import NoAppError
+from appspace import NoAppError
 
 
 class TestSingle(unittest.TestCase):

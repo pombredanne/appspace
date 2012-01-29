@@ -3,14 +3,10 @@
 # pylint: disable-msg=f0401,e0213,e0211
 '''appspace keys'''
 
-from __future__ import absolute_import
-
-
+from inspect import ismodule
 
 from zope.interface.adapter import AdapterRegistry
-from zope.interface.exceptions import DoesNotImplement
 from zope.interface.interfaces import ComponentLookupError
-from zope.interface.verify import verifyClass, verifyObject
 from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implementer, directlyProvides, providedBy
 
@@ -22,15 +18,6 @@ get_apps = providedBy
 AppspaceKey = InterfaceClass('AppspaceKey')
 # app lookup exception
 AppLookupError = ComponentLookupError
-DoesNotApp = DoesNotImplement
-
-verify_class = verifyClass
-verify_object = verifyObject
-
-__all__ = (
-    'AApp', 'AAppspace', 'ABranch', 'ALazyApp', 'AManager', 'ANamespace',
-    'AppspaceKey', 'appifies', 'get_apps', 'apped', 'AppStore',
-)
 
 
 class AApp(AppspaceKey):
@@ -109,3 +96,25 @@ class AManager(AppspaceKey):
 class ANamespace(AppspaceKey):
 
     '''namespace key'''
+    
+    
+class ConfigurationError(Exception):
+
+    '''appspace configuration exception'''
+
+
+class NoAppspaceError(Exception):
+
+    '''no appspace found error'''
+
+
+class NoAppError(Exception):
+
+    '''mo application found exception'''
+    
+    
+__all__ = sorted(name for name, obj in locals().iteritems() if not any([
+    name.startswith('_'), ismodule(obj),
+]))
+
+del ismodule

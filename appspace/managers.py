@@ -7,12 +7,9 @@ from __future__ import absolute_import
 from inspect import isclass
 from operator import contains
 
-from .keys import AppStore
-from .utils import lazy_import
-from .error import AppLookupError, DoesNotApp
-from .keys import (
-    AApp, ALazyApp, AManager, appifies, verify_class, verify_object,
-)
+from appspace.keys import AppStore
+from appspace.utils import lazy_import
+from appspace.keys import AApp, ALazyApp, AManager, AppLookupError, appifies
 
 __all__ = ('LazyApp', 'Manager')
 
@@ -26,9 +23,9 @@ def iskeyed(key, this):
     '''
     try:
         if isclass(this):
-            return verify_class(key, this)
-        return verify_object(key, this)
-    except DoesNotApp:
+            return key.implementedBy(this)
+        return key.providedBy(this)
+    except AttributeError:
         return False
 
 

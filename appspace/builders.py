@@ -5,9 +5,8 @@ from __future__ import absolute_import
 
 from operator import contains
 
-from .keys import AAppspace, appifies
-from .spaces import patterns as apatterns
-from .error import AppLookupError, NoAppError
+from appspace.spaces import patterns as apatterns
+from appspace.keys import AAppspace, appifies, AppLookupError, NoAppError
 
 __all__ = ['patterns']
 

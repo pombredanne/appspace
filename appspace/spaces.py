@@ -7,8 +7,8 @@ from collections import deque
 
 from stuf.utils import selfname
 
-from .keys import ABranch, ANamespace
-from .managers import Manager, appifies
+from appspace.keys import ABranch, ANamespace
+from appspace.managers import Manager, appifies
 
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')
 

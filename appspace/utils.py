@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 '''appspace utilities'''
 
-from __future__ import absolute_import
-
 from keyword import iskeyword
 
 from importlib import import_module

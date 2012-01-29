@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 '''appspace spaces'''
 
-from __future__ import absolute_import
-
 from collections import deque
 
 from stuf.utils import selfname

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 '''appspace'''
 
-from __future__ import absolute_import
-
 from inspect import ismodule
 
 from appspace.builders import patterns

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 '''appspace builder'''
 
-from __future__ import absolute_import
-
 from operator import contains
 
 from appspace.spaces import patterns as apatterns

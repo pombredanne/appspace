@@ -2,8 +2,6 @@
 # pylint: disable-msg=e1001,e1002
 '''appspace management'''
 
-from __future__ import absolute_import
-
 from inspect import isclass
 from operator import contains
 

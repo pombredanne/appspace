@@ -5,26 +5,12 @@
 from inspect import isclass
 from operator import contains
 
+from six import string_types
 from appspace.keys import AppStore
 from appspace.utils import lazy_import
 from appspace.keys import AApp, ALazyApp, AManager, AppLookupError, appifies
 
 __all__ = ('LazyApp', 'Manager')
-
-
-def iskeyed(key, this):
-    '''
-    check if item has an app key
-
-    @param label: app key
-    @param this: object to check
-    '''
-    try:
-        if isclass(this):
-            return key.implementedBy(this)
-        return key.providedBy(this)
-    except AttributeError:
-        return False
 
 
 @appifies(AManager)
@@ -94,6 +80,21 @@ class Manager(AppStore):
             app = self.load(label, app.path)
         return app
 
+    @staticmethod
+    def iskeyed(key, this):
+        '''
+        check if item has an app key
+
+        @param label: app key
+        @param this: object to check
+        '''
+        try:
+            if isclass(this):
+                return key.implementedBy(this)
+            return key.providedBy(this)
+        except AttributeError:
+            return False
+
     def load(self, label, module):
         '''
         load branch or get from appspace
@@ -118,7 +119,7 @@ class Manager(AppStore):
         @param label: appspace label
         @param get: get to add to appspace
         '''
-        if isinstance(app, (basestring, tuple)):
+        if isinstance(app, (string_types, tuple)):
             app = LazyApp(app)
         key = self._key
         self.register([key], key, label, app)
@@ -142,3 +143,6 @@ class LazyApp(object):
 
     def __repr__(self):
         return 'app@{path}'.format(path=self.path)
+
+
+iskeyed = Manager.iskeyed

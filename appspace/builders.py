@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 '''appspace builder'''
 
+from __future__ import unicode_literals
+
 from operator import contains
 
 from appspace.spaces import patterns as apatterns
@@ -60,3 +62,16 @@ def patterns(label, *args, **kw):
     space = Appspace(manager)
     manager.set(label, space)
     return space
+
+
+def class_patterns(label, clspatterns):
+    '''
+    factory for manager configured with class patterns
+
+    @param label: label for manager
+    @param clspatterns: class patterns
+    '''
+    manager = clspatterns.build()
+    patterns = Appspace(manager)
+    manager.set(label, patterns)
+    return patterns

@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 '''appspace spaces'''
 
+from __future__ import unicode_literals
+
 from collections import deque
 
 from stuf.utils import selfname
+from six import iteritems, string_types
 
 from appspace.keys import ABranch, ANamespace
 from appspace.managers import Manager, appifies
@@ -28,7 +31,7 @@ class Patterns(object):
         # filters
         anamespace = ANamespace.implementedBy
         branch = ABranch.implementedBy
-        for k, v in vars(cls).iteritems():
+        for k, v in iteritems(vars(cls)):
             # filter private and hidden
             if not k.startswith('_'):
                 # handle namespace
@@ -51,7 +54,7 @@ class Patterns(object):
         # filters
         anamespace = ANamespace.implementedBy
         branch = ABranch.implementedBy
-        for k, v in vars(cls).iteritems():
+        for k, v in iteritems(vars(cls)):
             # filter private and hidden
             if not k.startswith('_'):
                 # handle namespace
@@ -103,8 +106,8 @@ class Branch(object):
         '''gather branch configuration'''
         inc = cls.include
         return [
-            (k, inc(v)) for k, v in vars(cls).iteritems()
-            if all([not k.startswith('_'), isinstance(v, basestring)])
+            (k, inc(v)) for k, v in iteritems(vars(cls))
+            if all([not k.startswith('_'), isinstance(v, string_types)])
         ]
 
     @staticmethod
@@ -136,7 +139,7 @@ class Namespace(object):
         # filters
         anamespace = ANamespace.implementedBy
         pack = cls._pack
-        for k, v in vars(cls).iteritems():
+        for k, v in iteritems(vars(cls)):
             if not k.startswith('_'):
                 # handle namespaces
                 if anamespace(v):

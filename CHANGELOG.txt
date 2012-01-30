@@ -44,5 +44,7 @@ module when passed to 'include' e.g. 'module.path.apps' instead of 'module.path'
 
 0.5.0 
 
-- add class based configuration support
+- Python 3 support
+- class based configuration
 - remove lru_cache, global appspace
+- consolidated exceptions with keys

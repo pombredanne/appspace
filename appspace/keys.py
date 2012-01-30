@@ -3,8 +3,11 @@
 # pylint: disable-msg=f0401,e0213,e0211
 '''appspace keys'''
 
+from __future__ import unicode_literals
+
 from inspect import ismodule
 
+from six import iteritems
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
@@ -113,7 +116,7 @@ class NoAppError(Exception):
     '''mo application found exception'''
     
     
-__all__ = sorted(name for name, obj in locals().iteritems() if not any([
+__all__ = sorted(name for name, obj in iteritems(locals()) if not any([
     name.startswith('_'), ismodule(obj),
 ]))
 

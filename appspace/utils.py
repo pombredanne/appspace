@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 '''appspace utilities'''
 
+from __future__ import unicode_literals
+
 from keyword import iskeyword
 
+from six import string_types
 from importlib import import_module
 
 __all__ = ('checkname', 'lazy_import')
@@ -15,7 +18,7 @@ def lazy_import(path, attribute=None):
     @param path: something to load
     @param attribute: attribute on loaded module to return
     '''
-    if isinstance(path, basestring):
+    if isinstance(path, string_types):
         try:
             dot = path.rindex('.')
             # import module

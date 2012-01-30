@@ -18,7 +18,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 7:
 setup(
     name='appspace',
     version='0.5.0',
-    description='easily construct applications with easy building blocks',
+    description='easy application construction with easy building blocks',
     long_description=open(os.path.join(os.getcwd(), 'README.rst'), 'r').read(),
     author='L. C. Rees',
     author_email='lcrees@gmail.com',
@@ -27,7 +27,7 @@ setup(
     packages=['appspace'],
     test_suite='appspace.tests',
     zip_safe=False,
-    keywords='component injection aspect-oriented programming',
+    keywords='component architecture injection aspect-oriented',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -37,6 +37,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 3.2',
         'Topic :: Software Development',
         'Topic :: Software Development :: Libraries',
         'Topic :: Utilities',

@@ -1,0 +1,50 @@
+0.1.1
+
+- release
+
+0.1.2
+
+- use importlib
+
+0.1.3
+
+- python 2.6 support
+
+0.2.0
+
+- dynamic binding support
+
+0.3.0
+
+- lazy load modules from appconf
+
+0.3.1
+
+- remove zope.component dependency
+
+0.3.2
+
+- shift to absolute imports
+
+0.3.3
+
+- add utility functions
+
+0.4.0
+
+- make inclusion of branch appspaces less magical by requiring name of appconf
+module when passed to 'include' e.g. 'module.path.apps' instead of 'module.path'
+- change default name of app configuration object to 'appconf' from 'apps'
+- rename 'add_appspace' function to 'add_branch'
+
+0.4.1
+
+- refine utility functions
+- update documentation and self-documentation of methods
+
+0.5.0 
+
+- Python 3 support
+- class based configuration
+- remove lru_cache, global appspace
+- consolidated exceptions with keys

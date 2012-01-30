@@ -41,3 +41,10 @@ module when passed to 'include' e.g. 'module.path.apps' instead of 'module.path'
 
 - refine utility functions
 - update documentation and self-documentation of methods
+
+0.5.0 
+
+- Python 3 support
+- class based configuration
+- remove lru_cache, global appspace
+- consolidated exceptions with keys

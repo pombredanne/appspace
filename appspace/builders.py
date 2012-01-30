@@ -1,25 +1,14 @@
 # -*- coding: utf-8 -*-
-'''application builder'''
+'''appspace builder'''
 
-from __future__ import absolute_import
+from __future__ import unicode_literals
 
-from operator import getitem, contains
+from operator import contains
 
-from stuf.utils import selfname
+from appspace.spaces import patterns as apatterns
+from appspace.keys import AAppspace, appifies, AppLookupError, NoAppError
 
-from .utils import lru_cache
-from .managers import Manager, appifies
-from .error import AppLookupError, NoAppError
-from .keys import AAppspace, ABranch, ANamespace
-
-
-def include(module):
-    '''
-    configure branch appspace
-
-    @param module: module import path
-    '''
-    return ('include', module)
+__all__ = ['patterns']
 
 
 @appifies(AAppspace)
@@ -43,16 +32,15 @@ class Appspace(object):
         except AttributeError:
             return self.__getitem__(label)
 
-    @lru_cache()
     def __getitem__(self, label):
         try:
             return self.manager.get(label)
         except AppLookupError:
-            raise NoAppError('%s' % label)
+            raise NoAppError(label)
 
     def __call__(self, label, *args, **kw):
-        result = getitem(self, label)
         try:
+            result = self.__getitem__(label)
             return result(*args, **kw)
         except TypeError:
             return result
@@ -64,145 +52,26 @@ class Appspace(object):
         return repr(self.manager)
 
 
-class Factory(object):
+def patterns(label, *args, **kw):
+    '''
+    factory for manager
 
-    '''factory for appspace'''
-
-    def __init__(self, label, manager, *args, **kw):
-        '''
-        init
-
-        @param label: label for manager
-        '''
-        # object with manager configuration
-        self._module = kw.get('module', 'appconf')
-        # build manager
-        self.manager = manager(self._module)
-        # register apps in manager
-        apper = self.manager.set
-        # add applications
-        [apper(*arg) for arg in args]  # pylint: disable-msg=W0106
-        # add manager
-        apper(label, Appspace(self.manager))
-
-    def __repr__(self):
-        return repr(self.manager)
-
-    def build(self):
-        '''build manager'''
-        return Appspace(self.manager)
+    @param label: label for manager
+    '''
+    manager = apatterns(label, *args, **kw)
+    space = Appspace(manager)
+    manager.set(label, space)
+    return space
 
 
-class Patterns(object):
+def class_patterns(label, clspatterns):
+    '''
+    factory for manager configured with class patterns
 
-    '''patterns for manager configured by class'''
-
-    _manager = Manager
-
-    def __repr__(self):
-        return str(self._gather())
-
-    @classmethod
-    def _gather(cls):
-        this = list()
-        tappend = this.append
-        textend = this.extend
-        # filters
-        anamespace = ANamespace.implementedBy
-        branch = ABranch.implementedBy
-        for k, v in vars(cls).iteritems():
-            # filter private and hidden
-            if not k.startswith('_'):
-                # handle namespace
-                if anamespace(v):
-                    textend(i for i in v.build())
-                # handle branches
-                elif branch(v):
-                    textend(v.build())
-                # handle anything else
-                else:
-                    tappend((k, v))
-        return this
-
-    @classmethod
-    def build(cls):
-        '''build manager configuration from class'''
-        this = list()
-        tappend = this.append
-        textend = this.extend
-        # filters
-        anamespace = ANamespace.implementedBy
-        branch = ABranch.implementedBy
-        for k, v in vars(cls).iteritems():
-            # filter private and hidden
-            if not k.startswith('_'):
-                # handle namespace
-                if anamespace(v):
-                    textend(i for i in v.build())
-                # handle branches
-                elif branch(v):
-                    textend(v.build())
-                # handle anything else
-                else:
-                    tappend((k, v))
-        # build configuration
-        return cls.patterns(selfname(cls), *tuple(cls._gather()))
-
-    @classmethod
-    def patterns(cls, label, *args, **kw):
-        '''
-        configure appspace
-
-        @param label: name of branch appspace
-        @param *args: tuple of module paths or component inclusions
-        '''
-        return Factory(label, cls._manager, *args, **kw).build()
-
-
-patterns = Patterns.patterns
-
-
-@appifies(ABranch)
-class Branch(object):
-
-    '''branch configuration'''
-
-    @classmethod
-    def build(cls):
-        '''gather branch configuration'''
-        return [
-            (k, include(v)) for k, v in vars(cls).iteritems()
-            if all([not k.startswith('_'), isinstance(v, basestring)])
-        ]
-
-
-@appifies(ANamespace)
-class Namespace(object):
-
-    '''configuration namespace'''
-
-    @classmethod
-    def _pack(cls, this, that):
-        '''build name'''
-        return ('.'.join([selfname(cls), this]), that)
-
-    @classmethod
-    def build(cls):
-        '''gather namespace configuration'''
-        this = list()
-        tappend = this.append
-        textend = this.extend
-        # filters
-        anamespace = ANamespace.implementedBy
-        pack = cls._pack
-        for k, v in vars(cls).iteritems():
-            if not k.startswith('_'):
-                # handle namespaces
-                if anamespace(v):
-                    textend(pack(*i) for i in v.build())
-                else:
-                    tappend(pack(k, v))
-        return this
-
-
-__all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')
+    @param label: label for manager
+    @param clspatterns: class patterns
+    '''
+    manager = clspatterns.build()
+    patterns = Appspace(manager)
+    manager.set(label, patterns)
+    return patterns

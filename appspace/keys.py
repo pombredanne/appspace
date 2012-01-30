@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 #@PydevCodeAnalysisIgnore
 # pylint: disable-msg=f0401,e0213,e0211
-'''application core'''
+'''appspace keys'''
 
-from __future__ import absolute_import
+from __future__ import unicode_literals
 
 from inspect import ismodule
 
+from six import iteritems
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
@@ -100,7 +101,22 @@ class ANamespace(AppspaceKey):
     '''namespace key'''
     
     
-__all__ = sorted(name for name, obj in locals().iteritems() if not any([
+class ConfigurationError(Exception):
+
+    '''appspace configuration exception'''
+
+
+class NoAppspaceError(Exception):
+
+    '''no appspace found error'''
+
+
+class NoAppError(Exception):
+
+    '''mo application found exception'''
+    
+    
+__all__ = sorted(name for name, obj in iteritems(locals()) if not any([
     name.startswith('_'), ismodule(obj),
 ]))
 

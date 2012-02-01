@@ -72,6 +72,6 @@ def class_patterns(label, clspatterns):
     @param clspatterns: class patterns
     '''
     manager = clspatterns.build()
-    patterns = Appspace(manager)
-    manager.set(label, patterns)
-    return patterns
+    new_patterns = Appspace(manager)
+    manager.set(label, new_patterns)
+    return new_patterns

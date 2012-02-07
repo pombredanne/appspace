@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=e1001,e1002
+# pylint: disable-msg=e1001
 '''appspace management'''
 
-from inspect import isclass
-from operator import contains
-
 from six import string_types
-from appspace.keys import AppStore
 from appspace.utils import lazy_import
+from appspace.registry import Registry
 from appspace.keys import AApp, ALazyApp, AManager, AppLookupError, appifies
 
 __all__ = ('LazyApp', 'Manager')
 
 
 @appifies(AManager)
-class Manager(AppStore):
+class Manager(Registry):
 
     '''state manager'''
 
@@ -27,44 +24,7 @@ class Manager(AppStore):
         @param label: label for application configuration object
         @param ns: label for internal namespace
         '''
-        super(Manager, self).__init__()
-        self._label = label
-        self._ns = ns
-        self._key = AApp
-
-    def __contains__(self, label):
-        return contains(self.names([self._key], self._key), label)
-
-    def __repr__(self):
-        return str(self.lookupAll([self._key], self._key))
-
-    def ez_lookup(self, key, label):
-        '''
-        streamlined get lookup
-
-        @param key: key to lookup
-        @param label: label to lookup
-        '''
-        return self.lookup1(key, key, label)
-
-    def ez_register(self, key, label, app):
-        '''
-        streamlined get registration
-
-        @param key: key to register
-        @param label: label to register
-        @param app: app to register
-        '''
-        self.register([key], key, label, app)
-
-    def ez_unregister(self, key, label):
-        '''
-        streamlined get unregistration
-
-        @param key: key to lookup
-        @param label: label to lookup
-        '''
-        self.unregister([key], key, label, self.ez_lookup(key, label))
+        super(Manager, self).__init__(label, ns, AApp)
 
     def get(self, label):
         '''
@@ -79,21 +39,6 @@ class Manager(AppStore):
         if ALazyApp.providedBy(app):
             app = self.load(label, app.path)
         return app
-
-    @staticmethod
-    def iskeyed(key, this):
-        '''
-        check if item has an app key
-
-        @param label: app key
-        @param this: object to check
-        '''
-        try:
-            if isclass(this):
-                return key.implementedBy(this)
-            return key.providedBy(this)
-        except AttributeError:
-            return False
 
     def load(self, label, module):
         '''

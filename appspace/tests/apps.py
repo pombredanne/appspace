@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
-
-from six import PY3
-
+from appspace.six import PY3
 from appspace import patterns
 
 

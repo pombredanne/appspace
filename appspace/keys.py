@@ -3,15 +3,14 @@
 # pylint: disable-msg=f0401,e0213,e0211
 '''appspace keys'''
 
-from __future__ import unicode_literals
-
 from inspect import ismodule
 
-from six import iteritems
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implementer, directlyProvides, providedBy
+
+from appspace.six import iteritems
 
 AppStore = AdapterRegistry
 apped = directlyProvides

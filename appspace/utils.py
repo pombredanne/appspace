@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 '''appspace utilities'''
 
-from __future__ import unicode_literals
-
 from keyword import iskeyword
 
-from six import string_types
 from importlib import import_module
+
+from appspace.six import string_types
 
 __all__ = ('checkname', 'lazy_import')
 

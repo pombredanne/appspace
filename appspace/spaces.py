@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 '''appspace spaces'''
 
-from __future__ import unicode_literals
-
 from collections import deque
 
 from stuf.utils import selfname
-from six import iteritems, string_types
 
 from appspace.keys import ABranch, ANamespace
 from appspace.managers import Manager, appifies
+from appspace.six import iteritems, string_types
 
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')
 

@@ -2,10 +2,14 @@
 # pylint: disable-msg=e1001
 '''appspace registry'''
 
+import re
 import uuid
+import hashlib
+import unicodedata
 from inspect import isclass
 from operator import contains
 
+from appspace.six import u
 from appspace.keys import AppStore, InterfaceClass
 
 __all__ = ['Registry']
@@ -15,7 +19,10 @@ class Registry(AppStore):
 
     '''app registry'''
 
-    __slots__ = ('_key', '_label', '_ns')
+    __slots__ = ('_key', '_label', '_ns', '_first', '_second')
+
+    _first = re.compile('[^\w\s-]').sub
+    _second = re.compile('[-\s]+').sub
 
     def __init__(self, label='appconf', ns='default', key=None):
         '''
@@ -35,6 +42,11 @@ class Registry(AppStore):
 
     def __repr__(self):
         return str(self.lookupAll([self._key], self._key))
+
+    @staticmethod
+    def ez_id(this):
+        '''easy unique identifier for an object'''
+        return hashlib.sha1(u(id(this))).digest()
 
     def ez_lookup(self, key, label):
         '''
@@ -79,7 +91,21 @@ class Registry(AppStore):
         except AttributeError:
             return False
 
-    @staticmethod
-    def key():
+    @classmethod
+    def key(cls):
         '''random interface'''
-        return InterfaceClass(uuid.uuid4().hex.upper())
+        return InterfaceClass(cls.uuid())
+
+    @classmethod
+    def slugify(cls, value):
+        '''
+        Normalizes string, converts to lowercase, removes non-alpha characters,
+        and converts spaces to hyphens.
+        '''
+        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+        return cls._second('-', u(cls._first('', value).strip().lower()))
+
+    @staticmethod
+    def uuid():
+        '''universal unique identifier'''
+        return uuid.uuid4().hex.upper()

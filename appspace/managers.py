@@ -2,7 +2,7 @@
 # pylint: disable-msg=e1001
 '''appspace management'''
 
-from six import string_types
+from appspace.six import string_types
 from appspace.utils import lazy_import
 from appspace.registry import Registry
 from appspace.keys import AApp, ALazyApp, AManager, AppLookupError, appifies
@@ -15,7 +15,7 @@ class Manager(Registry):
 
     '''state manager'''
 
-    __slots__ = ('_key', '_label', '_ns')
+    __slots__ = ('_key', '_label', '_ns', '_first', '_second')
 
     def __init__(self, label='appconf', ns='default'):
         '''

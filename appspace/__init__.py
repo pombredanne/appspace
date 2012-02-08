@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 '''appspace'''
 
-from __future__ import unicode_literals
-
 from inspect import ismodule
 
-from six import iteritems
+from appspace.six import iteritems
 from appspace.registry import Registry
 from appspace.keys import NoAppError, AppLookupError
 from appspace.builders import patterns, class_patterns

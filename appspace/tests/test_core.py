@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable-msg=e0611
 '''appspace tests'''
-
-from __future__ import unicode_literals
 
 try:
     import unittest2 as unittest

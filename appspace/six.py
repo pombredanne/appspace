@@ -110,6 +110,16 @@ class _MovedItems(types.ModuleType):
 
 
 _moved_attributes = [
+    MovedAttribute(
+        'GeneratorContextManager',
+        'contextlib',
+        'contextlib',
+        'GeneratorContextManager',
+        '_GeneratorContextManager',
+    ),
+    MovedAttribute(
+        'filterfalse', 'itertools', 'itertools', 'ifilterfalse', 'filterfalse',
+    ),
     MovedAttribute('cStringIO', 'cStringIO', 'io', 'StringIO'),
     MovedAttribute('filter', 'itertools', 'builtins', 'ifilter', 'filter'),
     MovedAttribute('map', 'itertools', 'builtins', 'imap', 'map'),
@@ -141,7 +151,7 @@ for attr in _moved_attributes:
     setattr(_MovedItems, attr.name, attr)
 del attr
 
-moves = sys.modules['six.moves'] = _MovedItems('moves')
+moves = sys.modules['appspace.six.moves'] = _MovedItems('moves')
 
 
 def add_move(move):
@@ -159,11 +169,9 @@ def remove_move(name):
         except KeyError:
             raise AttributeError('no such move, %r' % (name,))
 
-
 if PY3:
     _meth_func = '__func__'
     _meth_self = '__self__'
-
     _func_code = '__code__'
     _func_defaults = '__defaults__'
 
@@ -173,14 +181,12 @@ if PY3:
 else:
     _meth_func = 'im_func'
     _meth_self = 'im_self'
-
     _func_code = 'func_code'
     _func_defaults = 'func_defaults'
 
     _iterkeys = 'iterkeys'
     _itervalues = 'itervalues'
     _iteritems = 'iteritems'
-
 
 if PY3:
     def get_unbound_function(unbound):
@@ -198,9 +204,10 @@ else:
         return it.next()
 
     callable = callable
-_add_doc(get_unbound_function,
-         '''Get the function out of a possibly unbound function''')
 
+_add_doc(
+    get_unbound_function, 'Get the function out of a possibly unbound function'
+)
 
 get_method_function = operator.attrgetter(_meth_func)
 get_method_self = operator.attrgetter(_meth_self)

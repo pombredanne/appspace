@@ -2,10 +2,8 @@
 # pylint: disable-msg=e1001
 '''appspace registry'''
 
-import re
 import uuid
 import hashlib
-import unicodedata
 from inspect import isclass
 from operator import contains
 
@@ -19,10 +17,7 @@ class Registry(AppStore):
 
     '''app registry'''
 
-    __slots__ = ('_key', '_label', '_ns', '_first', '_second')
-
-    _first = re.compile('[^\w\s-]').sub
-    _second = re.compile('[-\s]+').sub
+    __slots__ = ('_key', '_label', '_ns')
 
     def __init__(self, label='appconf', ns='default', key=None):
         '''
@@ -95,15 +90,6 @@ class Registry(AppStore):
     def key(cls):
         '''random interface'''
         return InterfaceClass(cls.uuid())
-
-    @classmethod
-    def slugify(cls, value):
-        '''
-        Normalizes string, converts to lowercase, removes non-alpha characters,
-        and converts spaces to hyphens.
-        '''
-        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-        return cls._second('-', u(cls._first('', value).strip().lower()))
 
     @staticmethod
     def uuid():

@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 #@PydevCodeAnalysisIgnore
-# pylint: disable-msg=f0401,e0213,e0211
 '''appspace keys'''
 
 from inspect import ismodule
 
+# pylint: disable-msg=f0401
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implementer, directlyProvides, providedBy
+# pylint: enable-msg=f0401
 
 from appspace.six import iteritems
 
@@ -27,6 +28,7 @@ class AApp(AppspaceKey):
     '''app key'''
 
 
+# pylint: disable-msg=e0213
 class AAppspace(AppspaceKey):
 
     '''appspace key'''
@@ -50,8 +52,10 @@ class ABranch(AppspaceKey):
 
     '''branch key'''
 
+# pylint: disable-msg=e0211
     def build():
         '''build appspace'''
+# pylint: enable-msg=e0211
 
 
 class ALazyApp(AApp):
@@ -93,7 +97,7 @@ class AManager(AppspaceKey):
         @param label: appspace label
         @param instance: instance to add to appspace
         '''
-
+# pylint: enable-msg=e0213
 
 class ANamespace(AppspaceKey):
 

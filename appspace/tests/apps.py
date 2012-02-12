@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+'''test appconf'''
 
 from appspace.six import PY3
 from appspace import patterns

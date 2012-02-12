@@ -7,7 +7,7 @@ try:
 except ImportError:
     import unittest
 
-from six import PY3
+from appspace.six import PY3
 
 if PY3:
     PATTERNS = (
@@ -250,6 +250,7 @@ class TestPatterns(unittest.TestCase):
     def _make_multiple():
         from math import fabs
         from appspace import Patterns, class_patterns
+
         class helpers(Patterns):
             square = 'math.sqrt'
             fabulous = fabs

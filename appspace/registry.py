@@ -45,7 +45,7 @@ class Registry(AppStore):
 
     def ez_lookup(self, key, label):
         '''
-        streamlined get lookup
+        streamlined app lookup
 
         @param key: key to lookup
         @param label: label to lookup
@@ -54,7 +54,7 @@ class Registry(AppStore):
 
     def ez_register(self, key, label, app):
         '''
-        streamlined get registration
+        streamlined app registration
 
         @param key: key to register
         @param label: label to register
@@ -62,14 +62,47 @@ class Registry(AppStore):
         '''
         self.register([key], key, label, app)
 
+    def ez_subscribe(self, key, label, app):
+        '''
+        streamlined app subscription
+
+        @param key: key to subscribe to
+        @param label: label to subscribe to
+        '''
+        self.subscribe(key, self.key(key, label), app)
+
     def ez_unregister(self, key, label):
         '''
-        streamlined get unregistration
+        streamlined app unregistration
 
         @param key: key to lookup
         @param label: label to lookup
         '''
         self.unregister([key], key, label, self.ez_lookup(key, label))
+
+    unkey = ez_unregister
+
+    def ez_unsubscribe(self, key, label):
+        '''
+        streamlined app unsubscription
+
+        @param key: key to lookup
+        @param label: label to lookup
+        '''
+        self.unsubscribe(key, self.ez_lookup(key, label))
+
+    def key(self, key, label):
+        '''
+        create or fetch key
+
+        @param key: key to register
+        @param label: label to register
+        '''
+        this = self.lookup1(key, key, label)
+        if this is None:
+            this = self.create()
+            self.register([key], key, label, this)
+        return this
 
     @staticmethod
     def iskeyed(key, this):
@@ -87,8 +120,8 @@ class Registry(AppStore):
             return False
 
     @classmethod
-    def key(cls):
-        '''random interface'''
+    def create(cls):
+        '''create new key'''
         return InterfaceClass(cls.uuid())
 
     @staticmethod

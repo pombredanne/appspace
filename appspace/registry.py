@@ -66,10 +66,10 @@ class Registry(AppStore):
         '''
         streamlined app subscription
 
-        @param key: key to subscribe to
-        @param label: label to subscribe to
+        @param key: key to extend to
+        @param label: label to extend to
         '''
-        self.subscribe(key, self.key(key, label), app)
+        self.extend(key, self.key(key, label), app)
 
     def ez_unregister(self, key, label):
         '''

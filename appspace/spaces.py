@@ -68,9 +68,9 @@ class Patterns(object):
         return cls.patterns(selfname(cls), *tuple(cls._gather()))
 
     @staticmethod
-    def factory(label, manager, *args, **kw):
+    def extend(label, manager, *args, **kw):
         '''
-        factory for manager
+        extend for manager
 
         @param label: label for manager
         '''
@@ -91,7 +91,7 @@ class Patterns(object):
         @param label: name of branch appspace
         @param *args: tuple of module paths or component inclusions
         '''
-        return cls.factory(label, cls._manager, *args, **kw)
+        return cls.extend(label, cls._manager, *args, **kw)
 
 
 @appifies(ABranch)
@@ -147,6 +147,6 @@ class Namespace(object):
         return this
 
 
-factory = Patterns.factory
+extend = Patterns.extend
 include = Branch.include
 patterns = Patterns.patterns

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=e1001
 '''appspace management'''
 
 import re
@@ -53,7 +52,7 @@ class Manager(Registry):
         @param label: get or branch label
         @param module: module path
         '''
-        # register branch appspace from include
+        # add branch appspace from include
         if isinstance(module, tuple):
             app = lazy_import(module[-1], self._label)
         # register get

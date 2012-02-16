@@ -4,7 +4,7 @@
 import re
 import unicodedata
 
-from appspace.utils import lazy_import
+from appspace.utils import lazy_import, checkname
 from appspace.registry import Registry
 from appspace.six import string_types, u
 from appspace.keys import AApp, ALazyApp, AManager, AppLookupError, appifies
@@ -83,6 +83,11 @@ class Manager(Registry):
         '''
         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
         return cls._second('-', u(cls._first('', value).strip().lower()))
+
+    @staticmethod
+    def safename(value):
+        '''ensures a string is a legal Python name'''
+        return checkname(value)
 
 
 @appifies(ALazyApp)

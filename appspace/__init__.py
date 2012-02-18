@@ -3,7 +3,8 @@
 
 from inspect import ismodule
 
-from appspace.six import iteritems
+from stuf.six import iteritems
+
 from appspace.registry import Registry
 from appspace.keys import NoAppError, AppLookupError
 from appspace.builders import patterns, class_patterns

@@ -7,7 +7,7 @@ try:
 except ImportError:
     import unittest
 
-from appspace.six import PY3
+from stuf.six import PY3
 
 if PY3:
     PATTERNS = (

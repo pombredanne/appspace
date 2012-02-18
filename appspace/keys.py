@@ -4,14 +4,13 @@
 
 from inspect import ismodule
 
+from stuf.six import iteritems
 # pylint: disable-msg=f0401
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implementer, directlyProvides, providedBy
 # pylint: enable-msg=f0401
-
-from appspace.six import iteritems
 
 AppStore = AdapterRegistry
 apped = directlyProvides

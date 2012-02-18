@@ -4,9 +4,10 @@
 import re
 import unicodedata
 
-from appspace.utils import lazy_import, checkname
+from stuf.six import string_types, u
+
 from appspace.registry import Registry
-from appspace.six import string_types, u
+from appspace.utils import lazy_import, checkname
 from appspace.keys import AApp, ALazyApp, AManager, AppLookupError, appifies
 
 __all__ = ('LazyApp', 'Manager')

@@ -5,7 +5,7 @@ from keyword import iskeyword
 
 from importlib import import_module
 
-from appspace.six import string_types
+from stuf.six import string_types
 
 __all__ = ('checkname', 'lazy_import')
 

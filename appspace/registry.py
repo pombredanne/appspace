@@ -7,7 +7,7 @@ import hashlib
 from inspect import isclass
 from operator import contains
 
-from appspace.six import u
+from stuf.six import u
 from appspace.keys import AppStore, InterfaceClass
 
 __all__ = ['Registry']
@@ -69,7 +69,7 @@ class Registry(AppStore):
         @param key: key to extend to
         @param label: label to extend to
         '''
-        self.extend(key, self.key(key, label), app)
+        self.subscribe(key, self.key(key, label), app)
 
     def ez_unregister(self, key, label):
         '''

@@ -4,10 +4,10 @@
 from collections import deque
 
 from stuf.utils import selfname
+from stuf.six import iteritems, string_types
 
 from appspace.keys import ABranch, ANamespace
 from appspace.managers import Manager, appifies
-from appspace.six import iteritems, string_types
 
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')
 

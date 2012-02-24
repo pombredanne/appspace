@@ -52,7 +52,7 @@ class Registry(AppStore):
         '''
         return self.lookup1(key, key, label)
 
-    def ez_register(self, key, label, app):
+    def ez_register(self, key=None, label=None, app=None):
         '''
         streamlined app registration
 

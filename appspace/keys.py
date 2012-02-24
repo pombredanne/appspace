@@ -121,5 +121,4 @@ class NoAppError(Exception):
 __all__ = sorted(name for name, obj in iteritems(locals()) if not any([
     name.startswith('_'), ismodule(obj),
 ]))
-
 del ismodule

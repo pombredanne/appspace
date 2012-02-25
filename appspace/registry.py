@@ -8,7 +8,7 @@ from inspect import isclass
 from operator import contains
 
 from stuf.six import u
-from appspace.keys import AppStore, InterfaceClass
+from appspace.keys import AppStore, InterfaceClass, AApp
 
 __all__ = ['Registry']
 
@@ -17,26 +17,29 @@ class Registry(AppStore):
 
     '''app registry'''
 
-    __slots__ = ('_key', '_label', '_ns')
+    __slots__ = ('_key', '_ns')
 
-    def __init__(self, label='appconf', ns='default', key=None):
+    def __init__(self, ns='default', key=AApp):
         '''
         init
 
-        @param label: label for appconf (default: 'appconf')
         @param ns: label for internal namespace (default: 'default')
-        @param key: registry key (default: None)
+        @param key: registry key (default: AApp)
         '''
         super(Registry, self).__init__()
-        self._label = label
-        self._ns = ns
         self._key = key
+        self._ns = ns
 
     def __contains__(self, label):
         return contains(self.names([self._key], self._key), label)
 
     def __repr__(self):
         return str(self.lookupAll([self._key], self._key))
+
+    @classmethod
+    def create(cls):
+        '''create new key'''
+        return InterfaceClass(cls.uuid())
 
     @staticmethod
     def ez_id(this):
@@ -91,6 +94,19 @@ class Registry(AppStore):
         '''
         self.unsubscribe(key, self.ez_lookup(key, label))
 
+    @staticmethod
+    def iskeyed(k, v):
+        '''
+        check if item has an app key
+
+        @param k: app key
+        @param v: object to check
+        '''
+        try:
+            return k.implementedBy(v) if isclass(v) else k.providedBy(v)
+        except AttributeError:
+            return False
+
     def key(self, key, label):
         '''
         create or fetch key
@@ -103,26 +119,6 @@ class Registry(AppStore):
             this = self.create()
             self.register([key], key, label, this)
         return this
-
-    @staticmethod
-    def iskeyed(key, this):
-        '''
-        check if item has an app key
-
-        @param label: app key
-        @param this: object to check
-        '''
-        try:
-            if isclass(this):
-                return key.implementedBy(this)
-            return key.providedBy(this)
-        except AttributeError:
-            return False
-
-    @classmethod
-    def create(cls):
-        '''create new key'''
-        return InterfaceClass(cls.uuid())
 
     @staticmethod
     def uuid():

@@ -4,14 +4,17 @@
 
 from inspect import ismodule
 
-from stuf.six import iteritems
+from stuf.six import items
 # pylint: disable-msg=f0401
+from stuf.six.moves import filter, map
 from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implementer, directlyProvides, providedBy
 # pylint: enable-msg=f0401
 
+imap = map
+ifilter = filter
 AppStore = AdapterRegistry
 apped = directlyProvides
 appifies = implementer
@@ -57,7 +60,7 @@ class ABranch(AppspaceKey):
 # pylint: enable-msg=e0211
 
 
-class ALazyApp(AApp):
+class ALazyLoad(AApp):
 
     '''lazy app key'''
 
@@ -118,7 +121,7 @@ class NoAppError(Exception):
     '''mo application found exception'''
     
     
-__all__ = sorted(name for name, obj in iteritems(locals()) if not any([
+__all__ = sorted(name for name, obj in items(locals()) if not any([
     name.startswith('_'), ismodule(obj),
 ]))
 del ismodule

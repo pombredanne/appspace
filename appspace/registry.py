@@ -4,7 +4,6 @@
 import uuid
 import hashlib
 from inspect import isclass
-from operator import contains
 
 from stuf.six import u
 from appspace.keys import AppStore, InterfaceClass, AApp, StrictAppStore
@@ -24,12 +23,6 @@ class RegistryMixin(object):
         super(RegistryMixin, self).__init__()
         self._key = key
         self._ns = ns
-
-    def __contains__(self, label):
-        return contains(self.names([self._key], self._key), label)
-
-    def __repr__(self):
-        return str(self.lookupAll([self._key], self._key))
 
     @classmethod
     def create(cls):

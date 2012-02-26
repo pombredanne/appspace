@@ -9,7 +9,8 @@ from stuf.six import strings, u
 
 from appspace.utils import lazy_import, checkname
 from appspace.registry import Registry, StrictRegistry
-from appspace.keys import ALazyLoad, AManager, AppLookupError, appifies
+from appspace.keys import ALazyLoad, AManager, AppLookupError, appifies,\
+    ANamespace
 
 __all__ = ('LazyLoad', 'Manager', 'StrictManager')
 
@@ -39,13 +40,15 @@ class ManagerMixin(object):
         @param label: appspaced thing label
         @param branch: branch label (default: False)
         '''
-        key = self.key(key) if key else self._key
+        key = self.namespace(key) if key else self._key
         app = self.lookup1(key, key, label)
         if app is None:
             raise AppLookupError(app, label)
-        return self.load(label, app.path) if ALazyLoad.providedBy(app) else app
+        return self.load(
+            label, key, app.path
+        ) if ALazyLoad.providedBy(app) else app
 
-    def load(self, label, module):
+    def load(self, label, key, module):
         '''
         import thing into appspace
 
@@ -53,13 +56,20 @@ class ManagerMixin(object):
         @param module: module path
         '''
         # add branch appspace from include
-        app = lazy_import(
-            module[-1], self._label
-        ) if isinstance(module, tuple) else lazy_import(module)
+        app = lazy_import(module[-1]) if isinstance(
+            module, tuple
+        ) else lazy_import(module)
         # register get
-        key = self.key(module[0]) if isinstance(module, tuple) else self._key
         self.register([key], key, label, app)
         return app
+
+    def namespace(self, key):
+        '''
+        fetch namespace key
+
+        @param key: key label
+        '''
+        return self.key(ANamespace, key)
 
     def partial(self, call, key=False, *args, **kw):
         '''
@@ -74,18 +84,18 @@ class ManagerMixin(object):
 
     safename = staticmethod(checkname)
 
-    def set(self, thing, label, key=False):
+    def set(self, label=False, thing=False, key=False):
         '''
         add thing to appspace
 
-        @param thing: new appspace thing
-        @param label: new appspace thing label
+        @param label: new appspace thing label (default: False)
         @param key: key label (default: False)
+        @param thing: new appspace thing (default: False)
         '''
         thing = LazyLoad(thing) if isinstance(
             thing, (strings, tuple)
         ) else thing
-        key = self.key(key) if key else self._key
+        key = self.namespace(key) if key else self._key
         self.register([key], key, label, thing)
         return thing
 
@@ -97,6 +107,22 @@ class ManagerMixin(object):
         '''
         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
         return cls._second('-', u(cls._first('', value).strip().lower()))
+
+
+@appifies(AManager)
+class Manager(ManagerMixin, Registry):
+
+    '''state manager'''
+
+    __slots__ = ('_key', '_ns', '_first', '_second')
+
+
+@appifies(AManager)
+class StrictManager(ManagerMixin, StrictRegistry):
+
+    '''strict manager'''
+
+    __slots__ = ('_key', '_ns', '_first', '_second')
 
 
 @appifies(ALazyLoad)
@@ -116,22 +142,6 @@ class LazyLoad(object):
 
     def __repr__(self):
         return 'lazy import from {path}'.format(path=self.path)
-
-
-@appifies(AManager)
-class Manager(ManagerMixin, Registry):
-
-    '''state manager'''
-
-    __slots__ = ('_key', '_ns', '_first', '_second')
-
-
-@appifies(AManager)
-class StrictManager(ManagerMixin, StrictRegistry):
-
-    '''strict manager'''
-
-    __slots__ = ('_key', '_ns', '_first', '_second')
 
 
 iskeyed = Manager.iskeyed

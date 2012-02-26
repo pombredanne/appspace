@@ -7,15 +7,16 @@ from inspect import ismodule
 from stuf.six import items
 # pylint: disable-msg=f0401
 from stuf.six.moves import filter, map
-from zope.interface.adapter import AdapterRegistry
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implementer, directlyProvides, providedBy
+from zope.interface.adapter import AdapterRegistry, VerifyingAdapterRegistry
 # pylint: enable-msg=f0401
 
 imap = map
 ifilter = filter
 AppStore = AdapterRegistry
+StrictAppStore = VerifyingAdapterRegistry
 apped = directlyProvides
 appifies = implementer
 get_apps = providedBy

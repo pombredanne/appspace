@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=e1001
-'''appspace registry'''
+'''appspace registries'''
 
 import uuid
 import hashlib
@@ -8,16 +7,12 @@ from inspect import isclass
 from operator import contains
 
 from stuf.six import u
-from appspace.keys import AppStore, InterfaceClass, AApp
+from appspace.keys import AppStore, InterfaceClass, AApp, StrictAppStore
 
-__all__ = ['Registry']
+__all__ = ('Registry', 'StrictRegistry')
 
 
-class Registry(AppStore):
-
-    '''app registry'''
-
-    __slots__ = ('_key', '_ns')
+class RegistryMixin(object):
 
     def __init__(self, ns='default', key=AApp):
         '''
@@ -26,7 +21,7 @@ class Registry(AppStore):
         @param ns: label for internal namespace (default: 'default')
         @param key: registry key (default: AApp)
         '''
-        super(Registry, self).__init__()
+        super(RegistryMixin, self).__init__()
         self._key = key
         self._ns = ns
 
@@ -124,3 +119,13 @@ class Registry(AppStore):
     def uuid():
         '''universal unique identifier'''
         return uuid.uuid4().hex.upper()
+
+
+class Registry(RegistryMixin, AppStore):
+
+    '''easy registry'''
+
+
+class StrictRegistry(RegistryMixin, StrictAppStore):
+
+    '''strict registry'''

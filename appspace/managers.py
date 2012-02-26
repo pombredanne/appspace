@@ -7,15 +7,14 @@ from functools import partial
 
 from stuf.six import strings, u
 
-from appspace.registry import Registry
 from appspace.utils import lazy_import, checkname
+from appspace.registry import Registry, StrictRegistry
 from appspace.keys import ALazyLoad, AManager, AppLookupError, appifies
 
-__all__ = ('LazyLoad', 'Manager')
+__all__ = ('LazyLoad', 'Manager', 'StrictManager')
 
 
-@appifies(AManager)
-class Manager(Registry):
+class ManagerMixin(object):
 
     '''state manager'''
 
@@ -66,24 +65,21 @@ class Manager(Registry):
         '''
         partialize callable or appspaced application with any passed parameters
 
-        @param call: callable or application label
-        @param branch: branch label (default: False)
+        @param call: callable or appspaced object label
+        @param branch: key label (default: False)
         '''
         return partial(
             self.get(call, key), *args, **kw
         ) if isinstance(call, strings) else partial(call, *args, **kw)
 
-    @staticmethod
-    def safename(value):
-        '''ensures a string is a legal Python name'''
-        return checkname(value)
+    safename = staticmethod(checkname)
 
     def set(self, thing, label, key=False):
         '''
         add thing to appspace
 
-        @param thing: new appspaced thing
-        @param label: appspaced thing label
+        @param thing: new appspace thing
+        @param label: new appspace thing label
         @param key: key label (default: False)
         '''
         thing = LazyLoad(thing) if isinstance(
@@ -96,8 +92,8 @@ class Manager(Registry):
     @classmethod
     def slugify(cls, value):
         '''
-        Normalizes string, converts to lowercase, removes non-alpha characters,
-        and converts spaces to hyphens.
+        normalizes string, converts to lowercase, removes non-alpha characters,
+        and converts spaces to hyphens
         '''
         value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
         return cls._second('-', u(cls._first('', value).strip().lower()))
@@ -120,6 +116,22 @@ class LazyLoad(object):
 
     def __repr__(self):
         return 'lazy import from {path}'.format(path=self.path)
+
+
+@appifies(AManager)
+class Manager(ManagerMixin, Registry):
+
+    '''state manager'''
+
+    __slots__ = ('_key', '_ns', '_first', '_second')
+
+
+@appifies(AManager)
+class StrictManager(ManagerMixin, StrictRegistry):
+
+    '''strict manager'''
+
+    __slots__ = ('_key', '_ns', '_first', '_second')
 
 
 iskeyed = Manager.iskeyed

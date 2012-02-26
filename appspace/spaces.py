@@ -7,22 +7,10 @@ from itertools import starmap
 from stuf.utils import selfname
 from stuf.six import items, strings
 
-from appspace.management import Manager, appifies
+from appspace.managers import Manager, appifies
 from appspace.keys import ABranch, ANamespace, ifilter
 
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns', 'key')
-
-
-class key(object):
-
-    '''key namespace'''
-
-    def __init__(self, k):
-        self.key = k
-
-    def __call__(self, that):
-        setattr(that, 'key', self.key)
-        return that
 
 
 class Patterns(object):
@@ -133,8 +121,6 @@ class Branch(object):
 class Namespace(object):
 
     '''configuration namespace'''
-    
-    _key = False
 
     @classmethod
     def build(cls):

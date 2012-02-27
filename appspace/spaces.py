@@ -9,7 +9,7 @@ from stuf.utils import selfname, exhaust, twoway
 
 from appspace.utils import lazyimport
 from appspace.managers import Manager, StrictManager
-from appspace.keys import ABranch, ANamespace, ifilter, appifies
+from appspace.keys import ABranch, ANamespace, ifilter, appifies, AApp
 
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')
 
@@ -26,10 +26,10 @@ class Patterns(object):
         return StrictManager if self.strict else Manager
 
     @classmethod
-    def build(cls):
+    def build(cls, key=AApp):
         '''build manager configuration from class'''
         l = selfname(cls)
-        manager = cls._manager(l)
+        manager = cls._manager(l, key)  # pylint: disable-msg=e1121
         b = partial(manager.keyed, ABranch)
         m = manager.set
         n = partial(manager.keyed, ANamespace)

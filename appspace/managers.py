@@ -9,8 +9,8 @@ from stuf.six import strings, u
 
 from appspace.utils import lazy_import, checkname
 from appspace.registry import Registry, StrictRegistry
-from appspace.keys import ALazyLoad, AManager, AppLookupError, appifies,\
-    ANamespace
+from appspace.keys import (
+    ALazyLoad, AManager, ANamespace, AppLookupError, appifies)
 
 __all__ = ('LazyLoad', 'Manager', 'StrictManager')
 
@@ -19,10 +19,13 @@ class ManagerMixin(object):
 
     '''state manager'''
 
-    __slots__ = ('_key', '_ns', '_first', '_second')
-
     _first = re.compile('[^\w\s-]').sub
     _second = re.compile('[-\s]+').sub
+
+    def __init__(self, label):
+        super(ManagerMixin, self).__init__()
+        self._root = self._current = label
+        self.ez_register(ANamespace, label, self._key)
 
     def apply(self, label, key=False, *args, **kw):
         '''
@@ -63,13 +66,16 @@ class ManagerMixin(object):
         self.register([key], key, label, app)
         return app
 
-    def namespace(self, key):
+    def namespace(self, label):
         '''
-        fetch namespace key
+        fetch key
 
-        @param key: key label
+        @param key: key
         '''
-        return self.key(ANamespace, key)
+        this = self.lookup1(ANamespace, ANamespace, label)
+        if this is None:
+            raise AppLookupError(this, label)
+        return this
 
     def partial(self, call, key=False, *args, **kw):
         '''
@@ -114,7 +120,7 @@ class Manager(ManagerMixin, Registry):
 
     '''state manager'''
 
-    __slots__ = ('_key', '_ns', '_first', '_second')
+    __slots__ = ('_current', '_root', '_key', '_ns', '_first', '_second')
 
 
 @appifies(AManager)
@@ -122,7 +128,7 @@ class StrictManager(ManagerMixin, StrictRegistry):
 
     '''strict manager'''
 
-    __slots__ = ('_key', '_ns', '_first', '_second')
+    __slots__ = ('_current', '_root', '_key', '_ns', '_first', '_second')
 
 
 @appifies(ALazyLoad)

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-#pylint: disable-msg=w0106
 '''appspace spaces'''
 
-from functools import partial
 from itertools import starmap
 
 from stuf.six import items, strings
@@ -10,7 +8,7 @@ from stuf.utils import selfname, exhaust, twoway
 
 from appspace.utils import lazy_import
 from appspace.managers import Manager, StrictManager
-from appspace.keys import ABranch, ANamespace, ifilter
+from appspace.keys import ABranch, ANamespace, ifilter, appifies
 
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')
 
@@ -28,12 +26,13 @@ class Patterns(object):
     @classmethod
     def build(cls):
         '''build manager configuration from class'''
-        manager = cls._manager()
+        l = selfname(cls)
+        manager = cls._manager(l)
+        b = ABranch.implementedBy
         m = manager.set
         n = ANamespace.implementedBy
-        b = ABranch.implementedBy
         exhaust(starmap(
-            lambda k, v: v.build(manager) if (n(v) or b(v)) else m(k, v),
+            lambda x, y: y.build(manager) if n(y) or b(y) else m(x, y, l),
             ifilter(lambda x: not x[0].startswith('_'), items(vars(cls))),
         ))
         return manager
@@ -46,7 +45,7 @@ class Patterns(object):
         @param label: label for manager
         '''
         # build manager
-        manager = manager()
+        manager = manager(label)
         apper = manager.set
         # register things in manager
         exhaust(starmap(apper, iter(args)))
@@ -68,12 +67,16 @@ class PatternMixin(object):
 
     @classmethod
     def _key(cls, label, manager):
-        key = cls.key
-        if isinstance(key, strings):
-            key = lazy_import(key)
-        manager.ez_register(ANamespace, label, key)
+        try:
+            key = cls.key
+            if isinstance(key, strings):
+                key = lazy_import(key)
+            manager.ez_register(ANamespace, label, key)
+        except AttributeError:
+            key = manager.key(ANamespace, label)
 
 
+@appifies(ANamespace)
 class Branch(PatternMixin):
 
     '''branch configuration'''
@@ -81,13 +84,12 @@ class Branch(PatternMixin):
     @classmethod
     def build(cls, manager):
         '''gather branch configuration'''
-        if cls.key:
-            cls._key(selfname(cls), manager)
-        test = lambda x, y: not x.startswith('_') or isinstance(y, strings)
+        cls._key(selfname(cls), manager)
+        test = lambda x: not x[0].startswith('_') or isinstance(x[1], strings)
         mset = manager.set
         inc = cls.include
         exhaust(starmap(
-            lambda v: mset(v[0], inc(v[1])), ifilter(test, items(vars(cls))),
+            lambda x, y: mset(x, inc(y)), ifilter(test, items(vars(cls))),
         ))
 
     @staticmethod
@@ -100,6 +102,7 @@ class Branch(PatternMixin):
         return ('include', module)
 
 
+@appifies(ANamespace)
 class Namespace(PatternMixin):
 
     '''configuration namespace'''
@@ -108,12 +111,11 @@ class Namespace(PatternMixin):
     def build(cls, manager):
         '''gather namespace configuration'''
         label = selfname(cls)
-        if cls.key:
-            cls._key(label, manager)
+        cls._key(label, manager)
         n = ANamespace.implementedBy
-        m = partial(manager.set, key=label)
+        m = manager.set
         exhaust(starmap(
-            lambda k, v: v.build(manager) if n(v) else m(k, v),
+            lambda k, v: v.build(manager) if n(v) else m(k, v, label),
             ifilter(lambda x: not x[0].startswith('_'), items(vars(cls))),
         ))
 

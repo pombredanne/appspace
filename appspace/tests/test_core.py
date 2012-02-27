@@ -45,14 +45,14 @@ class TestSingle(unittest.TestCase):
     def test_identity(self):
         from math import sqrt
         plug = self._make_one()
-        self.assert_(plug.get is sqrt)
+        self.assertIs(plug.get, sqrt)
 
     def test_call(self):
         from math import sqrt
         plug = self._make_one()
         self.assertEqual(plug('get', 2), sqrt(2))
 
-    def test_call2(self):
+    def test_call_multiple(self):
         from math import sqrt
         plug = self._make_one()
         self.assertEqual(plug.get(2), sqrt(2))
@@ -67,35 +67,30 @@ class TestDouble(unittest.TestCase):
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.get, plug['helpers']['get'])
+        self.assertEqual(plug.get, plug['get'])
 
     def test_attr_multiple2(self):
         plug = self._make_multiple()
         self.assertRaises(
             NoAppError,
             lambda x: x == getattr(plug, 'make', ''),
-            plug['helpers']['get'],
+            plug['get'],
         )
         self.assertRaises(
             NoAppError,
-            lambda x: x == getattr(plug.helpers, 'make', ''),
-            plug['helpers']['get'],
+            lambda x: x == getattr(plug, 'make', ''),
+            plug['get'],
         )
-
-    def test_identity_namespace(self):
-        from appspace.builders import Appspace
-        app = self._make_multiple()
-        self.assertIsInstance(app.helpers, Appspace)
 
     def test_identity_multiple(self):
         from math import sqrt
         plug = self._make_multiple()
-        self.assert_(plug.helpers.get is sqrt)
+        self.assertIs(plug.get, sqrt)
 
-    def test_call2_multiple(self):
+    def test_call_multiple(self):
         from math import sqrt
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.get(2), sqrt(2))
+        self.assertEqual(plug.get(2), sqrt(2))
 
 
 class TestQuintuple(unittest.TestCase):
@@ -113,17 +108,12 @@ class TestQuintuple(unittest.TestCase):
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.square, plug['helpers']['square'])
-        self.assertEqual(plug.helpers.fabulous, plug['helpers']['fabulous'])
-        self.assertEqual(plug.helpers.formit, plug['helpers']['formit'])
-        self.assertEqual(plug.helpers.lower, plug['helpers']['lower'])
-        self.assertEqual(plug.helpers.upper, plug['helpers']['upper'])
-        self.assertEqual(plug.helpers.store, plug['helpers']['store'])
-
-    def test_identity_namespace(self):
-        from appspace.builders import Appspace
-        app = self._make_multiple()
-        self.assertIsInstance(app.helpers, Appspace)
+        self.assertEqual(plug.square, plug['square'])
+        self.assertEqual(plug.fabulous, plug['fabulous'])
+        self.assertEqual(plug.formit, plug['formit'])
+        self.assertEqual(plug.lower, plug['lower'])
+        self.assertEqual(plug.upper, plug['upper'])
+        self.assertEqual(plug.store, plug['store'])
 
     def test_identity_multiple(self):
         from re import match
@@ -137,14 +127,14 @@ class TestQuintuple(unittest.TestCase):
                 ascii_lowercase as lowercase, ascii_uppercase as uppercase
             )
         plug = self._make_multiple()
-        self.assert_(plug.helpers.square is sqrt)
-        self.assert_(plug.helpers.fabulous is fabs)
-        self.assert_(plug.helpers.formit is match)
-        self.assert_(plug.helpers.lower is lowercase)
-        self.assert_(plug.helpers.upper is uppercase)
-        self.assert_(plug.helpers.store is UserDict)
+        self.assert_(plug.square is sqrt)
+        self.assert_(plug.fabulous is fabs)
+        self.assert_(plug.formit is match)
+        self.assert_(plug.lower is lowercase)
+        self.assert_(plug.upper is uppercase)
+        self.assert_(plug.store is UserDict)
 
-    def test_call2_multiple(self):
+    def test_call_multiple(self):
         from re import match
         from math import sqrt, fabs
         try:
@@ -156,14 +146,14 @@ class TestQuintuple(unittest.TestCase):
                 ascii_lowercase as lowercase, ascii_uppercase as uppercase
             )
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.square(2), sqrt(2))
-        self.assertEqual(plug.helpers.fabulous(2), fabs(2))
+        self.assertEqual(plug.square(2), sqrt(2))
+        self.assertEqual(plug.fabulous(2), fabs(2))
         self.assertEqual(
-            plug.helpers.formit('2', '2').string, match('2', '2').string
+            plug.formit('2', '2').string, match('2', '2').string
         )
-        self.assertEqual(plug.helpers.lower, lowercase)
-        self.assertEqual(plug.helpers.upper, uppercase)
-        self.assertEqual(plug.helpers.store, UserDict)
+        self.assertEqual(plug.lower, lowercase)
+        self.assertEqual(plug.upper, uppercase)
+        self.assertEqual(plug.store, UserDict)
 
 
 class TestAppconf(unittest.TestCase):
@@ -172,76 +162,42 @@ class TestAppconf(unittest.TestCase):
     def _make_multiple():
         from appspace import patterns, include
         app = patterns(
-            'helpers',
-            ('misc', include('appspace.tests.apps.appconf')),
+            'helpers', ('misc', include('appspace.tests.apps.appconf')),
         )
         return app
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
-        self.assertEqual(
-            plug.helpers.misc.square, plug['helpers']['misc']['square']
-        )
-        self.assertEqual(
-            plug.helpers.misc.fabulous, plug['helpers']['misc']['fabulous']
-        )
-        self.assertEqual(
-            plug.helpers.misc.formit, plug['helpers']['misc']['formit']
-        )
-        self.assertEqual(
-            plug.helpers.misc.lower, plug['helpers']['misc']['lower']
-        )
-        self.assertEqual(
-            plug.helpers.misc.upper, plug['helpers']['misc']['upper']
-        )
-        self.assertEqual(
-            plug.helpers.misc.store, plug['helpers']['misc']['store']
-        )
-
-    def test_identity_namespace(self):
-        from appspace.builders import Appspace
-        app = self._make_multiple()
-        self.assertIsInstance(app.helpers, Appspace)
+        self.assertEqual(plug.misc.square, plug['misc']['square'])
+        self.assertEqual(plug.misc.fabulous, plug['misc']['fabulous'])
+        self.assertEqual(plug.misc.formit, plug['misc']['formit'])
+        self.assertEqual(plug.misc.mrk, plug['misc']['mrk'])
+        self.assertEqual(plug.misc.furf, plug['misc']['furf'])
+        self.assertEqual(plug.misc.mrnrf, plug['misc']['mrnrf'])
 
     def test_identity_multiple(self):
         from re import match
-        from math import sqrt, fabs
-        try:
-            from UserDict import UserDict
-            from string import lowercase, uppercase
-        except ImportError:
-            from collections import UserDict
-            from string import (
-                ascii_lowercase as lowercase, ascii_uppercase as uppercase
-            )
+        from math import sqrt, fabs, isinf, isnan, exp
         plug = self._make_multiple()
-        self.assert_(plug.helpers.misc.square is sqrt)
-        self.assert_(plug.helpers.misc.fabulous is fabs)
-        self.assert_(plug.helpers.misc.formit is match)
-        self.assert_(plug.helpers.misc.lower is lowercase)
-        self.assert_(plug.helpers.misc.upper is uppercase)
-        self.assert_(plug.helpers.misc.store is UserDict)
+        self.assertIs(plug.misc.square, sqrt)
+        self.assertIs(plug.misc.fabulous, fabs)
+        self.assertIs(plug.misc.formit, match)
+        self.assertIs(plug.misc.mrk, isinf)
+        self.assertIs(plug.misc.furf, isnan)
+        self.assertIs(plug.misc.mrnrf, exp)
 
-    def test_call2_multiple(self):
+    def test_call_multiple(self):
         from re import match
-        from math import sqrt, fabs
-        try:
-            from UserDict import UserDict
-            from string import lowercase, uppercase
-        except ImportError:
-            from collections import UserDict
-            from string import (
-                ascii_lowercase as lowercase, ascii_uppercase as uppercase
-            )
+        from math import sqrt, fabs, isinf, isnan, exp
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.misc.square(2), sqrt(2))
-        self.assertEqual(plug.helpers.misc.fabulous(2), fabs(2))
+        self.assertEqual(plug.misc.square(2), sqrt(2))
+        self.assertEqual(plug.misc.fabulous(2), fabs(2))
         self.assertEqual(
-            plug.helpers.misc.formit('2', '2').string, match('2', '2').string
+            plug.misc.formit('2', '2').string, match('2', '2').string
         )
-        self.assertEqual(plug.helpers.misc.lower, lowercase)
-        self.assertEqual(plug.helpers.misc.upper, uppercase)
-        self.assertEqual(plug.helpers.misc.store, UserDict)
+        self.assertIs(plug.misc.mrk, isinf)
+        self.assertIs(plug.misc.furf, isnan)
+        self.assertIs(plug.misc.mrnrf, exp)
 
 
 class TestPatterns(unittest.TestCase):
@@ -250,152 +206,95 @@ class TestPatterns(unittest.TestCase):
     def _make_multiple():
         from math import fabs
         from appspace import Patterns, class_patterns
-
-        class helpers(Patterns):
+        class helpers(Patterns): #@IgnorePep8
             square = 'math.sqrt'
             fabulous = fabs
             formit = 're.match'
-            if PY3:
-                lower = 'string.ascii_lowercase'
-                upper = 'string.ascii_uppercase'
-                store = 'collections.UserDict'
-            else:
-                lower = 'string.lowercase'
-                upper = 'string.uppercase'
-                store = 'UserDict.UserDict'
-        return class_patterns('helpers', helpers)
+            mrk = 'math.isinf'
+            furf = 'math.isnan'
+            mrnrf = 'math.exp'
+        return class_patterns(helpers)
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.square, plug['helpers']['square'])
-        self.assertEqual(plug.helpers.fabulous, plug['helpers']['fabulous'])
-        self.assertEqual(plug.helpers.formit, plug['helpers']['formit'])
-        self.assertEqual(plug.helpers.lower, plug['helpers']['lower'])
-        self.assertEqual(plug.helpers.upper, plug['helpers']['upper'])
-        self.assertEqual(plug.helpers.store, plug['helpers']['store'])
-
-    def test_identity_namespace(self):
-        from appspace.builders import Appspace
-        app = self._make_multiple()
-        self.assertIsInstance(app.helpers, Appspace)
+        self.assertEqual(plug.square, plug['square'])
+        self.assertEqual(plug.fabulous, plug['fabulous'])
+        self.assertEqual(plug.formit, plug['formit'])
+        self.assertEqual(plug.furf, plug['furf'])
+        self.assertEqual(plug.mrk, plug['mrk'])
+        self.assertEqual(plug.mrnrf, plug['mrnrf'])
 
     def test_identity_multiple(self):
         from re import match
-        from math import sqrt, fabs
-        try:
-            from UserDict import UserDict
-            from string import lowercase, uppercase
-        except ImportError:
-            from collections import UserDict
-            from string import (
-                ascii_lowercase as lowercase, ascii_uppercase as uppercase
-            )
+        from math import sqrt, fabs, isinf, isnan, exp
         plug = self._make_multiple()
-        self.assert_(plug.helpers.square is sqrt)
-        self.assert_(plug.helpers.fabulous is fabs)
-        self.assert_(plug.helpers.formit is match)
-        self.assert_(plug.helpers.lower is lowercase)
-        self.assert_(plug.helpers.upper is uppercase)
-        self.assert_(plug.helpers.store is UserDict)
+        self.assertIs(plug.square, sqrt)
+        self.assertIs(plug.fabulous, fabs)
+        self.assertIs(plug.formit, match)
+        self.assertIs(plug.mrk, isinf)
+        self.assertIs(plug.furf, isnan)
+        self.assertIs(plug.mrnrf, exp)
 
-    def test_call2_multiple(self):
+    def test_call_multiple(self):
         from re import match
-        from math import sqrt, fabs
-        try:
-            from UserDict import UserDict
-            from string import lowercase, uppercase
-        except ImportError:
-            from collections import UserDict
-            from string import (
-                ascii_lowercase as lowercase, ascii_uppercase as uppercase
-            )
+        from math import sqrt, fabs, isinf, isnan, exp
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.square(2), sqrt(2))
-        self.assertEqual(plug.helpers.fabulous(2), fabs(2))
+        self.assertEqual(plug.square(2), sqrt(2))
+        self.assertEqual(plug.fabulous(2), fabs(2))
         self.assertEqual(
-            plug.helpers.formit('2', '2').string, match('2', '2').string
+            plug.formit('2', '2').string, match('2', '2').string
         )
-        self.assertEqual(plug.helpers.lower, lowercase)
-        self.assertEqual(plug.helpers.upper, uppercase)
-        self.assertEqual(plug.helpers.store, UserDict)
+        self.assertEqual(plug.mrk(2), isinf(2))
+        self.assertEqual(plug.furf(2), isnan(2))
+        self.assertEqual(plug.mrnrf(2), exp(2))
 
 
-#class TestNamespace(unittest.TestCase):
-#
-#    @staticmethod
-#    def _make_multiple():
-#        from math import fabs
-#        from appspace import Patterns, Namespace, class_patterns
-#
-#        class helpers(Patterns):
-#            square = 'math.sqrt'
-#            fabulous = fabs
-#            formit = 're.match'
-#            if PY3:
-#                lower = 'string.ascii_lowercase'
-#                upper = 'string.ascii_uppercase'
-#                store = 'collections.UserDict'
-#            else:
-#                lower = 'string.lowercase'
-#                upper = 'string.uppercase'
-#                store = 'UserDict.UserDict'
-#        return class_patterns('helpers', helpers)
-#
-#    def test_attr_multiple(self):
-#        plug = self._make_multiple()
-#        self.assertEqual(plug.helpers.square, plug['helpers']['square'])
-#        self.assertEqual(plug.helpers.fabulous, plug['helpers']['fabulous'])
-#        self.assertEqual(plug.helpers.formit, plug['helpers']['formit'])
-#        self.assertEqual(plug.helpers.lower, plug['helpers']['lower'])
-#        self.assertEqual(plug.helpers.upper, plug['helpers']['upper'])
-#        self.assertEqual(plug.helpers.store, plug['helpers']['store'])
-#
-#    def test_identity_namespace(self):
-#        from appspace.builders import Appspace
-#        app = self._make_multiple()
-#        self.assertIsInstance(app.helpers, Appspace)
-#
-#    def test_identity_multiple(self):
-#        from re import match
-#        from math import sqrt, fabs
-#        try:
-#            from UserDict import UserDict
-#            from string import lowercase, uppercase
-#        except ImportError:
-#            from collections import UserDict
-#            from string import (
-#                ascii_lowercase as lowercase, ascii_uppercase as uppercase
-#            )
-#        plug = self._make_multiple()
-#        self.assert_(plug.helpers.square is sqrt)
-#        self.assert_(plug.helpers.fabulous is fabs)
-#        self.assert_(plug.helpers.formit is match)
-#        self.assert_(plug.helpers.lower is lowercase)
-#        self.assert_(plug.helpers.upper is uppercase)
-#        self.assert_(plug.helpers.store is UserDict)
-#
-#    def test_call2_multiple(self):
-#        from re import match
-#        from math import sqrt, fabs
-#        try:
-#            from UserDict import UserDict
-#            from string import lowercase, uppercase
-#        except ImportError:
-#            from collections import UserDict
-#            from string import (
-#                ascii_lowercase as lowercase, ascii_uppercase as uppercase
-#            )
-#        plug = self._make_multiple()
-#        self.assertEqual(plug.helpers.square(2), sqrt(2))
-#        self.assertEqual(plug.helpers.fabulous(2), fabs(2))
-#        self.assertEqual(
-#            plug.helpers.formit('2', '2').string, match('2', '2').string
-#        )
-#        self.assertEqual(plug.helpers.lower, lowercase)
-#        self.assertEqual(plug.helpers.upper, uppercase)
-#        self.assertEqual(plug.helpers.store, UserDict)
-#
-#
+class TestNamespace(unittest.TestCase):
+
+    @staticmethod
+    def _make_multiple():
+        from math import fabs
+        from appspace import Patterns, Namespace, class_patterns
+        class helpers(Patterns): #@IgnorePep8
+            square = 'math.sqrt'
+            fabulous = fabs
+            formit = 'math.ceil'
+            class subhelpers(Namespace): #@IgnorePep8
+                mrk = 'math.isinf'
+                furf = 'math.isnan'
+                mrnrf = 'math.exp'
+        return class_patterns(helpers)
+
+    def test_attr_multiple(self):
+        plug = self._make_multiple()
+        self.assertEqual(plug.square, plug['square'])
+        self.assertEqual(plug.fabulous, plug['fabulous'])
+        self.assertEqual(plug.formit, plug['formit'])
+        self.assertEqual(plug.subhelpers.furf, plug['subhelpers']['furf'])
+        self.assertEqual(plug.subhelpers.mrk, plug['subhelpers']['mrk'])
+        self.assertEqual(plug.subhelpers.mrnrf, plug['subhelpers']['mrnrf'])
+
+    def test_identity_multiple(self):
+        from math import sqrt, fabs, isinf, isnan, ceil, exp
+        plug = self._make_multiple()
+        self.assertIs(plug.square, sqrt)
+        self.assertIs(plug.fabulous, fabs)
+        self.assertIs(plug.formit, ceil)
+        self.assertIs(plug.subhelpers.mrk, isinf)
+        self.assertIs(plug.subhelpers.furf, isnan)
+        self.assertIs(plug.subhelpers.mrnrf, exp)
+
+    def test_call_multiple(self):
+        from math import sqrt, fabs, ceil, isinf, isnan, exp
+        plug = self._make_multiple()
+        self.assertEqual(plug.square(2), sqrt(2))
+        self.assertEqual(plug.fabulous(2), fabs(2))
+        self.assertEqual(plug.helpers.formit(2.6), ceil(2.6))
+        self.assertEqual(plug.subhelpers.mrk(2), isinf(2))
+        self.assertEqual(plug.subhelpers.furf(2), isnan(2))
+        self.assertEqual(plug.subhelpers.mrnrf(2), exp(2))
+
+
 class TestKeyedNamespace(unittest.TestCase):
 
     @staticmethod
@@ -414,52 +313,84 @@ class TestKeyedNamespace(unittest.TestCase):
                 mrk = 'math.isinf'
                 furf = 'math.isnan'
                 mrnrf = exp
-        return class_patterns('helpers', helpers)
+        return class_patterns(helpers)
 
     def test_attr_multiple(self):
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.square, plug['helpers']['square'])
-        self.assertEqual(plug.helpers.fabulous, plug['helpers']['fabulous'])
-        self.assertEqual(plug.helpers.formit, plug['helpers']['formit'])
-        self.assertEqual(plug.helpers.lower, plug['helpers']['lower'])
-        self.assertEqual(plug.helpers.upper, plug['helpers']['upper'])
-        self.assertEqual(plug.helpers.store, plug['helpers']['store'])
-
-    def test_identity_namespace(self):
-        from appspace.builders import Appspace
-        app = self._make_multiple()
-        self.assertIsInstance(app.helpers, Appspace)
+        self.assertEqual(plug.square, plug['square'])
+        self.assertEqual(plug.fabulous, plug['fabulous'])
+        self.assertEqual(plug.formit, plug['formit'])
+        self.assertEqual(plug.subhelpers.furf, plug['subhelpers']['furf'])
+        self.assertEqual(plug.subhelpers.mrk, plug['subhelpers']['mrk'])
+        self.assertEqual(plug.subhelpers.mrnrf, plug['subhelpers']['mrnrf'])
 
     def test_identity_multiple(self):
         from math import sqrt, fabs, isinf, isnan, ceil, exp
         plug = self._make_multiple()
-        self.assert_(plug.helpers.square is sqrt)
-        self.assert_(plug.helpers.fabulous is fabs)
-        self.assert_(plug.helpers.formit is ceil)
-        self.assert_(plug.helpers.subhelpers.mrk is isinf)
-        self.assert_(plug.helpers.subhelpers.furf is isnan)
-        self.assert_(plug.helpers.subhelpers.nrnrf is exp)
+        self.assertIs(plug.square, sqrt)
+        self.assertIs(plug.fabulous, fabs)
+        self.assertIs(plug.formit, ceil)
+        self.assertIs(plug.subhelpers.mrk, isinf)
+        self.assertIs(plug.subhelpers.furf, isnan)
+        self.assertIs(plug.subhelpers.mrnrf, exp)
 
-    def test_call2_multiple(self):
-        from re import match
-        from math import sqrt, fabs
-        try:
-            from UserDict import UserDict
-            from string import lowercase, uppercase
-        except ImportError:
-            from collections import UserDict
-            from string import (
-                ascii_lowercase as lowercase, ascii_uppercase as uppercase
-            )
+    def test_call_multiple(self):
+        from math import sqrt, fabs, ceil, isinf, isnan, exp
         plug = self._make_multiple()
-        self.assertEqual(plug.helpers.square(2), sqrt(2))
-        self.assertEqual(plug.helpers.fabulous(2), fabs(2))
+        self.assertEqual(plug.square(2), sqrt(2))
+        self.assertEqual(plug.fabulous(2), fabs(2))
+        self.assertEqual(plug.helpers.formit(2.6), ceil(2.6))
+        self.assertEqual(plug.subhelpers.mrk(2), isinf(2))
+        self.assertEqual(plug.subhelpers.furf(2), isnan(2))
+        self.assertEqual(plug.subhelpers.mrnrf(2), exp(2))
+
+
+class TestBranch(unittest.TestCase):
+
+    @staticmethod
+    def _make_multiple():
+        from math import fabs
+        from appspace import Patterns, Branch, class_patterns
+        class helpers(Patterns): #@IgnorePep8
+            square = 'math.sqrt'
+            fabulous = fabs
+            formit = 'math.ceil'
+            class subhelpers(Branch): #@IgnorePep8
+                misc = 'appspace.tests.apps.appconf'
+        return class_patterns(helpers)
+
+    def test_attr_multiple(self):
+        plug = self._make_multiple()
+        self.assertEqual(plug.misc.square, plug['misc']['square'])
+        self.assertEqual(plug.misc.fabulous, plug['misc']['fabulous'])
+        self.assertEqual(plug.misc.formit, plug['misc']['formit'])
+        self.assertEqual(plug.misc.mrk, plug['misc']['mrk'])
+        self.assertEqual(plug.misc.furf, plug['misc']['furf'])
+        self.assertEqual(plug.misc.mrnrf, plug['misc']['mrnrf'])
+
+    def test_identity_multiple(self):
+        from re import match
+        from math import sqrt, fabs, isinf, isnan, exp
+        plug = self._make_multiple()
+        self.assertIs(plug.misc.square, sqrt)
+        self.assertIs(plug.misc.fabulous, fabs)
+        self.assertIs(plug.misc.formit, match)
+        self.assertIs(plug.misc.mrk, isinf)
+        self.assertIs(plug.misc.furf, isnan)
+        self.assertIs(plug.misc.mrnrf, exp)
+
+    def test_call_multiple(self):
+        from re import match
+        from math import sqrt, fabs, isinf, isnan, exp
+        plug = self._make_multiple()
+        self.assertEqual(plug.misc.square(2), sqrt(2))
+        self.assertEqual(plug.misc.fabulous(2), fabs(2))
         self.assertEqual(
-            plug.helpers.formit('2', '2').string, match('2', '2').string
+            plug.misc.formit('2', '2').string, match('2', '2').string
         )
-        self.assertEqual(plug.helpers.lower, lowercase)
-        self.assertEqual(plug.helpers.upper, uppercase)
-        self.assertEqual(plug.helpers.store, UserDict)
+        self.assertIs(plug.misc.mrk, isinf)
+        self.assertIs(plug.misc.furf, isnan)
+        self.assertIs(plug.misc.mrnrf, exp)
 
 if __name__ == '__main__':
     unittest.main()

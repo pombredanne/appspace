@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 '''appspace builder'''
 
-from operator import contains
-
 from appspace.spaces import patterns as apatterns
 from appspace.keys import AAppspace, appifies, AppLookupError, NoAppError
 
@@ -32,9 +30,17 @@ class Appspace(object):
 
     def __getitem__(self, label):
         try:
-            return self.manager.get(label)
+            item = self.manager.get(label, self.manager._current)
+            self.manager._current = self.manager._root
+            return item
         except AppLookupError:
-            raise NoAppError(label)
+            try:
+                self.manager.namespace(label)
+            except AppLookupError:
+                raise NoAppError(label)
+            else:
+                self.manager._current = label
+                return self
 
     def __call__(self, label, *args, **kw):
         try:
@@ -42,9 +48,6 @@ class Appspace(object):
             return result(*args, **kw)
         except TypeError:
             return result
-
-    def __contains__(self, label):
-        return contains(self.manager, label)
 
     def __repr__(self):
         return repr(self.manager)
@@ -56,20 +59,14 @@ def patterns(label, *args, **kw):
 
     @param label: label for manager
     '''
-    manager = apatterns(label, *args, **kw)
-    space = Appspace(manager)
-    manager.set(label, space)
-    return space
+    return Appspace(apatterns(label, *args, **kw))
 
 
-def class_patterns(label, clspatterns):
+def class_patterns(clspatterns):
     '''
     factory for manager configured with class patterns
 
     @param label: label for manager
     @param clspatterns: class patterns
     '''
-    manager = clspatterns.build()
-    new_patterns = Appspace(manager)
-    manager.set(label, new_patterns)
-    return new_patterns
+    return Appspace(clspatterns.build())

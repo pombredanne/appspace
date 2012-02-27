@@ -31,16 +31,20 @@ class Appspace(object):
     def __getitem__(self, label):
         try:
             item = self.manager.get(label, self.manager._current)
-            self.manager._current = self.manager._root
-            return item
         except AppLookupError:
             try:
+                # try finding namespace
                 self.manager.namespace(label)
             except AppLookupError:
                 raise NoAppError(label)
             else:
+                # temporarily swap primary label
                 self.manager._current = label
                 return self
+        else:
+            # ensure current label is set back to default
+            self.manager._current = self.manager._root
+            return item
 
     def __call__(self, label, *args, **kw):
         try:
@@ -48,9 +52,6 @@ class Appspace(object):
             return result(*args, **kw)
         except TypeError:
             return result
-
-    def __repr__(self):
-        return repr(self.manager)
 
 
 def patterns(label, *args, **kw):
@@ -66,7 +67,6 @@ def class_patterns(clspatterns):
     '''
     factory for manager configured with class patterns
 
-    @param label: label for manager
     @param clspatterns: class patterns
     '''
     return Appspace(clspatterns.build())

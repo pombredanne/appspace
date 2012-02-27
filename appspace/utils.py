@@ -7,10 +7,10 @@ from importlib import import_module
 
 from stuf.six import strings
 
-__all__ = ('checkname', 'lazy_import')
+__all__ = ('checkname', 'lazyimport')
 
 
-def lazy_import(path, attribute=None):
+def lazyimport(path, attribute=None):
     '''
     deferred module loader
 

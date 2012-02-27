@@ -7,7 +7,7 @@ from functools import partial
 
 from stuf.six import strings, u
 
-from appspace.utils import lazy_import, checkname
+from appspace.utils import lazyimport, checkname
 from appspace.registry import Registry, StrictRegistry
 from appspace.keys import (
     ALazyLoad, AManager, ANamespace, AppLookupError, appifies)
@@ -22,16 +22,11 @@ class ManagerMixin(object):
     _first = re.compile('[^\w\s-]').sub
     _second = re.compile('[-\s]+').sub
 
-    def __init__(self, label):
-        super(ManagerMixin, self).__init__()
-        self._root = self._current = label
-        self.ez_register(ANamespace, label, self._key)
-
     def apply(self, label, key=False, *args, **kw):
         '''
-        call appspaced callable
+        invoke appspaced callable
 
-        @param label: appspaced callable label
+        @param label: appspaced callable
         @param key: key label (default: False)
         '''
         return self.get(label, key)(*args, **kw)
@@ -43,13 +38,14 @@ class ManagerMixin(object):
         @param label: appspaced thing label
         @param branch: branch label (default: False)
         '''
-        key = self.namespace(key) if key else self._key
+        # use internal key if key label == internal key
+        key = self._key if key == self._root else self.namespace(key)
         app = self.lookup1(key, key, label)
         if app is None:
             raise AppLookupError(app, label)
         return self.load(
             label, key, app.path
-        ) if ALazyLoad.providedBy(app) else app
+        ) if self.keyed(ALazyLoad, app) else app
 
     def load(self, label, key, module):
         '''
@@ -59,9 +55,9 @@ class ManagerMixin(object):
         @param module: module path
         '''
         # add branch appspace from include
-        app = lazy_import(module[-1]) if isinstance(
+        app = lazyimport(module[-1]) if isinstance(
             module, tuple
-        ) else lazy_import(module)
+        ) else lazyimport(module)
         # register get
         self.register([key], key, label, app)
         return app
@@ -102,7 +98,7 @@ class ManagerMixin(object):
             thing, (strings, tuple)
         ) else thing
         key = self.namespace(key) if key else self._key
-        self.register([key], key, label, thing)
+        self.register([key], key, self.safename(label), thing)
         return thing
 
     @classmethod
@@ -150,4 +146,4 @@ class LazyLoad(object):
         return 'lazy import from {path}'.format(path=self.path)
 
 
-iskeyed = Manager.iskeyed
+keyed = Manager.keyed

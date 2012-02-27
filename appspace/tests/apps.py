@@ -3,7 +3,6 @@
 
 from appspace import patterns
 
-
 PATTERNS = (
     ('square', 'math.sqrt'),
     ('fabulous', 'math.fabs'),
@@ -12,6 +11,4 @@ PATTERNS = (
     ('furf', 'math.isnan'),
     ('mrnrf', 'math.exp'),
 )
-
-
 appconf = patterns('', *PATTERNS)

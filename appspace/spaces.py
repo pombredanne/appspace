@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 '''appspace spaces'''
 
+from functools import partial
 from itertools import starmap
 
 from stuf.six import items, strings
 from stuf.utils import selfname, exhaust, twoway
 
-from appspace.utils import lazy_import
+from appspace.utils import lazyimport
 from appspace.managers import Manager, StrictManager
 from appspace.keys import ABranch, ANamespace, ifilter, appifies
 
@@ -21,6 +22,7 @@ class Patterns(object):
 
     @twoway
     def _manager(self):
+        # manager class
         return StrictManager if self.strict else Manager
 
     @classmethod
@@ -28,9 +30,9 @@ class Patterns(object):
         '''build manager configuration from class'''
         l = selfname(cls)
         manager = cls._manager(l)
-        b = ABranch.implementedBy
+        b = partial(manager.keyed, ABranch)
         m = manager.set
-        n = ANamespace.implementedBy
+        n = partial(manager.keyed, ANamespace)
         exhaust(starmap(
             lambda x, y: y.build(manager) if n(y) or b(y) else m(x, y, l),
             ifilter(lambda x: not x[0].startswith('_'), items(vars(cls))),
@@ -46,10 +48,9 @@ class Patterns(object):
         '''
         # build manager
         manager = manager(label)
-        apper = manager.set
+        mset = manager.set
         # register things in manager
-        exhaust(starmap(apper, iter(args)))
-        apper(label, manager)
+        exhaust(starmap(mset, iter(args)))
         return manager
 
     @classmethod
@@ -68,9 +69,11 @@ class PatternMixin(object):
     @classmethod
     def _key(cls, label, manager):
         try:
+            # lazily load key
             key = cls.key
             if isinstance(key, strings):
-                key = lazy_import(key)
+                key = lazyimport(key)
+            # register class key
             manager.ez_register(ANamespace, label, key)
         except AttributeError:
             key = manager.key(ANamespace, label)
@@ -112,8 +115,8 @@ class Namespace(PatternMixin):
         '''gather namespace configuration'''
         label = selfname(cls)
         cls._key(label, manager)
-        n = ANamespace.implementedBy
         m = manager.set
+        n = partial(manager.keyed, ANamespace)
         exhaust(starmap(
             lambda k, v: v.build(manager) if n(v) else m(k, v, label),
             ifilter(lambda x: not x[0].startswith('_'), items(vars(cls))),

@@ -13,13 +13,13 @@ from zope.interface import implementer, directlyProvides, providedBy
 from zope.interface.adapter import AdapterRegistry, VerifyingAdapterRegistry
 # pylint: enable-msg=f0401
 
-imap = map
-ifilter = filter
 AppStore = AdapterRegistry
 StrictAppStore = VerifyingAdapterRegistry
 apped = directlyProvides
 appifies = implementer
 get_apps = providedBy
+ifilter = filter
+imap = map
 # primary key
 AppspaceKey = InterfaceClass('AppspaceKey')
 # app lookup exception

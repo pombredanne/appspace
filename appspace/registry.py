@@ -6,23 +6,29 @@ import hashlib
 from inspect import isclass
 
 from stuf.six import u
-from appspace.keys import AppStore, InterfaceClass, AApp, StrictAppStore
+from appspace.keys import (
+    AppStore, InterfaceClass, AApp, StrictAppStore, ANamespace, AManager)
 
 __all__ = ('Registry', 'StrictRegistry')
 
 
 class RegistryMixin(object):
 
-    def __init__(self, ns='default', key=AApp):
+    def __init__(self, label, key=AApp):
         '''
         init
 
-        @param ns: label for internal namespace (default: 'default')
+        @param label: label for internal namespace
         @param key: registry key (default: AApp)
         '''
         super(RegistryMixin, self).__init__()
         self._key = key
-        self._ns = ns
+        # root and current label
+        self._root = self._current = label
+        # register key under namespace
+        self.ez_register(ANamespace, label, key)
+        # register manager under label
+        self.ez_register(AManager, label, self)
 
     @classmethod
     def create(cls):
@@ -31,7 +37,11 @@ class RegistryMixin(object):
 
     @staticmethod
     def ez_id(this):
-        '''easy unique identifier for an object'''
+        '''
+        easy unique identifier for an object
+
+        @param this: an object
+        '''
         return hashlib.sha1(u(id(this))).digest()
 
     def ez_lookup(self, key, label):
@@ -83,12 +93,12 @@ class RegistryMixin(object):
         self.unsubscribe(key, self.ez_lookup(key, label))
 
     @staticmethod
-    def iskeyed(k, v):
+    def keyed(k=False, v=False):
         '''
         check if item has an app key
 
-        @param k: app key
-        @param v: object to check
+        @param key: app key
+        @param thing: thing to check
         '''
         try:
             return k.implementedBy(v) if isclass(v) else k.providedBy(v)

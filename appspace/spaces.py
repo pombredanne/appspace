@@ -34,7 +34,7 @@ class Patterns(object):
         m = manager.set
         n = partial(manager.keyed, ANamespace)
         exhaust(starmap(
-            lambda x, y: y.build(manager) if n(y) or b(y) else m(x, y, l),
+            lambda x, y: y.build(manager) if (n(y) or b(y)) else m(x, y, l),
             ifilter(lambda x: not x[0].startswith('_'), items(vars(cls))),
         ))
         return manager

@@ -19,8 +19,8 @@ class ManagerMixin(object):
 
     '''state manager'''
 
-    _first = re.compile('[^\w\s-]').sub
-    _second = re.compile('[-\s]+').sub
+    _first = staticmethod(re.compile('[^\w\s-]').sub)
+    _second = staticmethod(re.compile('[-\s]+').sub)
 
     def apply(self, label, key=False, *args, **kw):
         '''
@@ -116,7 +116,7 @@ class Manager(ManagerMixin, Registry):
 
     '''state manager'''
 
-    __slots__ = ('_current', '_root', '_key', '_ns', '_first', '_second')
+    __slots__ = ('_current', '_root', '_key', '_first', '_second')
 
 
 @appifies(AManager)
@@ -124,7 +124,7 @@ class StrictManager(ManagerMixin, StrictRegistry):
 
     '''strict manager'''
 
-    __slots__ = ('_current', '_root', '_key', '_ns', '_first', '_second')
+    __slots__ = ('_current', '_root', '_key', '_first', '_second')
 
 
 @appifies(ALazyLoad)

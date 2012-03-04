@@ -41,9 +41,6 @@ class AAppspace(AppspaceKey):
     def __call__(label, *args, **kw):
         '''@param label: label of app in appspace'''
 
-    def __contains__(label):
-        '''membership check'''
-
     def __getattr__(label):
         '''get attribute'''
 
@@ -71,36 +68,63 @@ class ALazyLoad(AApp):
 class AManager(AppspaceKey):
 
     '''appspace key'''
-
-    events = Attribute('event handler')
-    settings = Attribute('settings for an appspace')
-
-    def __contains__(label):
-        '''membership check'''
-
-    def get(label):
+    
+    def apply(label, key=False, *args, **kw):
         '''
-        fetch instance
+        invoke appspaced callable
 
-        @param label: instance or branch label
+        @param label: appspaced callable
+        @param key: key label (default: False)
         '''
 
-    def load(label, module_path):
+    def get(label, key=False):
         '''
-        load branch or instance from appspace
+        get thing from appspace
 
-        @param label: instance or branch label
-        @param module_path: Python module path
+        @param label: appspaced thing label
+        @param key: appspace key (default: False)
         '''
 
-    def set(label, instance):
+    def load(label, key, module):
         '''
-        register branches or components in appspace
+        import thing into appspace
 
-        @param label: appspace label
-        @param instance: instance to add to appspace
+        @param label: appspaced thing label
+        @param key: appspace key
+        @param module: module path
+        '''
+        
+    def namespace(label):
+        '''
+        fetch key
+
+        @param label: appspace key label
+        '''
+        
+    def partial(call, key=False, *args, **kw):
+        '''
+        partialize callable or appspaced application with any passed parameters
+
+        @param call: callable or appspaced object label
+        @param key: appspace key label (default: False)
+        '''
+        
+    def set(label=False, thing=False, key=False):
+        '''
+        add thing to appspace
+
+        @param label: new appspace thing label (default: False)
+        @param key: key label (default: False)
+        @param thing: new appspace thing (default: False)
+        '''
+        
+    def slugify(value):
+        '''
+        normalizes string, converts to lowercase, removes non-alpha characters,
+        and converts spaces to hyphens
         '''
 # pylint: enable-msg=e0213
+
 
 class ANamespace(AppspaceKey):
 

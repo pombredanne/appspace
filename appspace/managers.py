@@ -36,7 +36,7 @@ class ManagerMixin(object):
         get thing from appspace
 
         @param label: appspaced thing label
-        @param branch: branch label (default: False)
+        @param key: appspace key (default: False)
         '''
         # use internal key if key label == internal key
         key = self._key if key == self._root else self.namespace(key)
@@ -52,6 +52,7 @@ class ManagerMixin(object):
         import thing into appspace
 
         @param label: appspaced thing label
+        @param key: appspace key
         @param module: module path
         '''
         # add branch appspace from include
@@ -66,7 +67,7 @@ class ManagerMixin(object):
         '''
         fetch key
 
-        @param key: key
+        @param label: appspace key label
         '''
         this = self.lookup1(ANamespace, ANamespace, label)
         if this is None:
@@ -78,7 +79,7 @@ class ManagerMixin(object):
         partialize callable or appspaced application with any passed parameters
 
         @param call: callable or appspaced object label
-        @param branch: key label (default: False)
+        @param key: appspace key label (default: False)
         '''
         return partial(
             self.get(call, key), *args, **kw

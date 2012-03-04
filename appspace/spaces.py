@@ -9,34 +9,46 @@ from stuf.utils import selfname, exhaust, twoway
 
 from appspace.utils import lazyimport
 from appspace.managers import Manager, StrictManager
-from appspace.keys import ABranch, ANamespace, ifilter, appifies, AApp
+from appspace.keys import ABranch, ANamespace, AApp, ifilter, appifies
 
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')
 
 
-class Patterns(object):
+class _Filter(object):
+
+    @classmethod
+    def _filter(self, x):
+        return not x[0].startswith('_')
+
+
+class Patterns(_Filter):
 
     '''patterns for manager configured by class'''
 
+    key = AApp
     strict = False
 
     @twoway
     def _manager(self):
-        # manager class
+        '''manager class'''
         return StrictManager if self.strict else Manager
 
     @classmethod
-    def build(cls, key=AApp):
+    def build(cls):
         '''build manager configuration from class'''
         l = selfname(cls)
+        # set key
+        key = cls.key
+        if isinstance(key, strings):
+            # load key if string
+            key = lazyimport(key)
         manager = cls._manager(l, key)  # pylint: disable-msg=e1121
         b = partial(manager.keyed, ABranch)
-        m = manager.set
         n = partial(manager.keyed, ANamespace)
-        exhaust(starmap(
-            lambda x, y: y.build(manager) if (n(y) or b(y)) else m(x, y, l),
-            ifilter(lambda x: not x[0].startswith('_'), items(vars(cls))),
-        ))
+        m = manager.set
+        t = lambda x, y: y.build(manager) if (n(y) or b(y)) else m(x, y, l)
+        t2 = cls._filter
+        exhaust(starmap(t, ifilter(t2, items(vars(cls)))))
         return manager
 
     @staticmethod
@@ -62,9 +74,9 @@ class Patterns(object):
         @param *args: tuple of module paths or component inclusions
         '''
         return cls.factory(label, cls._manager, *args)
-
-
-class PatternMixin(object):
+    
+    
+class _PatternMixin(_Filter):
 
     @classmethod
     def _key(cls, label, manager):
@@ -80,7 +92,7 @@ class PatternMixin(object):
 
 
 @appifies(ANamespace)
-class Branch(PatternMixin):
+class Branch(_PatternMixin):
 
     '''branch configuration'''
 
@@ -88,12 +100,11 @@ class Branch(PatternMixin):
     def build(cls, manager):
         '''gather branch configuration'''
         cls._key(selfname(cls), manager)
-        test = lambda x: not x[0].startswith('_') or isinstance(x[1], strings)
-        mset = manager.set
-        inc = cls.include
-        exhaust(starmap(
-            lambda x, y: mset(x, inc(y)), ifilter(test, items(vars(cls))),
-        ))
+        i = cls.include
+        m = manager.set
+        t = lambda x: not x[0].startswith('_') or isinstance(x[1], strings)
+        t2 = lambda x, y: m(x, i(y))
+        exhaust(starmap(t2, ifilter(t, items(vars(cls)))))
 
     @staticmethod
     def include(module):
@@ -106,7 +117,7 @@ class Branch(PatternMixin):
 
 
 @appifies(ANamespace)
-class Namespace(PatternMixin):
+class Namespace(_PatternMixin):
 
     '''configuration namespace'''
 
@@ -117,10 +128,9 @@ class Namespace(PatternMixin):
         cls._key(label, manager)
         m = manager.set
         n = partial(manager.keyed, ANamespace)
-        exhaust(starmap(
-            lambda k, v: v.build(manager) if n(v) else m(k, v, label),
-            ifilter(lambda x: not x[0].startswith('_'), items(vars(cls))),
-        ))
+        t = lambda k, v: v.build(manager) if n(v) else m(k, v, label)
+        t2 = cls._filter
+        exhaust(starmap(t, ifilter(t2, items(vars(cls)))))
 
 
 factory = Patterns.factory

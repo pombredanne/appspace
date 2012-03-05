@@ -74,8 +74,8 @@ class Patterns(_Filter):
         @param *args: tuple of module paths or component inclusions
         '''
         return cls.factory(label, cls._manager, *args)
-    
-    
+
+
 class _PatternMixin(_Filter):
 
     @classmethod

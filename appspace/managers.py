@@ -3,7 +3,6 @@
 
 import re
 import unicodedata
-from functools import partial
 
 from stuf.six import strings, u
 
@@ -73,17 +72,6 @@ class ManagerMixin(object):
         if this is None:
             raise AppLookupError(this, label)
         return this
-
-    def partial(self, call, key=False, *args, **kw):
-        '''
-        partialize callable or appspaced application with any passed parameters
-
-        @param call: callable or appspaced object label
-        @param key: appspace key label (default: False)
-        '''
-        return partial(
-            self.get(call, key), *args, **kw
-        ) if isinstance(call, strings) else partial(call, *args, **kw)
 
     safename = staticmethod(checkname)
 

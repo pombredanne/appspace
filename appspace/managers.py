@@ -21,9 +21,9 @@ class RootMixin(object):
 
     def apply(self, label, key=False, *args, **kw):
         '''
-        invoke appspaced callable
+        invoke appspaced call
 
-        @param label: appspaced callable
+        @param label: appspaced call
         @param key: key label (default: False)
         '''
         return self.get(label, key)(*args, **kw)
@@ -33,7 +33,7 @@ class RootMixin(object):
         get thing from appspace
 
         @param label: appspaced thing label
-        @param key: appspace key (default: False)
+        @param key: `appspace` key (default: False)
         '''
         # use internal key if key label == internal key
         key = self._key if key == self._root else self.namespace(key)
@@ -46,20 +46,20 @@ class RootMixin(object):
         '''
         fetch key
 
-        @param label: appspace key label
+        @param label: `appspace` key label
         '''
         this = self.lookup1(ANamespace, ANamespace, label)
         if this is None:
             raise AppLookupError(this, label)
         return this
 
-    def set(self, label=False, thing=False, key=False):
+    def set(self, thing=False, label=False, key=False):
         '''
-        add thing to appspace
+        add thing to `appspace`
 
-        @param label: new appspace thing label (default: False)
+        @param thing: new `appspace` thing (default: False)
+        @param label: new `appspace` thing label (default: False)
         @param key: key label (default: False)
-        @param thing: new appspace thing (default: False)
         '''
         thing = self._lazy(thing)
         key = self.namespace(key) if key else self._key

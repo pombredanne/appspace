@@ -46,7 +46,7 @@ class Patterns(_Filter):
         b = partial(manager.keyed, ABranch)
         n = partial(manager.keyed, ANamespace)
         m = manager.set
-        t = lambda x, y: y.build(manager) if (n(y) or b(y)) else m(x, y, l)
+        t = lambda x, y: y.build(manager) if (n(y) or b(y)) else m(y, x, l)
         t2 = cls._filter
         exhaust(starmap(t, ifilter(t2, items(vars(cls)))))
         return manager
@@ -60,7 +60,7 @@ class Patterns(_Filter):
         '''
         # build manager
         manager = manager(label)
-        mset = manager.set
+        mset = lambda x, y: manager.set(y, x)
         # register things in manager
         exhaust(starmap(mset, iter(args)))
         return manager
@@ -103,7 +103,7 @@ class Branch(_PatternMixin):
         i = cls.include
         m = manager.set
         t = lambda x: not x[0].startswith('_') or isinstance(x[1], strings)
-        t2 = lambda x, y: m(x, i(y))
+        t2 = lambda x, y: m(i(y), x)
         exhaust(starmap(t2, ifilter(t, items(vars(cls)))))
 
     @staticmethod
@@ -128,7 +128,7 @@ class Namespace(_PatternMixin):
         cls._key(label, manager)
         m = manager.set
         n = partial(manager.keyed, ANamespace)
-        t = lambda k, v: v.build(manager) if n(v) else m(k, v, label)
+        t = lambda k, v: v.build(manager) if n(v) else m(v, k, label)
         t2 = cls._filter
         exhaust(starmap(t, ifilter(t2, items(vars(cls)))))
 

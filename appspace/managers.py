@@ -4,17 +4,15 @@
 import re
 import unicodedata
 
-from stuf.six import strings, u
+from stuf.six import u
 
-from appspace.utils import lazyimport, checkname
 from appspace.registry import Registry, StrictRegistry
-from appspace.keys import (
-    ALazyLoad, AManager, ANamespace, AppLookupError, appifies)
+from appspace.keys import AManager, ANamespace, AppLookupError, appifies
 
-__all__ = ('LazyLoad', 'Manager', 'StrictManager')
+__all__ = ('Manager', 'StrictManager')
 
 
-class ManagerMixin(object):
+class RootMixin(object):
 
     '''state manager'''
 
@@ -42,25 +40,7 @@ class ManagerMixin(object):
         app = self.lookup1(key, key, label)
         if app is None:
             raise AppLookupError(app, label)
-        return self.load(
-            label, key, app.path
-        ) if self.keyed(ALazyLoad, app) else app
-
-    def load(self, label, key, module):
-        '''
-        import thing into appspace
-
-        @param label: appspaced thing label
-        @param key: appspace key
-        @param module: module path
-        '''
-        # add branch appspace from include
-        app = lazyimport(module[-1]) if isinstance(
-            module, tuple
-        ) else lazyimport(module)
-        # register get
-        self.register([key], key, label, app)
-        return app
+        return self._unlazy(label, key, app)
 
     def namespace(self, label):
         '''
@@ -73,8 +53,6 @@ class ManagerMixin(object):
             raise AppLookupError(this, label)
         return this
 
-    safename = staticmethod(checkname)
-
     def set(self, label=False, thing=False, key=False):
         '''
         add thing to appspace
@@ -83,9 +61,7 @@ class ManagerMixin(object):
         @param key: key label (default: False)
         @param thing: new appspace thing (default: False)
         '''
-        thing = LazyLoad(thing) if isinstance(
-            thing, (strings, tuple)
-        ) else thing
+        thing = self._lazy(thing)
         key = self.namespace(key) if key else self._key
         self.register([key], key, self.safename(label), thing)
         return thing
@@ -101,7 +77,7 @@ class ManagerMixin(object):
 
 
 @appifies(AManager)
-class Manager(ManagerMixin, Registry):
+class Manager(RootMixin, Registry):
 
     '''state manager'''
 
@@ -109,30 +85,11 @@ class Manager(ManagerMixin, Registry):
 
 
 @appifies(AManager)
-class StrictManager(ManagerMixin, StrictRegistry):
+class StrictManager(RootMixin, StrictRegistry):
 
     '''strict manager'''
 
     __slots__ = ('_current', '_root', '_key', '_first', '_second')
-
-
-@appifies(ALazyLoad)
-class LazyLoad(object):
-
-    '''lazy import loader'''
-
-    __slots__ = ['path']
-
-    def __init__(self, path):
-        '''
-        init
-
-        @param path: path to component module
-        '''
-        self.path = path
-
-    def __repr__(self):
-        return 'lazy import from {path}'.format(path=self.path)
 
 
 keyed = Manager.keyed

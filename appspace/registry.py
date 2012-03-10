@@ -5,11 +5,33 @@ import uuid
 import hashlib
 from inspect import isclass
 
-from stuf.six import u
-from appspace.keys import (
-    AppStore, InterfaceClass, AApp, StrictAppStore, ANamespace, AManager)
+from stuf.six import u, strings
 
-__all__ = ('Registry', 'StrictRegistry')
+from appspace.utils import lazyimport, checkname
+from appspace.keys import (
+    ALazyLoad, AppStore, InterfaceClass, AApp, StrictAppStore, ANamespace,
+    AManager, appifies)
+
+__all__ = ('LazyLoad', 'Registry', 'StrictRegistry')
+
+
+@appifies(ALazyLoad)
+class LazyLoad(object):
+
+    '''lazy import loader'''
+
+    __slots__ = ['path']
+
+    def __init__(self, path):
+        '''
+        init
+
+        @param path: path to component module
+        '''
+        self.path = path
+
+    def __repr__(self):
+        return 'lazy import from {path}'.format(path=self.path)
 
 
 class RegistryMixin(object):
@@ -29,6 +51,16 @@ class RegistryMixin(object):
         self.ez_register(ANamespace, label, key)
         # register manager under label
         self.ez_register(AManager, label, self)
+
+    def _lazy(self, thing):
+        return LazyLoad(thing) if isinstance(
+            thing, (strings, tuple)
+        ) else thing
+
+    def _unlazy(self, label, key, thing):
+        return self.load(
+            label, key, thing.path
+        ) if self.keyed(ALazyLoad, thing) else thing
 
     @classmethod
     def create(cls):
@@ -51,7 +83,10 @@ class RegistryMixin(object):
         @param key: key to lookup
         @param label: label to lookup
         '''
-        return self.lookup1(key, key, label)
+        app = self.lookup1(key, key, label)
+        return self.load(
+            label, key, app.path
+        ) if self.keyed(ALazyLoad, app) else app
 
     def ez_register(self, key=None, label=None, app=None):
         '''
@@ -117,6 +152,24 @@ class RegistryMixin(object):
             this = self.create()
             self.register([key], key, label, this)
         return this
+
+    def load(self, label, key, module):
+        '''
+        import thing into appspace
+
+        @param label: appspaced thing label
+        @param key: appspace key
+        @param module: module path
+        '''
+        # add branch appspace from include
+        app = lazyimport(module[-1]) if isinstance(
+            module, tuple
+        ) else lazyimport(module)
+        # register get
+        self.register([key], key, label, app)
+        return app
+
+    safename = staticmethod(checkname)
 
     @staticmethod
     def uuid():

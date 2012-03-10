@@ -1,148 +1,95 @@
 # -*- coding: utf-8 -*-
-# pylint: disable-msg=e1001,e1002
 '''appspace management'''
 
-from inspect import isclass
-from operator import contains
+import re
+import unicodedata
 
-from six import string_types
-from appspace.keys import AppStore
-from appspace.utils import lazy_import
-from appspace.keys import AApp, ALazyApp, AManager, AppLookupError, appifies
+from stuf.six import u
 
-__all__ = ('LazyApp', 'Manager')
+from appspace.registry import Registry, StrictRegistry
+from appspace.keys import AManager, ANamespace, AppLookupError, appifies
+
+__all__ = ('Manager', 'StrictManager')
 
 
-@appifies(AManager)
-class Manager(AppStore):
+class RootMixin(object):
 
     '''state manager'''
 
-    __slots__ = ('_key', '_label', '_ns')
+    _first = staticmethod(re.compile('[^\w\s-]').sub)
+    _second = staticmethod(re.compile('[-\s]+').sub)
 
-    def __init__(self, label='appconf', ns='default'):
+    def apply(self, label, key=False, *args, **kw):
         '''
-        init
+        invoke appspaced callable
 
-        @param label: label for application configuration object
-        @param ns: label for internal namespace
+        @param label: appspaced callable
+        @param key: key label (default: False)
         '''
-        super(Manager, self).__init__()
-        self._label = label
-        self._ns = ns
-        self._key = AApp
+        return self.get(label, key)(*args, **kw)
 
-    def __contains__(self, label):
-        return contains(self.names([self._key], self._key), label)
-
-    def __repr__(self):
-        return str(self.lookupAll([self._key], self._key))
-
-    def ez_lookup(self, key, label):
+    def get(self, label, key=False):
         '''
-        streamlined get lookup
+        get thing from appspace
 
-        @param key: key to lookup
-        @param label: label to lookup
+        @param label: appspaced thing label
+        @param key: appspace key (default: False)
         '''
-        return self.lookup1(key, key, label)
-
-    def ez_register(self, key, label, app):
-        '''
-        streamlined get registration
-
-        @param key: key to register
-        @param label: label to register
-        @param app: app to register
-        '''
-        self.register([key], key, label, app)
-
-    def ez_unregister(self, key, label):
-        '''
-        streamlined get unregistration
-
-        @param key: key to lookup
-        @param label: label to lookup
-        '''
-        self.unregister([key], key, label, self.ez_lookup(key, label))
-
-    def get(self, label):
-        '''
-        fetch app
-
-        @param label: get or branch label
-        '''
-        key = self._key
+        # use internal key if key label == internal key
+        key = self._key if key == self._root else self.namespace(key)
         app = self.lookup1(key, key, label)
         if app is None:
             raise AppLookupError(app, label)
-        if ALazyApp.providedBy(app):
-            app = self.load(label, app.path)
-        return app
+        return self._unlazy(label, key, app)
 
-    @staticmethod
-    def iskeyed(key, this):
+    def namespace(self, label):
         '''
-        check if item has an app key
+        fetch key
 
-        @param label: app key
-        @param this: object to check
+        @param label: appspace key label
         '''
-        try:
-            if isclass(this):
-                return key.implementedBy(this)
-            return key.providedBy(this)
-        except AttributeError:
-            return False
+        this = self.lookup1(ANamespace, ANamespace, label)
+        if this is None:
+            raise AppLookupError(this, label)
+        return this
 
-    def load(self, label, module):
+    def set(self, label=False, thing=False, key=False):
         '''
-        load branch or get from appspace
+        add thing to appspace
 
-        @param label: get or branch label
-        @param module: module path
+        @param label: new appspace thing label (default: False)
+        @param key: key label (default: False)
+        @param thing: new appspace thing (default: False)
         '''
-        # register branch appspace from include
-        if isinstance(module, tuple):
-            app = lazy_import(module[-1], self._label)
-        # register get
-        else:
-            app = lazy_import(module)
-        key = self._key
-        self.register([key], key, label, app)
-        return app
+        thing = self._lazy(thing)
+        key = self.namespace(key) if key else self._key
+        self.register([key], key, self.safename(label), thing)
+        return thing
 
-    def set(self, label, app):
+    @classmethod
+    def slugify(cls, value):
         '''
-        register branch or get in appspace
-
-        @param label: appspace label
-        @param get: get to add to appspace
+        normalizes string, converts to lowercase, removes non-alpha characters,
+        and converts spaces to hyphens
         '''
-        if isinstance(app, (string_types, tuple)):
-            app = LazyApp(app)
-        key = self._key
-        self.register([key], key, label, app)
-        return app
+        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+        return cls._second('-', u(cls._first('', value).strip().lower()))
 
 
-@appifies(ALazyApp)
-class LazyApp(object):
+@appifies(AManager)
+class Manager(RootMixin, Registry):
 
-    '''lazy get loader'''
+    '''state manager'''
 
-    __slots__ = ['path']
-
-    def __init__(self, path):
-        '''
-        init
-
-        @param path: path to component module
-        '''
-        self.path = path
-
-    def __repr__(self):
-        return 'app@{path}'.format(path=self.path)
+    __slots__ = ('_current', '_root', '_key', '_first', '_second')
 
 
-iskeyed = Manager.iskeyed
+@appifies(AManager)
+class StrictManager(RootMixin, StrictRegistry):
+
+    '''strict manager'''
+
+    __slots__ = ('_current', '_root', '_key', '_first', '_second')
+
+
+keyed = Manager.keyed

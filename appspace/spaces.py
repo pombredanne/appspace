@@ -1,114 +1,110 @@
 # -*- coding: utf-8 -*-
 '''appspace spaces'''
 
-from __future__ import unicode_literals
+from functools import partial
+from itertools import starmap
 
-from collections import deque
+from stuf.six import items, strings
+from stuf.utils import selfname, exhaust, twoway
 
-from stuf.utils import selfname
-from six import iteritems, string_types
-
-from appspace.keys import ABranch, ANamespace
-from appspace.managers import Manager, appifies
+from appspace.utils import lazyimport
+from appspace.managers import Manager, StrictManager
+from appspace.keys import ABranch, ANamespace, AApp, ifilter, appifies
 
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')
 
 
-class Patterns(object):
+class _Filter(object):
+
+    @classmethod
+    def _filter(self, x):
+        return not x[0].startswith('_')
+
+
+class Patterns(_Filter):
 
     '''patterns for manager configured by class'''
 
-    _manager = Manager
+    key = AApp
+    strict = False
 
-    def __repr__(self):
-        return str(self._gather())
-
-    @classmethod
-    def _gather(cls):
-        this = deque()
-        tappend = this.append
-        textend = this.extend
-        # filters
-        anamespace = ANamespace.implementedBy
-        branch = ABranch.implementedBy
-        for k, v in iteritems(vars(cls)):
-            # filter private and hidden
-            if not k.startswith('_'):
-                # handle namespace
-                if anamespace(v):
-                    textend(i for i in v.build())
-                # handle branches
-                elif branch(v):
-                    textend(v.build())
-                # handle anything else
-                else:
-                    tappend((k, v))
-        return this
+    @twoway
+    def _manager(self):
+        '''manager class'''
+        return StrictManager if self.strict else Manager
 
     @classmethod
     def build(cls):
         '''build manager configuration from class'''
-        this = deque()
-        tappend = this.append
-        textend = this.extend
-        # filters
-        anamespace = ANamespace.implementedBy
-        branch = ABranch.implementedBy
-        for k, v in iteritems(vars(cls)):
-            # filter private and hidden
-            if not k.startswith('_'):
-                # handle namespace
-                if anamespace(v):
-                    textend(i for i in v.build())
-                # handle branches
-                elif branch(v):
-                    textend(v.build())
-                # handle anything else
-                else:
-                    tappend((k, v))
-        # build configuration
-        return cls.patterns(selfname(cls), *tuple(cls._gather()))
+        l = selfname(cls)
+        # set key
+        key = cls.key
+        if isinstance(key, strings):
+            # load key if string
+            key = lazyimport(key)
+        manager = cls._manager(l, key)  # pylint: disable-msg=e1121
+        b = partial(manager.keyed, ABranch)
+        n = partial(manager.keyed, ANamespace)
+        m = manager.set
+        t = lambda x, y: y.build(manager) if (n(y) or b(y)) else m(x, y, l)
+        t2 = cls._filter
+        exhaust(starmap(t, ifilter(t2, items(vars(cls)))))
+        return manager
 
     @staticmethod
-    def factory(label, manager, *args, **kw):
+    def factory(label, manager, *args):
         '''
         factory for manager
 
         @param label: label for manager
         '''
         # build manager
-        manager = manager(kw.get('module', 'appconf'))
-        # register apps in manager
-        apper = manager.set
-        # add applications
-        [apper(*arg) for arg in args]  # pylint: disable-msg=W0106
-        apper(label, manager)
+        manager = manager(label)
+        mset = manager.set
+        # register things in manager
+        exhaust(starmap(mset, iter(args)))
         return manager
 
     @classmethod
-    def patterns(cls, label, *args, **kw):
+    def patterns(cls, label, *args):
         '''
         configure appspace
 
         @param label: name of branch appspace
         @param *args: tuple of module paths or component inclusions
         '''
-        return cls.factory(label, cls._manager, *args, **kw)
+        return cls.factory(label, cls._manager, *args)
 
 
-@appifies(ABranch)
-class Branch(object):
+class _PatternMixin(_Filter):
+
+    @classmethod
+    def _key(cls, label, manager):
+        try:
+            # lazily load key
+            key = cls.key
+            if isinstance(key, strings):
+                key = lazyimport(key)
+            # register class key
+            manager.ez_register(ANamespace, label, key)
+        except AttributeError:
+            key = manager.key(ANamespace, label)
+
+
+@appifies(ANamespace)
+class Branch(_PatternMixin):
 
     '''branch configuration'''
 
     @classmethod
-    def build(cls):
+    def build(cls, manager):
         '''gather branch configuration'''
-        inc = cls.include
-        return [
-            (k, inc(v)) for k, v in iteritems(vars(cls))
-            if all([not k.startswith('_'), isinstance(v, string_types)])
-        ]
+        cls._key(selfname(cls), manager)
+        i = cls.include
+        m = manager.set
+        t = lambda x: not x[0].startswith('_') or isinstance(x[1], strings)
+        t2 = lambda x, y: m(x, i(y))
+        exhaust(starmap(t2, ifilter(t, items(vars(cls)))))
 
     @staticmethod
     def include(module):
@@ -121,32 +117,20 @@ class Branch(object):
 
 
 @appifies(ANamespace)
-class Namespace(object):
+class Namespace(_PatternMixin):
 
     '''configuration namespace'''
 
     @classmethod
-    def _pack(cls, this, that):
-        '''build name'''
-        return ('.'.join([selfname(cls), this]), that)
-
-    @classmethod
-    def build(cls):
+    def build(cls, manager):
         '''gather namespace configuration'''
-        this = deque()
-        tappend = this.append
-        textend = this.extend
-        # filters
-        anamespace = ANamespace.implementedBy
-        pack = cls._pack
-        for k, v in iteritems(vars(cls)):
-            if not k.startswith('_'):
-                # handle namespaces
-                if anamespace(v):
-                    textend(pack(*i) for i in v.build())
-                else:
-                    tappend(pack(k, v))
-        return this
+        label = selfname(cls)
+        cls._key(label, manager)
+        m = manager.set
+        n = partial(manager.keyed, ANamespace)
+        t = lambda k, v: v.build(manager) if n(v) else m(k, v, label)
+        t2 = cls._filter
+        exhaust(starmap(t, ifilter(t2, items(vars(cls)))))
 
 
 factory = Patterns.factory

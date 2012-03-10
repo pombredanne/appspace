@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
 #@PydevCodeAnalysisIgnore
-# pylint: disable-msg=f0401,e0213,e0211
 '''appspace keys'''
-
-from __future__ import unicode_literals
 
 from inspect import ismodule
 
-from six import iteritems
-from zope.interface.adapter import AdapterRegistry
+from stuf.six import items
+# pylint: disable-msg=f0401
+from stuf.six.moves import filter, map
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implementer, directlyProvides, providedBy
+from zope.interface.adapter import AdapterRegistry, VerifyingAdapterRegistry
+# pylint: enable-msg=f0401
 
 AppStore = AdapterRegistry
+StrictAppStore = VerifyingAdapterRegistry
 apped = directlyProvides
 appifies = implementer
 get_apps = providedBy
+ifilter = filter
+imap = map
 # primary key
 AppspaceKey = InterfaceClass('AppspaceKey')
 # app lookup exception
@@ -28,6 +31,7 @@ class AApp(AppspaceKey):
     '''app key'''
 
 
+# pylint: disable-msg=e0213
 class AAppspace(AppspaceKey):
 
     '''appspace key'''
@@ -36,9 +40,6 @@ class AAppspace(AppspaceKey):
 
     def __call__(label, *args, **kw):
         '''@param label: label of app in appspace'''
-
-    def __contains__(label):
-        '''membership check'''
 
     def __getattr__(label):
         '''get attribute'''
@@ -51,11 +52,13 @@ class ABranch(AppspaceKey):
 
     '''branch key'''
 
+# pylint: disable-msg=e0211
     def build():
         '''build appspace'''
+# pylint: enable-msg=e0211
 
 
-class ALazyApp(AApp):
+class ALazyLoad(AApp):
 
     '''lazy app key'''
 
@@ -65,35 +68,62 @@ class ALazyApp(AApp):
 class AManager(AppspaceKey):
 
     '''appspace key'''
-
-    events = Attribute('event handler')
-    settings = Attribute('settings for an appspace')
-
-    def __contains__(label):
-        '''membership check'''
-
-    def get(label):
+    
+    def apply(label, key=False, *args, **kw):
         '''
-        fetch instance
+        invoke appspaced callable
 
-        @param label: instance or branch label
+        @param label: appspaced callable
+        @param key: key label (default: False)
         '''
 
-    def load(label, module_path):
+    def get(label, key=False):
         '''
-        load branch or instance from appspace
+        get thing from appspace
 
-        @param label: instance or branch label
-        @param module_path: Python module path
+        @param label: appspaced thing label
+        @param key: appspace key (default: False)
         '''
 
-    def set(label, instance):
+    def load(label, key, module):
         '''
-        register branches or components in appspace
+        import thing into appspace
 
-        @param label: appspace label
-        @param instance: instance to add to appspace
+        @param label: appspaced thing label
+        @param key: appspace key
+        @param module: module path
         '''
+        
+    def namespace(label):
+        '''
+        fetch key
+
+        @param label: appspace key label
+        '''
+        
+    def partial(call, key=False, *args, **kw):
+        '''
+        partialize callable or appspaced application with any passed parameters
+
+        @param call: callable or appspaced object label
+        @param key: appspace key label (default: False)
+        '''
+        
+    def set(label=False, thing=False, key=False):
+        '''
+        add thing to appspace
+
+        @param label: new appspace thing label (default: False)
+        @param key: key label (default: False)
+        @param thing: new appspace thing (default: False)
+        '''
+        
+    def slugify(value):
+        '''
+        normalizes string, converts to lowercase, removes non-alpha characters,
+        and converts spaces to hyphens
+        '''
+# pylint: enable-msg=e0213
 
 
 class ANamespace(AppspaceKey):
@@ -116,8 +146,7 @@ class NoAppError(Exception):
     '''mo application found exception'''
     
     
-__all__ = sorted(name for name, obj in iteritems(locals()) if not any([
+__all__ = sorted(name for name, obj in items(locals()) if not any([
     name.startswith('_'), ismodule(obj),
 ]))
-
 del ismodule

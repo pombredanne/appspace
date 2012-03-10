@@ -1,24 +1,23 @@
 # -*- coding: utf-8 -*-
 '''appspace utilities'''
 
-from __future__ import unicode_literals
-
 from keyword import iskeyword
 
-from six import string_types
 from importlib import import_module
 
-__all__ = ('checkname', 'lazy_import')
+from stuf.six import strings
+
+__all__ = ('checkname', 'lazyimport')
 
 
-def lazy_import(path, attribute=None):
+def lazyimport(path, attribute=None):
     '''
     deferred module loader
 
     @param path: something to load
     @param attribute: attribute on loaded module to return
     '''
-    if isinstance(path, string_types):
+    if isinstance(path, strings):
         try:
             dot = path.rindex('.')
             # import module

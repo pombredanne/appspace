@@ -48,3 +48,8 @@ module when passed to 'include' e.g. 'module.path.apps' instead of 'module.path'
 - class based configuration
 - remove lru_cache, global appspace
 - consolidated exceptions with keys
+
+0.5.1
+
+- split out registry
+- more flexible key assignment

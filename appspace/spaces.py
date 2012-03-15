@@ -47,7 +47,7 @@ class Patterns(_Filter):
         n = partial(manager.keyed, ANamespace)
         m = manager.set
         t = lambda x, y: y.build(manager) if (n(y) or b(y)) else m(y, x, l)
-        exhaustmap(vars(cls), cls._filter, t)
+        exhaustmap(vars(cls), t, cls._filter)
         return manager
 
     @staticmethod
@@ -101,7 +101,7 @@ class Branch(_PatternMixin):
         i = cls.include
         m = manager.set
         t = lambda x: not x[0].startswith('_') or isinstance(x[1], strings)
-        exhaustmap(vars(cls), t, lambda x, y: m(i(y), x))
+        exhaustmap(vars(cls), lambda x, y: m(i(y), x), t)
 
     @staticmethod
     def include(module):
@@ -126,7 +126,7 @@ class Namespace(_PatternMixin):
         m = manager.set
         n = partial(manager.keyed, ANamespace)
         t = lambda k, v: v.build(manager) if n(v) else m(v, k, label)
-        exhaustmap(vars(cls), cls._filter, t)
+        exhaustmap(vars(cls), t, cls._filter)
 
 
 factory = Patterns.factory

@@ -53,3 +53,7 @@ module when passed to 'include' e.g. 'module.path.apps' instead of 'module.path'
 
 - split out registry
 - more flexible key assignment
+
+0.5.2
+
+- exhaustmap usage

@@ -2,9 +2,6 @@
 #@PydevCodeAnalysisIgnore
 '''appspace keys'''
 
-from inspect import ismodule
-
-from stuf.six import items
 # pylint: disable-msg=f0401
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
@@ -141,9 +138,3 @@ class NoAppspaceError(Exception):
 class NoAppError(Exception):
 
     '''mo application found exception'''
-    
-    
-__all__ = sorted(name for name, obj in items(locals()) if not any([
-    name.startswith('_'), ismodule(obj),
-]))
-del ismodule

@@ -181,7 +181,11 @@ class Registry(RegistryMixin, AppStore):
 
     '''easy registry'''
 
+    __slots__ = ('_current', '_root', '_key')
+
 
 class StrictRegistry(RegistryMixin, StrictAppStore):
 
     '''strict registry'''
+
+    __slots__ = ('_current', '_root', '_key')

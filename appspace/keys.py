@@ -2,11 +2,7 @@
 #@PydevCodeAnalysisIgnore
 '''appspace keys'''
 
-from inspect import ismodule
-
-from stuf.six import items
 # pylint: disable-msg=f0401
-from stuf.six.moves import filter, map
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interface import InterfaceClass, Attribute
 from zope.interface import implementer, directlyProvides, providedBy
@@ -18,8 +14,6 @@ StrictAppStore = VerifyingAdapterRegistry
 apped = directlyProvides
 appifies = implementer
 get_apps = providedBy
-ifilter = filter
-imap = map
 # primary key
 AppspaceKey = InterfaceClass('AppspaceKey')
 # app lookup exception
@@ -144,9 +138,3 @@ class NoAppspaceError(Exception):
 class NoAppError(Exception):
 
     '''mo application found exception'''
-    
-    
-__all__ = sorted(name for name, obj in items(locals()) if not any([
-    name.startswith('_'), ismodule(obj),
-]))
-del ismodule

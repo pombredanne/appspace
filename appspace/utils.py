@@ -32,7 +32,7 @@ def lazyimport(path, attribute=None):
 
 class CheckName(object):
 
-    '''ensures a string is a legal Python name'''
+    '''ensures string is a legal Python name'''
 
     # Illegal characters for Python names
     ic = '()[]{}@,:`=;+*/%&|^><\'"#\\$?!~'

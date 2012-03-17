@@ -4,12 +4,12 @@
 from functools import partial
 from itertools import starmap
 
-from stuf.six import items, strings
-from stuf.utils import selfname, exhaust, twoway
+from stuf.six import strings
+from stuf.utils import selfname, exhaust, twoway, exhaustmap
 
 from appspace.utils import lazyimport
 from appspace.managers import Manager, StrictManager
-from appspace.keys import ABranch, ANamespace, AApp, ifilter, appifies
+from appspace.keys import ABranch, ANamespace, AApp, appifies
 
 __all__ = ('Branch', 'Namespace', 'Patterns', 'include', 'patterns')
 
@@ -46,9 +46,8 @@ class Patterns(_Filter):
         b = partial(manager.keyed, ABranch)
         n = partial(manager.keyed, ANamespace)
         m = manager.set
-        t = lambda x, y: y.build(manager) if (n(y) or b(y)) else m(x, y, l)
-        t2 = cls._filter
-        exhaust(starmap(t, ifilter(t2, items(vars(cls)))))
+        t = lambda x, y: y.build(manager) if (n(y) or b(y)) else m(y, x, l)
+        exhaustmap(vars(cls), t, cls._filter)
         return manager
 
     @staticmethod
@@ -60,9 +59,8 @@ class Patterns(_Filter):
         '''
         # build manager
         manager = manager(label)
-        mset = manager.set
         # register things in manager
-        exhaust(starmap(mset, iter(args)))
+        exhaust(starmap(lambda x, y: manager.set(y, x), iter(args)))
         return manager
 
     @classmethod
@@ -103,8 +101,7 @@ class Branch(_PatternMixin):
         i = cls.include
         m = manager.set
         t = lambda x: not x[0].startswith('_') or isinstance(x[1], strings)
-        t2 = lambda x, y: m(x, i(y))
-        exhaust(starmap(t2, ifilter(t, items(vars(cls)))))
+        exhaustmap(vars(cls), lambda x, y: m(i(y), x), t)
 
     @staticmethod
     def include(module):
@@ -128,9 +125,8 @@ class Namespace(_PatternMixin):
         cls._key(label, manager)
         m = manager.set
         n = partial(manager.keyed, ANamespace)
-        t = lambda k, v: v.build(manager) if n(v) else m(k, v, label)
-        t2 = cls._filter
-        exhaust(starmap(t, ifilter(t2, items(vars(cls)))))
+        t = lambda k, v: v.build(manager) if n(v) else m(v, k, label)
+        exhaustmap(vars(cls), t, cls._filter)
 
 
 factory = Patterns.factory

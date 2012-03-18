@@ -6,4 +6,4 @@ from appspace.keys import NoAppError, AppLookupError
 from appspace.builders import patterns, class_patterns
 from appspace.spaces import Branch, Namespace, Patterns, include
 
-__version__ = (0, 5, 2)
+__version__ = (0, 5, 3)

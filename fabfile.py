@@ -4,7 +4,7 @@ from fabric.api import prompt, local, settings, env
 
 
 def _test(val):
-    truth = val in ['py26', 'py27', 'py32']
+    truth = val in ['py26', 'py27', 'py32', 'pypy']
     if truth is False:
         raise KeyError(val)
     return val
@@ -18,7 +18,7 @@ def tox():
 def tox_recreate():
     '''recreate appspace test env'''
     prompt(
-        'Enter testenv: [py26, py27, py32]',
+        'Enter testenv: [py26, py27, py32, pypy]',
         'testenv',
         validate=_test,
     )

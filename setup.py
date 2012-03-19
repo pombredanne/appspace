@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-'''setup for appspace'''
+'''setup appspace'''
 
 import os
 import sys
@@ -9,15 +9,13 @@ try:
 except ImportError:
     from distutils.core import setup
 
-install_requires = [
-    'zope.interface>=3.8.0', 'stuf>=0.8.7', 'distribute>=0.6.25',
-]
+install_requires = ['zope.interface>=3.8.0', 'stuf>=0.8.8']
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
-    install_requires.extend(['importlib', 'ordereddict', 'unittest2'])
+    install_requires.extend(['importlib'])
 
 setup(
     name='appspace',
-    version='0.5.2',
+    version='0.5.3',
     description='easy application construction with easy building blocks',
     long_description=open(os.path.join(os.getcwd(), 'README.rst'), 'r').read(),
     author='L. C. Rees',
@@ -38,6 +36,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development',

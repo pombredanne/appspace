@@ -12,3 +12,5 @@ __pycache__
 .pydevproject
 .git/
 .settings/
+syntax: glob
+.tox/*

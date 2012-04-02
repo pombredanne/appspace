@@ -57,3 +57,7 @@ module when passed to 'include' e.g. 'module.path.apps' instead of 'module.path'
 0.5.2
 
 - exhaustmap usage
+
+0.5.4
+
+- setup infrastructure

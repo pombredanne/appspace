@@ -26,12 +26,12 @@ class LazyLoad(object):
         '''
         init
 
-        @param path: path to component module
+        @param path: path to component
         '''
         self.path = path
 
     def __repr__(self):
-        return 'lazy import from {path}'.format(path=self.path)
+        return 'lazy import from {}'.format(self.path)
 
 
 class RegistryMixin(object):

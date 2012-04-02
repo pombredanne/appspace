@@ -5,7 +5,7 @@ from functools import partial
 from itertools import starmap
 
 from stuf.six import strings
-from stuf.utils import selfname, exhaust, twoway, exhaustmap
+from stuf.utils import selfname, exhaust, exhaustmap, twoway
 
 from appspace.utils import lazyimport
 from appspace.managers import Manager, StrictManager
@@ -44,8 +44,7 @@ class Patterns(_Filter):
             key = lazyimport(key)
         manager = cls._manager(l, key)  # pylint: disable-msg=e1121
         b = partial(manager.keyed, ABranch)
-        n = partial(manager.keyed, ANamespace)
-        m = manager.set
+        m, n = manager.set, partial(manager.keyed, ANamespace)
         t = lambda x, y: y.build(manager) if (n(y) or b(y)) else m(y, x, l)
         exhaustmap(vars(cls), t, cls._filter)
         return manager
@@ -98,8 +97,7 @@ class Branch(_PatternMixin):
     def build(cls, manager):
         '''gather branch configuration'''
         cls._key(selfname(cls), manager)
-        i = cls.include
-        m = manager.set
+        i, m = cls.include, manager.set
         t = lambda x: not x[0].startswith('_') or isinstance(x[1], strings)
         exhaustmap(vars(cls), lambda x, y: m(i(y), x), t)
 
@@ -123,8 +121,7 @@ class Namespace(_PatternMixin):
         '''gather namespace configuration'''
         label = selfname(cls)
         cls._key(label, manager)
-        m = manager.set
-        n = partial(manager.keyed, ANamespace)
+        m, n = manager.set, partial(manager.keyed, ANamespace)
         t = lambda k, v: v.build(manager) if n(v) else m(v, k, label)
         exhaustmap(vars(cls), t, cls._filter)
 

@@ -1,15 +1,18 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
-'''setup appspace'''
+'''setup for appspace'''
 
-import os
 import sys
-
+from os import getcwd
+from os.path import join
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
-install_requires = ['zope.interface>=3.8.0', 'stuf>=0.8.8']
+install_requires = list(l for l in open(
+    join(getcwd(), 'requirements.txt'), 'r',
+).readlines())
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
     install_requires.extend(['importlib'])
 
@@ -17,30 +20,31 @@ setup(
     name='appspace',
     version='0.5.3',
     description='easy application construction with easy building blocks',
-    long_description=open(os.path.join(os.getcwd(), 'README.rst'), 'r').read(),
+    long_description=open(join(getcwd(), 'README.rst'), 'r').read(),
+    keywords='component architecture injection aspect-oriented',
+    license='BSD',
     author='L. C. Rees',
     author_email='lcrees@gmail.com',
-    license='MIT',
     url='https://bitbucket.org/lcrees/appspace',
     packages=['appspace'],
     test_suite='appspace.tests',
     zip_safe=False,
-    keywords='component architecture injection aspect-oriented',
+    install_requires=install_requires,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
-        'Programming Language :: Python',
-        'Topic :: Software Development :: Libraries',
         'Topic :: Software Development',
+        'Topic :: Software Development :: Libraries',
         'Topic :: Utilities',
     ],
-    install_requires=install_requires,
 )

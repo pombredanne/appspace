@@ -2,7 +2,7 @@
 '''appspace management'''
 
 import re
-import unicodedata
+from unicodedata import normalize
 
 from stuf.six import u
 
@@ -12,7 +12,7 @@ from appspace.keys import AManager, ANamespace, AppLookupError, appifies
 __all__ = ('Manager', 'StrictManager')
 
 
-class RootMixin(object):
+class ManagerMixin(object):
 
     '''state manager'''
 
@@ -72,24 +72,25 @@ class RootMixin(object):
         normalizes string, converts to lowercase, removes non-alpha characters,
         and converts spaces to hyphens
         '''
-        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-        return cls._second('-', u(cls._first('', value).strip().lower()))
+        return cls._second('-', u(cls._first(
+            '', normalize('NFKD', value).encode('ascii', 'ignore')
+        ).strip().lower()))
 
 
 @appifies(AManager)
-class Manager(RootMixin, Registry):
+class Manager(ManagerMixin, Registry):
 
     '''state manager'''
 
-    __slots__ = ('_current', '_root', '_key', '_first', '_second')
+    __slots__ = ('_current', '_root', '_key')
 
 
 @appifies(AManager)
-class StrictManager(RootMixin, StrictRegistry):
+class StrictManager(ManagerMixin, StrictRegistry):
 
     '''strict manager'''
 
-    __slots__ = ('_current', '_root', '_key', '_first', '_second')
+    __slots__ = ('_current', '_root', '_key')
 
 
 keyed = Manager.keyed

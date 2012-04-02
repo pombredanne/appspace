@@ -18,7 +18,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 7:
 
 setup(
     name='appspace',
-    version='0.5.3',
+    version='0.5.4',
     description='easy application construction with easy building blocks',
     long_description=open(join(getcwd(), 'README.rst'), 'r').read(),
     keywords='component architecture injection aspect-oriented',

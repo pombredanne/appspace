@@ -9,8 +9,6 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-    
-from appspace import __version__
 
 install_requires = list(l for l in open(
     join(getcwd(), 'requirements.txt'), 'r',
@@ -20,9 +18,9 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 7:
 
 setup(
     name='appspace',
-    version='{}.{}.{}'.format(*__version__),
+    version='0.5.3',
     description='easy application construction with easy building blocks',
-    long_description=open(os.path.join(os.getcwd(), 'README.rst'), 'r').read(),
+    long_description=open(join(getcwd(), 'README.rst'), 'r').read(),
     keywords='component architecture injection aspect-oriented',
     license='BSD',
     author='L. C. Rees',
